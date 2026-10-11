@@ -13,9 +13,9 @@ Web app statica che comprime i PDF nel browser ricomprimendo le immagini. Nessun
 | `vendor/` | pdf-lib e JSZip, copiati così come sono: non modificarli |
 | `tools/` | Strumenti di sviluppo (controlli, prova nel browser, icone) |
 | `.claude/` | Skill e agenti descritti sotto |
-| `docs/` | Architettura e guida al lavoro con gli agenti |
+| `docs/` | Requisiti, architettura e guida al lavoro con gli agenti |
 
-Dettagli sul funzionamento: `docs/ARCHITETTURA.md`.
+Cosa deve fare l'app: `docs/REQUISITI.md`. Come è fatta: `docs/ARCHITETTURA.md`.
 
 ## Smistamento: a chi tocca cosa
 
@@ -39,6 +39,7 @@ Se una richiesta tocca più righe, fai una cosa alla volta e chiudi sempre con `
 - **I file dell'utente non lasciano il dispositivo.** Nessuna chiamata di rete con contenuti o nomi dei file, nessuna telemetria.
 - **Gli originali non si toccano** se non dopo la conferma esplicita già prevista (pulsante «Sovrascrivi gli originali»).
 - **La mascotte ha una sola fonte**, `tools/mascot.mjs`. Non ritoccare a mano gli SVG dentro `index.html` o in `icons/`: si rigenerano.
+- **La documentazione si aggiorna insieme al codice.** Ogni requisito, correzione o miglioria chiesta dal proprietario va riportata in `docs/REQUISITI.md` nello stesso commit, e con lei `docs/ARCHITETTURA.md`, il README e le skill toccate dal cambiamento. Prima di cambiare un comportamento, leggi cosa dice `docs/REQUISITI.md`.
 - **I tag non si creano a mano**: basta cambiare `VERSION` (vedi skill `rilascio`).
 - I percorsi nel sito sono relativi (l'app vive sotto `/pdf-tiny-tools/`).
 - Commit e documentazione in italiano.

@@ -122,6 +122,22 @@ h1 span{color:var(--sun)}
   .tray .btn{flex:1 1 150px;text-align:center;font-size:21px;padding:14px 16px}
 }
 .snd{padding:5px 9px;line-height:0}
+/* finestre di dialogo: conferme e scelta di prefisso o suffisso */
+.modal{position:fixed;inset:0;z-index:18;display:grid;place-items:center;padding:16px;background:color-mix(in srgb,var(--ink) 55%,transparent)}
+.modalBox{width:min(480px,100%);max-height:100%;overflow:auto}
+.modalBox h2{font-size:26px;line-height:1.1;margin-bottom:10px}
+#modalBody p{margin:0 0 12px}
+#modalBtns{justify-content:flex-end;margin-top:18px}
+.seg{display:flex;border:var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.seg button{flex:1;font-family:var(--display);font-size:19px;color:var(--ink);background:#fff;border:0;padding:8px 10px;cursor:pointer}
+.seg button+button{border-inline-start:var(--line)}
+.seg button[aria-pressed="true"]{background:var(--grape);color:var(--paper)}
+.seg button:focus-visible{outline:4px solid var(--sun);outline-offset:-4px}
+.field{display:block;font-weight:700}
+.field input{display:block;width:100%;margin-top:6px;font:inherit;color:var(--ink);background:#fff;border:var(--line);border-radius:12px;padding:8px 12px}
+.field input:focus-visible{outline:4px solid var(--grape);outline-offset:2px}
+.preview{font-size:15px;color:var(--muted);overflow-wrap:anywhere;margin:10px 0 0!important}
+.fieldErr{color:#b3170c;font-weight:700;margin:8px 0 0!important}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:15;margin:0;max-width:calc(100% - 32px);background:var(--ink);color:var(--paper);font-weight:700;border-radius:999px;padding:8px 18px;box-shadow:3px 3px 0 var(--grape)}
 .snd svg{width:24px;height:24px;display:block}
 .snd .off,.snd .on{display:none}
@@ -231,17 +247,11 @@ details p{margin:8px 0 0;max-width:65ch}
     </ul>
     <div class="total" id="total" hidden>
       <strong id="saved"></strong>
-      <div class="btns">
-        <button class="btn ok" type="button" id="saveDir" hidden>Salva in «compressi»</button>
-        <button class="btn danger" type="button" id="overBtn" hidden data-i18n="overBtn">Sovrascrivi gli originali</button>
-        <button class="btn ok" type="button" id="saveZip" data-i18n="saveZip">Salva tutti (ZIP)</button>
-      </div>
-    </div>
-    <div class="sure" id="sure" hidden>
-      <p id="sureTxt"></p>
-      <div class="btns">
-        <button class="btn danger" type="button" id="sureYes" data-i18n="sureYes">Sì, sovrascrivi</button>
-        <button class="btn alt" type="button" id="sureNo" data-i18n="cancel">Annulla</button>
+      <div class="btns saveBtns">
+        <button class="btn ok" type="button" id="saveAs" data-i18n="saveAs">Salva con nome…</button>
+        <button class="btn ok" type="button" id="saveElse">Salva in un'altra cartella</button>
+        <button class="btn ok" type="button" id="saveBeside" data-i18n="saveBeside">Salva accanto agli originali</button>
+        <button class="btn danger" type="button" id="overBtn">Sovrascrivi gli originali</button>
       </div>
     </div>
     <p class="hint" id="noWrite" hidden data-i18n="noWrite">Da qui la cartella si può solo leggere.</p>
@@ -260,6 +270,14 @@ details p{margin:8px 0 0;max-width:65ch}
   <button class="btn alt" type="button" id="loaderCancel" data-i18n="cancel">Annulla</button>
 </div>
 
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+  <div class="panel modalBox">
+    <h2 id="modalTitle"></h2>
+    <div id="modalBody"></div>
+    <div class="btns" id="modalBtns"></div>
+  </div>
+</div>
+
 <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
 
 <script src="i18n.js"></script>
@@ -274,8 +292,7 @@ var $=function(id){return document.getElementById(id)};
 var rowsEl=$("rows"),msgEl=$("msg"),goBtn=$("go"),press=$("press");
 
 /* ---------- lingue ---------- */
-var I=window.I18N||{},ALLDIRS={},lang="it";
-Object.keys(I).forEach(function(k){ALLDIRS[I[k].outDir]=1});
+var I=window.I18N||{},lang="it";
 function pickLang(){
   try{var st=localStorage.getItem("lang");if(st&&I[st])return st}catch(e){}
   var l=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||"en"];
@@ -296,7 +313,6 @@ function applyLang(){
   each("[data-i18n]",function(n){n.textContent=t(n.getAttribute("data-i18n"))});
   each("[data-i18n-html]",function(n){n.innerHTML=t(n.getAttribute("data-i18n-html"))});
   each("[data-i18n-aria]",function(n){n.setAttribute("aria-label",t(n.getAttribute("data-i18n-aria")))});
-  $("saveDir").textContent=t("saveDir",{dir:t("outDir")});
   if($("demoMeta")){$("demoMeta").textContent=fmt(19293798)+" → "+fmt(3250586);$("demoPct").textContent="−"+nf(83)+"%"}
   render();
 }
@@ -325,9 +341,10 @@ async function loaderOff(){
   loading=false;$("loader").hidden=true;$("app").inert=false;
   return cancelLoad;
 }
-function addFile(file,rel,handle){
+/* handle: permette di sovrascrivere il file; dir: la cartella che lo contiene, per salvargli accanto */
+function addFile(file,rel,handle,dir){
   if(!isPdf(file.name)||cancelLoad)return;
-  items.push({id:nextId++,name:file.name,rel:rel||file.name,file:file,size:file.size,status:"wait",pct:0,out:null,note:"",handle:handle||null});
+  items.push({id:nextId++,name:file.name,rel:rel||file.name,file:file,size:file.size,status:"wait",pct:0,out:null,note:"",handle:handle||null,dir:dir||null});
   if(loading)$("loaderN").textContent=t("ready",{n:nf(items.length)});
 }
 function loaded(n){
@@ -337,6 +354,20 @@ function loaded(n){
 }
 function reset(){items=[];rootDir=null;readOnlyDir=false}
 
+/* dove il browser lo permette, i file scelti arrivano con il permesso di riscriverli (serve per «Sovrascrivi») */
+document.querySelector('label[for="pickFiles"]').addEventListener("click",async function(e){
+  if(!window.showOpenFilePicker||busy)return;
+  e.preventDefault();
+  try{
+    var hs=await window.showOpenFilePicker({multiple:true,types:[{description:"PDF",accept:{"application/pdf":[".pdf"]}}]});
+    reset();
+    for(var i=0;i<hs.length;i++)addFile(await hs[i].getFile(),null,hs[i]);
+    loaded(items.length);
+  }catch(err){
+    if(err&&err.name==="AbortError")return;
+    $("pickFiles").click();
+  }
+});
 $("pickFiles").addEventListener("change",function(e){
   var fs=Array.from(e.target.files||[]);
   e.target.value="";
@@ -350,7 +381,7 @@ $("pickDirInput").addEventListener("change",function(e){
   fs.forEach(function(f){
     var rel=(f.webkitRelativePath||f.name).split("/").slice(1).join("/")||f.name;
     var parts=rel.split("/");
-    if(parts.length-1<=MAXDEPTH&&!parts.some(function(x){return ALLDIRS[x]||x.charAt(0)==="."}))addFile(f,rel);
+    if(parts.length-1<=MAXDEPTH&&!parts.some(function(x){return x.charAt(0)==="."}))addFile(f,rel);
   });
   readOnlyDir=true;
   e.target.value="";loaded(items.length);
@@ -365,8 +396,8 @@ async function walkHandle(dir,prefix,depth){
     var entry=list[i];
     try{
       if(entry.kind==="file"){
-        if(isPdf(entry.name))addFile(await entry.getFile(),prefix+entry.name,entry);
-      }else if(entry.kind==="directory"&&depth<MAXDEPTH&&!ALLDIRS[entry.name]&&entry.name.charAt(0)!=="."){
+        if(isPdf(entry.name))addFile(await entry.getFile(),prefix+entry.name,entry,dir);
+      }else if(entry.kind==="directory"&&depth<MAXDEPTH&&entry.name.charAt(0)!=="."){
         await walkHandle(entry,prefix+entry.name+"/",depth+1);
       }
     }catch(err){}
@@ -403,7 +434,7 @@ async function walkEntry(entry,prefix,depth){
         var f=await new Promise(function(res){entry.file(res,function(){res(null)})});
         if(f)addFile(f,prefix+entry.name);
       }
-    }else if(entry.isDirectory&&depth<=MAXDEPTH&&!ALLDIRS[entry.name]&&entry.name.charAt(0)!=="."){
+    }else if(entry.isDirectory&&depth<=MAXDEPTH&&entry.name.charAt(0)!=="."){
       var kids=await readAll(entry.createReader());
       for(var i=0;i<kids.length;i++)await walkEntry(kids[i],prefix+entry.name+"/",depth+1);
     }
@@ -458,9 +489,6 @@ function render(){
     if(it.status==="over")side.appendChild(el("span","badge",t("replaced")));
     if(it.status==="done"){
       side.appendChild(el("span","badge","−"+nf(Math.round((1-it.out.size/it.size)*100))+"%"));
-      var b=el("button","btn sm ok",t("save"));b.type="button";
-      b.addEventListener("click",function(){saveOne(it)});
-      side.appendChild(b);
       done++;inB+=it.size;outB+=it.out.size;
     }
     li.appendChild(side);
@@ -472,12 +500,16 @@ function render(){
   $("total").hidden=!done||busy;
   if(done){
     $("saved").textContent=t("total",{size:fmt(inB-outB),pct:nf(Math.round((1-outB/inB)*100))});
-    $("saveDir").hidden=!rootDir;
-    $("saveZip").hidden=done<2;
-    $("overBtn").hidden=!rootDir;
-  }
-  if(!done||busy)$("sure").hidden=true;
-  $("noWrite").hidden=!(readOnlyDir&&done);
+    /* un file solo: salva con nome o sovrascrivi. Più file: altra cartella (o ZIP), accanto agli originali, sovrascrivi. */
+    var one=items.length===1,ready=doneItems();
+    var canOver=ready.every(function(x){return x.handle});
+    var canBeside=canDir&&ready.every(function(x){return x.dir});
+    $("saveAs").hidden=!one;
+    $("saveElse").hidden=one;$("saveElse").textContent=t(canDir?"saveElsewhere":"saveZip");
+    $("saveBeside").hidden=one;$("saveBeside").disabled=!canBeside;
+    $("overBtn").textContent=t(one?"overOne":"overBtn");$("overBtn").disabled=!canOver;
+    $("noWrite").hidden=canOver&&(one||canBeside);
+  }else $("noWrite").hidden=true;
 }
 
 /* ---------- motore ---------- */
@@ -601,20 +633,14 @@ goBtn.addEventListener("click",async function(){
 });
 
 /* ---------- salvataggio ---------- */
+var canDir=!!window.showDirectoryPicker,savedAs="",BADCHARS='/ \\ : * ? " < > |';
+function doneItems(){return items.filter(function(x){return x.status==="done"})}
+function plainItems(){return items.filter(function(x){return x.status==="same"||x.status==="err"})}
 function outName(it){return it.name.replace(/\.pdf$/i,"")+t("suffix")+".pdf"}
-var savedAs="";
+
+/* un file verso il sistema: finestra «salva con nome» dove c'è, altrimenti download */
 async function saveBlob(filename,blob){
   savedAs=filename;
-  if(window.claude&&window.claude.use){
-    var dl=await window.claude.use("downloads");
-    if(!dl){say(t("noSave"),true);return false}
-    try{await dl.save({filename:filename,data:blob});return true}
-    catch(e){
-      var c=e&&e.code;
-      say(t(c==="declined"?"cancelled":c==="rate_limited"?"pending":c==="too_large"?"tooLarge":"failed"),true);
-      return false;
-    }
-  }
   if(window.showSaveFilePicker){
     try{
       var zip=/\.zip$/i.test(filename);
@@ -630,63 +656,151 @@ async function saveBlob(filename,blob){
   setTimeout(function(){URL.revokeObjectURL(u)},4000);
   return true;
 }
-async function saveOne(it){
-  if(!await saveBlob(outName(it),it.out))return;
-  say(t("saved",{name:savedAs}));
-  /* con un solo file il salvataggio è già «tutto»: festa. Con tanti, la festa è per i salvataggi in blocco. */
-  if(items.filter(function(x){return x.status==="done"}).length===1)music.festa();
+
+/* finestra di dialogo: restituisce il valore del pulsante scelto, null se annullata (anche con Esc) */
+function ask(o){
+  return new Promise(function(res){
+    var m=$("modal"),body=$("modalBody"),bar=$("modalBtns");
+    $("modalTitle").textContent=o.title;body.textContent="";bar.textContent="";
+    if(o.text)body.appendChild(el("p",null,o.text));
+    if(o.body)body.appendChild(o.body);
+    function close(v){m.hidden=true;$("app").inert=false;window.removeEventListener("keydown",onKey,true);res(v)}
+    function onKey(e){if(e.key==="Escape"){e.preventDefault();close(null)}}
+    o.buttons.concat([{label:t("cancel"),cls:"alt",value:null}]).forEach(function(b){
+      var x=el("button","btn "+(b.cls||""),b.label);x.type="button";
+      x.addEventListener("click",function(){if(b.check&&!b.check())return;close(b.value)});
+      bar.appendChild(x);
+    });
+    m.hidden=false;$("app").inert=true;window.addEventListener("keydown",onKey,true);
+    var f=m.querySelector("input")||bar.lastChild;if(f)f.focus();
+  });
 }
 
-$("saveZip").addEventListener("click",async function(){
-  var done=items.filter(function(x){return x.status==="done"});
+async function dirFor(root,rel){
+  var parts=rel.split("/"),d=root;
+  for(var j=0;j<parts.length-1;j++)d=await d.getDirectoryHandle(parts[j],{create:true});
+  return d;
+}
+async function existsAt(root,rel){
+  try{
+    var parts=rel.split("/"),d=root;
+    for(var j=0;j<parts.length-1;j++)d=await d.getDirectoryHandle(parts[j]);
+    await d.getFileHandle(parts[parts.length-1]);return true;
+  }catch(e){return false}
+}
+/* scrive i lavori {blob, target(), after()} mostrando i fogli che tornano nello schedario; si può annullare tra un file e l'altro */
+async function writeJobs(jobs,titleKey){
+  var n=0;say("");loaderOn("back",t(titleKey,{i:nf(1),n:nf(jobs.length)}));
+  try{
+    for(var i=0;i<jobs.length&&!cancelLoad;i++){
+      $("loaderTitle").textContent=t(titleKey,{i:nf(i+1),n:nf(jobs.length)});
+      var fh=await jobs[i].target(),w=await fh.createWritable();
+      await w.write(jobs[i].blob);await w.close();
+      if(jobs[i].after)await jobs[i].after(fh);
+      n++;
+    }
+  }catch(e){await loaderOff();return {n:n,ok:false}}
+  await loaderOff();
+  return {n:n,ok:n===jobs.length};
+}
+/* prima di scrivere in una cartella: se qualche file esiste già, lo dice e chiede */
+async function okToReplace(hits){
+  if(!hits)return true;
+  return !!(await ask({title:t("existTitle",{n:nf(hits)}),text:t("existBody"),buttons:[{label:t("replace"),cls:"danger",value:1}]}));
+}
+
+/* un solo file: salva con nome */
+$("saveAs").addEventListener("click",async function(){
+  var it=doneItems()[0];if(!it)return;
+  if(await saveBlob(outName(it),it.out)){say(t("saved",{name:savedAs}));music.festa()}
+});
+
+/* più file: un'altra cartella con la stessa struttura; dove le cartelle non si possono scrivere, uno ZIP */
+$("saveElse").addEventListener("click",async function(){
+  var list=doneItems().map(function(it){return {rel:it.rel,blob:it.out}}),plain=plainItems();
+  if(!list.length)return;
+  if(plain.length){
+    var a=await ask({title:t("keepTitle",{n:nf(plain.length)}),text:t("keepBody"),
+      buttons:[{label:t("keepYes"),cls:"ok",value:"all"},{label:t("keepNo"),value:"done"}]});
+    if(a===null)return;
+    if(a==="all")plain.forEach(function(it){list.push({rel:it.rel,blob:it.file})});
+  }
+  if(!canDir){
+    if(!window.JSZip){say(t("zipMissing"),true);return}
+    say(t("zipPrep"));
+    var zip=new JSZip();
+    list.forEach(function(j){zip.file(j.rel,j.blob)});
+    var blob=await zip.generateAsync({type:"blob",compression:"STORE"});
+    if(await saveBlob(t("zipName"),blob)){say(t("savedZip",{name:savedAs,n:nf(list.length)}));music.festa()}
+    return;
+  }
+  var dest;
+  try{dest=await window.showDirectoryPicker({mode:"readwrite"})}
+  catch(e){if(!(e&&e.name==="AbortError"))say(t("failed"),true);return}
+  try{if(rootDir&&await rootDir.isSameEntry(dest)){say(t("sameDir"),true);return}}catch(e){}
+  var hits=0;
+  for(var i=0;i<list.length;i++)if(await existsAt(dest,list[i].rel))hits++;
+  if(!await okToReplace(hits))return;
+  var r=await writeJobs(list.map(function(j){
+    return {blob:j.blob,target:async function(){return (await dirFor(dest,j.rel)).getFileHandle(j.rel.split("/").pop(),{create:true})}};
+  }),"writing");
+  if(r.ok){say(t("savedTo",{dir:dest.name,n:nf(r.n)}));music.festa()}
+  else say(t("writeStop",{n:nf(r.n)}),true);
+});
+
+/* più file: accanto agli originali, con un prefisso o un suffisso scelto in una finestra */
+$("saveBeside").addEventListener("click",async function(){
+  var done=doneItems();if(!done.length)return;
+  var mode="suffix",text=t("suffix"),touched=false;
+  try{var kept=JSON.parse(localStorage.getItem("beside")||"null");if(kept&&kept.text){mode=kept.mode==="prefix"?"prefix":"suffix";text=kept.text;touched=true}}catch(e){}
+  var box=el("div"),seg=el("div","seg"),bp=el("button",null,t("prefix")),bs=el("button",null,t("suffixL"));
+  var lab=el("label","field",t("addText")),inp=document.createElement("input"),prev=el("p","preview"),err=el("p","fieldErr");
+  bp.type=bs.type="button";inp.type="text";inp.id="besideText";inp.autocomplete="off";inp.spellcheck=false;inp.value=text;
+  seg.appendChild(bp);seg.appendChild(bs);lab.appendChild(inp);
+  box.appendChild(seg);box.appendChild(lab);box.appendChild(prev);box.appendChild(err);err.hidden=true;
+  function newName(name,m,x){var base=name.replace(/\.pdf$/i,"");return m==="prefix"?x+name:base+x+".pdf"}
+  function show(){
+    bp.setAttribute("aria-pressed",mode==="prefix");bs.setAttribute("aria-pressed",mode==="suffix");
+    prev.textContent=t("example")+": "+done[0].name+" → "+newName(done[0].name,mode,inp.value);
+  }
+  function pick(m){
+    if(!touched)inp.value=t(m==="prefix"?"prefixDef":"suffix");
+    mode=m;show();
+  }
+  bp.addEventListener("click",function(){pick("prefix")});bs.addEventListener("click",function(){pick("suffix")});
+  inp.addEventListener("input",function(){touched=true;err.hidden=true;show()});
+  show();
+  function valid(){
+    var v=inp.value.trim();
+    if(v&&!/[\/\\:*?"<>|]/.test(v))return true;
+    err.textContent=t("badName",{chars:BADCHARS});err.hidden=false;inp.focus();return false;
+  }
+  if(!await ask({title:t("saveBeside"),body:box,buttons:[{label:t("save"),cls:"ok",value:1,check:valid}]}))return;
+  text=inp.value.trim();
+  try{localStorage.setItem("beside",JSON.stringify({mode:mode,text:text}))}catch(e){}
+  var jobs=done.map(function(it){
+    var name=newName(it.name,mode,text);
+    return {it:it,name:name,blob:it.out,target:function(){return it.dir.getFileHandle(name,{create:true})}};
+  });
+  var hits=0;
+  for(var i=0;i<jobs.length;i++){try{await jobs[i].it.dir.getFileHandle(jobs[i].name);hits++}catch(e){}}
+  if(!await okToReplace(hits))return;
+  var r=await writeJobs(jobs,"writing");
+  if(r.ok){say(t("savedBeside",{n:nf(r.n)}));music.festa()}
+  else say(t("writeStop",{n:nf(r.n)}),true);
+});
+
+/* uno o più file: sovrascrive gli originali, dopo conferma */
+$("overBtn").addEventListener("click",async function(){
+  var done=doneItems().filter(function(x){return x.handle});
   if(!done.length)return;
-  if(done.length===1){saveOne(done[0]);return}
-  if(!window.JSZip){say(t("zipMissing"),true);return}
-  say(t("zipPrep"));
-  var zip=new JSZip();
-  done.forEach(function(it){zip.file(it.rel,it.out)});
-  var blob=await zip.generateAsync({type:"blob",compression:"STORE"});
-  if(await saveBlob(t("zipName"),blob)){say(t("savedZip",{name:savedAs,n:nf(done.length)}));music.festa()}
-});
-
-$("saveDir").addEventListener("click",async function(){
-  if(!rootDir)return;
-  var done=items.filter(function(x){return x.status==="done"}),n=0;
-  try{
-    var out=await rootDir.getDirectoryHandle(t("outDir"),{create:true});
-    for(var i=0;i<done.length;i++){
-      var parts=done[i].rel.split("/"),dir=out;
-      for(var j=0;j<parts.length-1;j++)dir=await dir.getDirectoryHandle(parts[j],{create:true});
-      var fh=await dir.getFileHandle(parts[parts.length-1],{create:true}),w=await fh.createWritable();
-      await w.write(done[i].out);await w.close();n++;
-      say(t("writing",{i:nf(n),n:nf(done.length)}));
-    }
-    say(t("savedDir",{dir:t("outDir"),n:nf(n)}));music.festa();
-  }catch(e){say(t("writeStop",{n:nf(n)}),true)}
-});
-
-$("overBtn").addEventListener("click",function(){
-  var n=items.filter(function(x){return x.status==="done"&&x.handle}).length;
-  if(!n)return;
-  $("sureTxt").textContent=t("sure",{n:nf(n)});
-  $("sure").hidden=false;$("sureNo").focus();
-});
-$("sureNo").addEventListener("click",function(){$("sure").hidden=true});
-$("sureYes").addEventListener("click",async function(){
-  $("sure").hidden=true;
-  var done=items.filter(function(x){return x.status==="done"&&x.handle}),n=0;
-  try{
-    say("");loaderOn("back",t("overwriting",{i:nf(1),n:nf(done.length)}));
-    for(var i=0;i<done.length&&!cancelLoad;i++){
-      $("loaderTitle").textContent=t("overwriting",{i:nf(i+1),n:nf(done.length)});
-      var it=done[i],w=await it.handle.createWritable();
-      await w.write(it.out);await w.close();
-      it.file=await it.handle.getFile();it.status="over";n++;
-    }
-    await loaderOff();
-    if(n<done.length)say(t("overStop",{n:nf(n)}),true);
-    else{say(t("overwritten",{n:nf(n)}));music.festa()}
-  }catch(e){await loaderOff();say(t("overStop",{n:nf(n)}),true)}
+  var one=items.length===1;
+  if(!await ask({title:t(one?"overOne":"overBtn"),text:t("sure",{n:nf(done.length)}),buttons:[{label:t("sureYes"),cls:"danger",value:1}]}))return;
+  var r=await writeJobs(done.map(function(it){
+    return {blob:it.out,target:function(){return it.handle},after:async function(fh){it.file=await fh.getFile();it.status="over"}};
+  }),"overwriting");
+  if(r.ok){say(t("overwritten",{n:nf(r.n)}));music.festa()}
+  else say(t("overStop",{n:nf(r.n)}),true);
   render();
 });
 

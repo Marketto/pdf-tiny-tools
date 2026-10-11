@@ -20,7 +20,7 @@ Tutti i testi stanno in `i18n.js`, un oggetto per lingua con le stesse chiavi. L
 - **Numeri e plurali:** le frasi con un conteggio sono costruite per funzionare con qualsiasi numero («PDF pronti: {n}»). Mantieni questa forma: evita frasi che richiedono l'accordo singolare/plurale.
 - **Nomi di menu reali:** per le istruzioni di installazione su iPhone usa le voci come compaiono davvero in iOS in quella lingua.
 - **Marchi e sigle** (PDF, ZIP, JPEG, Dropbox, Chrome, Edge) non si traducono.
-- `outDir`, `suffix` e `zipName` diventano nomi di cartelle e file: niente `/ \ : * ? " < > |`. Per hindi, bengalese, arabo e urdu restano in inglese.
+- `suffix`, `prefixDef` e `zipName` diventano parti di nomi di file: niente `/ \ : * ? " < > |`. Per hindi, bengalese, arabo e urdu restano in inglese.
 
 ## Aggiungere una lingua
 

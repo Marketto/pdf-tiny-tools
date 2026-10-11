@@ -4,7 +4,7 @@ Compressore di PDF a fumetti che gira tutto nel browser: carichi i PDF pieni di 
 
 - Ricomprime in JPEG le immagini dentro il PDF; testo, link e pagine restano come sono.
 - Funziona su file singoli, su più file o su una cartella intera (sottocartelle comprese).
-- Su Chrome ed Edge da computer può scrivere nella sottocartella `compressi` o sovrascrivere gli originali, dopo conferma.
+- Con un solo file si salva con nome o si sovrascrive l'originale; con più file si salva in un'altra cartella mantenendo la struttura, accanto agli originali con un prefisso o un suffisso, oppure si sovrascrive, sempre dopo conferma. Scrivere nelle cartelle richiede Chrome o Edge da computer; altrove si scarica il file o uno ZIP.
 - Si installa come app su Android e iPhone e funziona anche senza rete dopo la prima apertura.
 
 ## Lingue
@@ -26,6 +26,7 @@ I testi stanno tutti in `i18n.js`: per aggiungere una lingua basta copiare un bl
 
 Il sito non ha build né dipendenze: si modifica e si apre. Per provarlo in locale basta `python3 -m http.server` nella cartella del progetto.
 
+- [`docs/REQUISITI.md`](docs/REQUISITI.md): cosa deve fare l'app, secondo le decisioni prese finora.
 - [`docs/ARCHITETTURA.md`](docs/ARCHITETTURA.md): come funziona la compressione e come è organizzato il codice.
 - [`docs/AGENTI.md`](docs/AGENTI.md): come lavorare al progetto con un agente di programmazione (skill, agenti, strumenti).
 - `node tools/check-i18n.mjs` controlla le traduzioni; `node tools/smoke-test.mjs` prova l'app in un browser vero.

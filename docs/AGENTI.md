@@ -67,6 +67,10 @@ Si scrive in linguaggio normale; lo smistamento fa il resto.
 
 Per chiamare un pezzo in modo esplicito: `/traduzioni`, `/rilascio`, oppure «usa l'agente collaudo».
 
+## Tenere aggiornata la documentazione
+
+Ogni requisito o correzione chiesta dal proprietario finisce in `docs/REQUISITI.md` nello stesso commit del codice: è una regola di `CLAUDE.md`, quindi vale per ogni agente. `ARCHITETTURA.md`, README e skill si aggiornano quando il cambiamento li tocca.
+
 ## Estendere
 
 - **Nuova skill:** crea `.claude/skills/<nome>/SKILL.md` con in testa `name` e `description`. La descrizione è ciò che fa scegliere la skill: scrivi *quando* usarla.

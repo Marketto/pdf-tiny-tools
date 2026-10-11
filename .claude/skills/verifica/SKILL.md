@@ -28,7 +28,7 @@ Apre l'app in cinque lingue (compresa una da destra a sinistra e una non support
 
 Dillo esplicitamente nel resoconto, senza darlo per verificato:
 
-- scelta di una cartella vera, scrittura in «compressi», sovrascrittura degli originali;
+- scelta di una cartella vera e i salvataggi che scrivono nelle cartelle (altra cartella, accanto agli originali, sovrascrittura);
 - installazione su Android e iPhone, funzionamento senza rete;
 - i suoni (si possono solo ascoltare);
 - l'aspetto: per una modifica visiva guarda uno screenshot, a larghezza telefono e computer.

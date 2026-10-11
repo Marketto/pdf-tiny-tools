@@ -16,7 +16,7 @@ flowchart LR
   G -->|no| F
   H --> I[pdf-lib salva]
   F --> I
-  I --> J[Download, ZIP,<br>cartella «compressi»<br>o sovrascrittura]
+  I --> J[Salva con nome, altra cartella,<br>accanto agli originali,<br>sovrascrittura o ZIP]
 ```
 
 Il testo, i link e la struttura delle pagine non vengono toccati: cambia solo il contenuto dei flussi immagine. Per questo il testo resta selezionabile e per questo un PDF senza immagini non si alleggerisce.
@@ -41,7 +41,7 @@ Lo script è diviso da commenti `/* ---------- nome ---------- */`:
 | carico | Scelta file, lettura cartelle (fino a 6 livelli), trascinamento, schermata di caricamento annullabile |
 | vista | Disegna l'elenco dei file e i totali |
 | motore | Compressione: `squeezePdf` e `squeezeImage` |
-| salvataggio | Download, ZIP, scrittura in cartella, sovrascrittura con conferma e schermata annullabile (i file già riscritti restano riscritti) |
+| salvataggio | Pulsanti sotto l'elenco, finestre di dialogo (`ask`), scrittura nelle cartelle (`writeJobs`) con schermata annullabile, ZIP di ripiego |
 | avvio | Menu delle lingue |
 | suoni | Jingle e effetti, sintetizzati con Web Audio (nessun file audio) |
 | musica | Sottofondo generato nota per nota: un tema solo in tre umori (calma durante l'uso, concitata mentre comprime, fanfara ai salvataggi) |
@@ -53,11 +53,24 @@ Lo script è diviso da commenti `/* ---------- nome ---------- */`:
 
 Tre strade, a seconda del browser:
 
-1. **`showDirectoryPicker`** (Chrome ed Edge da computer): dà accesso in lettura e scrittura. È l'unica che permette «Salva in compressi» e «Sovrascrivi gli originali».
+1. **`showDirectoryPicker`** (Chrome ed Edge da computer): dà accesso in lettura e scrittura. Ogni file porta con sé il proprio riferimento (`handle`) e quello della cartella che lo contiene (`dir`): servono per sovrascrivere e per salvare accanto agli originali.
 2. **`<input webkitdirectory>`**: ripiego in sola lettura.
 3. **Trascinamento** di file e cartelle: sola lettura.
 
-In tutte e tre si scende al massimo di 6 livelli, si saltano le cartelle nascoste e quelle di uscita (in qualsiasi lingua), e un file illeggibile viene saltato senza interrompere la lettura.
+In tutte e tre si scende al massimo di 6 livelli, si saltano le cartelle nascoste, e un file illeggibile viene saltato senza interrompere la lettura.
+
+## Salvataggio
+
+Le regole di comportamento sono in `REQUISITI.md`; qui come sono realizzate.
+
+| Azione | Cosa serve | Come |
+|---|---|---|
+| Salva con nome (un file) | niente | `showSaveFilePicker`, altrimenti download |
+| Altra cartella | `showDirectoryPicker` | si sceglie la destinazione e si ricrea il percorso relativo di ogni file; senza quella funzione, uno ZIP con gli stessi percorsi |
+| Accanto agli originali | `dir` su ogni file (cartella scelta con `showDirectoryPicker`) | nuovo nome con prefisso o suffisso nella stessa cartella dell'originale |
+| Sovrascrivi | `handle` su ogni file (cartella scelta, oppure file scelti con `showOpenFilePicker`) | `createWritable` sull'originale |
+
+`render()` accende o spegne i pulsanti in base a questi requisiti e mostra la riga di spiegazione quando qualcosa è spento. Prima di scrivere in una cartella si contano i file che esistono già e si chiede conferma. I file trascinati nella pagina non portano permessi di scrittura.
 
 ## Suoni e musica
 

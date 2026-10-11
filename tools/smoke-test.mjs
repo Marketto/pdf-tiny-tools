@@ -53,7 +53,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     });
     await page.click("#go");
     await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && document.querySelector("#rows .badge:not(.wait):not(.work)"), null, { timeout: 60000 });
-    const done = await page.locator("#rows .btn.sm").count();
+    const done = await page.locator("#saveAs:visible").count();
     check(done === 1, `compressione: PDF di prova da ${Math.round(size / 1024)} KB alleggerito (${(await page.innerText("#rows")).replace(/\n/g, " / ")})`);
   }
   check(errors.length === 0, `${locale}: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
