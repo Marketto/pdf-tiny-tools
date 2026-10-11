@@ -21,3 +21,7 @@ I testi stanno tutti in `i18n.js`: per aggiungere una lingua basta copiare un bl
 ## Librerie incluse
 
 [pdf-lib](https://github.com/Hopding/pdf-lib) 1.17.1 (MIT) e [JSZip](https://github.com/Stuk/jszip) 3.10.1 (MIT o GPLv3), in `vendor/`.
+
+## Pubblicazione
+
+Ogni push su `main` pubblica il sito su GitHub Pages tramite `.github/workflows/pages.yml`. Serve una sola impostazione iniziale: in **Settings → Pages**, alla voce «Source», scegliere **GitHub Actions**.
