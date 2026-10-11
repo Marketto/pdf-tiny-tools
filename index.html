@@ -927,7 +927,7 @@ var music=(function(){
   var PROGM=[["C"],["D"],["F"],["G"],["C"],["D"],["F","G"],["C"]];
   var MOOD={calm:{bpm:84,cut:2200,prog:PROG,lead:TEMA},drive:{bpm:150,cut:4200,prog:PROG,lead:TEMA},mystery:{bpm:112,cut:2600,prog:PROGM,lead:TEMA},
             /* gioia: mentre scrive i file, il tema a passo di marcia allegra, in attesa della fanfara finale */
-            joy:{bpm:128,cut:4600,prog:PROG,lead:TEMA}};
+            joy:{bpm:146,cut:5200,prog:PROG,lead:TEMA}};
   /* volume del sottofondo: deve restare sotto gli effetti e non stancare */
   var VOL=.26;
   var on=false,timer=0,bus=null,lp=null,noiseBuf=null,mood="calm",bpm=84,step=0,next=0,holdUntil=0;
@@ -976,8 +976,15 @@ var music=(function(){
       if(i16%4===0){if(beat%2===0)kick(c,t0,.4);else tick(c,t0,.12,.16)}
       if(i16%4===3)kick(c,t0,.2);
       if(i16%2===0)tick(c,t0,.03,.07);
+    }else if(style==="joy"){
+      /* festa in corso: cassa su ogni tempo, battimani sul 2 e sul 4, piattini fitti con l'accento in levare, basso che rimbalza */
+      if(i16%2===0)note(c,"triangle",hz(root+(i8%2?12:0)),0,t0,e8*.7,.3,2);
+      if(i16%8===7)note(c,"triangle",hz(root+7),0,t0,s16*.8,.22,3);
+      note(c,"square",hz(arp[[0,2,1,3][i16%4]]+(i16%8>=4?12:0)),0,t0,s16*.7,.032,14);
+      if(i16%4===0){kick(c,t0,.4);if(beat%2===1){tick(c,t0,.11,.17);tick(c,t0+.012,.09,.1)}}
+      tick(c,t0,i16%4===2?.06:.025,i16%4===2?.09:.04);
     }else{
-      /* "jump" (fanfara) e "joy": basso che salta d'ottava, arpeggio fitto, cassa e rullante */
+      /* "jump" (fanfara): basso che salta d'ottava, arpeggio fitto, cassa e rullante */
       if(i16%2===0)note(c,"triangle",hz(root+(i8%2?12:0)),0,t0,e8*.85,.3,1);
       note(c,"square",hz(arp[[0,2,1,3][i16%4]]),0,t0,s16*.8,.03,12);
       if(i16%4===0){if(beat%2===0)kick(c,t0,.38);else tick(c,t0,.12,.13)}
@@ -988,6 +995,11 @@ var music=(function(){
       if(n.at!==i8)return;
       var d=e8*n.len;
       if(style==="mystery")note(c,"square",hz(n.m),0,t0,Math.min(d*.6,e8*1.1),.12,3);
+      else if(style==="joy"){
+        /* melodia saltellante, con un'eco un'ottava sopra un sedicesimo dopo */
+        note(c,"square",hz(n.m),0,t0,Math.min(d*.75,e8*1.5),.14,2.6);
+        note(c,"square",hz(n.m+12),0,t0+s16,s16*.7,.035,12);
+      }
       else note(c,"square",hz(n.m),0,t0,d*.97,.14,style==="calm"?1.6/d:2.2);
       /* nella gioia la melodia è raddoppiata una terza o una quarta sopra, sulle note dell'accordo */
       if(style==="joy"){
