@@ -37,6 +37,8 @@ it: {
   sure: "PDF originali che verranno sostituiti dalla versione compressa: {n}. Non si torna indietro.",
   overwriting: "Sovrascrivo {i} di {n}…", overwritten: "Originali sovrascritti: {n}.",
   overStop: "Scrittura interrotta dopo {n} file. Gli altri originali sono intatti.",
+  install: "Installa l'app",
+  iosHint: "Su iPhone e iPad: tocca Condividi, poi «Aggiungi alla schermata Home».",
   lang: "Lingua"
 },
 en: {
@@ -75,6 +77,8 @@ en: {
   sure: "Original PDFs about to be replaced with the compressed version: {n}. This can't be undone.",
   overwriting: "Overwriting {i} of {n}…", overwritten: "Originals overwritten: {n}.",
   overStop: "Writing stopped after {n} files. The other originals are untouched.",
+  install: "Install the app",
+  iosHint: "On iPhone and iPad: tap Share, then “Add to Home Screen”.",
   lang: "Language"
 },
 zh: {
@@ -113,6 +117,8 @@ zh: {
   sure: "即将被压缩版替换的原始 PDF：{n}。此操作无法撤销。",
   overwriting: "正在覆盖 {i} / {n}…", overwritten: "已覆盖的原文件：{n}。",
   overStop: "写入了 {n} 个文件后中断，其余原文件没有改动。",
+  install: "安装应用",
+  iosHint: "在 iPhone 和 iPad 上：点一下分享按钮，再选「添加到主屏幕」。",
   lang: "语言"
 },
 hi: {
@@ -151,6 +157,8 @@ hi: {
   sure: "इतनी मूल PDF की जगह छोटा संस्करण आ जाएगा: {n}। इसे वापस नहीं किया जा सकता।",
   overwriting: "बदल रहे हैं: {i} / {n}…", overwritten: "बदली गई मूल फ़ाइलें: {n}।",
   overStop: "{n} फ़ाइलों के बाद लिखना रुक गया। बाक़ी मूल फ़ाइलें जैसी थीं वैसी हैं।",
+  install: "ऐप इंस्टॉल करें",
+  iosHint: "iPhone और iPad पर: शेयर बटन दबाएँ, फिर “होम स्क्रीन में जोड़ें” चुनें।",
   lang: "भाषा"
 },
 es: {
@@ -189,6 +197,8 @@ es: {
   sure: "PDF originales que se van a sustituir por la versión comprimida: {n}. No hay vuelta atrás.",
   overwriting: "Sobrescribiendo {i} de {n}…", overwritten: "Originales sobrescritos: {n}.",
   overStop: "La escritura se ha interrumpido tras {n} archivos. Los demás originales siguen intactos.",
+  install: "Instalar la app",
+  iosHint: "En iPhone y iPad: toca Compartir y luego «Añadir a pantalla de inicio».",
   lang: "Idioma"
 },
 fr: {
@@ -227,6 +237,8 @@ fr: {
   sure: "PDF originaux qui vont être remplacés par la version compressée : {n}. C'est irréversible.",
   overwriting: "Écrasement {i} sur {n}…", overwritten: "Originaux écrasés : {n}.",
   overStop: "Écriture interrompue après {n} fichiers. Les autres originaux sont intacts.",
+  install: "Installer l'appli",
+  iosHint: "Sur iPhone et iPad : touchez Partager, puis « Sur l'écran d'accueil ».",
   lang: "Langue"
 },
 ar: {
@@ -265,6 +277,8 @@ ar: {
   sure: "عدد ملفات PDF الأصلية التي ستُستبدل بالنسخة المضغوطة: {n}. لا يمكن التراجع عن ذلك.",
   overwriting: "جارٍ استبدال {i} من {n}…", overwritten: "الملفات الأصلية المستبدلة: {n}.",
   overStop: "توقفت الكتابة بعد {n} ملفات. بقية الملفات الأصلية كما هي.",
+  install: "ثبّت التطبيق",
+  iosHint: "على iPhone و iPad: اضغط زر المشاركة ثم اختر «إضافة إلى الشاشة الرئيسية».",
   lang: "اللغة"
 },
 bn: {
@@ -303,6 +317,8 @@ bn: {
   sure: "যতগুলো আসল PDF-এর জায়গায় ছোট সংস্করণ বসবে: {n}। এটা আর ফেরানো যাবে না।",
   overwriting: "বদলানো হচ্ছে: {i} / {n}…", overwritten: "বদলানো আসল ফাইল: {n}।",
   overStop: "{n}টি ফাইলের পর লেখা থেমে গেছে। বাকি আসল ফাইল যেমন ছিল তেমনই আছে।",
+  install: "অ্যাপ ইনস্টল করুন",
+  iosHint: "iPhone ও iPad-এ: শেয়ার বোতামে চাপ দিন, তারপর “হোম স্ক্রিনে যোগ করুন” বেছে নিন।",
   lang: "ভাষা"
 },
 pt: {
@@ -341,6 +357,8 @@ pt: {
   sure: "PDFs originais que serão trocados pela versão comprimida: {n}. Não dá para desfazer.",
   overwriting: "Substituindo {i} de {n}…", overwritten: "Originais substituídos: {n}.",
   overStop: "A gravação parou depois de {n} arquivos. Os outros originais continuam intactos.",
+  install: "Instalar o app",
+  iosHint: "No iPhone e no iPad: toque em Compartilhar e depois em “Adicionar à Tela de Início”.",
   lang: "Idioma"
 },
 ru: {
@@ -379,6 +397,8 @@ ru: {
   sure: "Оригинальных PDF будет заменено сжатой версией: {n}. Отменить это нельзя.",
   overwriting: "Заменяю {i} из {n}…", overwritten: "Заменено оригиналов: {n}.",
   overStop: "Запись прервалась, записано файлов: {n}. Остальные оригиналы не тронуты.",
+  install: "Установить приложение",
+  iosHint: "На iPhone и iPad: нажмите «Поделиться», затем «На экран „Домой“».",
   lang: "Язык"
 },
 ur: {
@@ -417,6 +437,8 @@ ur: {
   sure: "اتنی اصل PDF کی جگہ چھوٹا ورژن آ جائے گا: {n}۔ یہ واپس نہیں ہو سکتا۔",
   overwriting: "بدلا جا رہا ہے: {i} / {n}…", overwritten: "بدلی گئی اصل فائلیں: {n}۔",
   overStop: "{n} فائلوں کے بعد لکھنا رک گیا۔ باقی اصل فائلیں جوں کی توں ہیں۔",
+  install: "ایپ انسٹال کریں",
+  iosHint: "iPhone اور iPad پر: شیئر کا بٹن دبائیں، پھر ”ہوم اسکرین میں شامل کریں“ چنیں۔",
   lang: "زبان"
 },
 id: {
@@ -455,6 +477,8 @@ id: {
   sure: "PDF asli yang akan diganti dengan versi terkompresi: {n}. Ini tidak bisa dibatalkan.",
   overwriting: "Menimpa {i} dari {n}…", overwritten: "File asli yang ditimpa: {n}.",
   overStop: "Penulisan terhenti setelah {n} file. File asli lainnya tetap utuh.",
+  install: "Pasang aplikasi",
+  iosHint: "Di iPhone dan iPad: ketuk Bagikan, lalu “Tambah ke Layar Utama”.",
   lang: "Bahasa"
 },
 de: {
@@ -493,6 +517,8 @@ de: {
   sure: "Original-PDFs, die durch die komprimierte Version ersetzt werden: {n}. Das lässt sich nicht rückgängig machen.",
   overwriting: "Überschreibe {i} von {n}…", overwritten: "Überschriebene Originale: {n}.",
   overStop: "Schreiben nach {n} Dateien abgebrochen. Die übrigen Originale sind unverändert.",
+  install: "App installieren",
+  iosHint: "Auf iPhone und iPad: auf „Teilen“ tippen, dann „Zum Home-Bildschirm“.",
   lang: "Sprache"
 }
 };

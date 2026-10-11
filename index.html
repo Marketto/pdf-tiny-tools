@@ -117,7 +117,9 @@ h1 span{color:var(--sun)}
 .total strong{font-family:var(--display);font-weight:400;font-size:22px}
 #msg{font-weight:700;min-height:1.4em;margin:12px 0 0}
 #msg.bad{color:#b3170c}
-.langbar{display:flex;justify-content:flex-end}
+.langbar{display:flex;justify-content:flex-end;align-items:center;gap:12px;flex-wrap:wrap}
+.langbar select{margin-inline-start:auto}
+.iosHint{margin:0;background:var(--sun);border:var(--line);border-radius:14px;padding:10px 14px;font-weight:700;box-shadow:3px 3px 0 var(--ink)}
 .langbar select{font-family:var(--body);font-weight:700;font-size:16px;color:var(--ink);background:var(--paper);border:var(--line);border-radius:12px;padding:5px 10px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;max-width:100%}
 .langbar select:focus-visible{outline:4px solid var(--grape);outline-offset:3px}
 [dir="rtl"] h1,[dir="rtl"] .btn.go{letter-spacing:0}
@@ -134,8 +136,10 @@ details p{margin:8px 0 0;max-width:65ch}
 <div class="wrap">
   <div class="langbar">
     <label class="vh" for="lang" data-i18n="lang">Lingua</label>
+    <button class="btn sm ok" type="button" id="installBtn" hidden data-i18n="install">Installa l'app</button>
     <select id="lang"></select>
   </div>
+  <p class="iosHint" id="iosHint" hidden data-i18n="iosHint"></p>
   <header class="top">
     <div class="press" id="press" aria-hidden="true">
       <div class="pillar l"></div><div class="pillar r"></div>
@@ -589,6 +593,23 @@ sel.addEventListener("change",function(){
   say("");applyLang();
 });
 lang=pickLang();sel.value=lang;applyLang();
+
+/* ---------- installazione ---------- */
+var instBtn=$("installBtn"),iosHint=$("iosHint"),deferred=null;
+var standalone=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
+var ua=navigator.userAgent||"";
+var isIOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferred=e;if(!standalone)instBtn.hidden=false});
+window.addEventListener("appinstalled",function(){deferred=null;instBtn.hidden=true;iosHint.hidden=true});
+if(isIOS&&!standalone)instBtn.hidden=false;
+instBtn.addEventListener("click",async function(){
+  if(deferred){
+    var d=deferred;deferred=null;
+    try{d.prompt();var c=await d.userChoice;if(c&&c.outcome==="accepted"){instBtn.hidden=true;return}}catch(e){}
+    deferred=d;return;
+  }
+  if(isIOS)iosHint.hidden=!iosHint.hidden;
+});
 })();
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(function(){});</script>
