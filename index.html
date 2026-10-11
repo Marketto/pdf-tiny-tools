@@ -54,21 +54,15 @@ h1 span{color:var(--sun)}
 .sub{margin:14px 0 0;font-weight:700;max-width:34ch}
 
 /* mascotte: la pressa */
-.press{flex:0 0 150px;height:150px;position:relative}
-.press .pillar{position:absolute;top:0;bottom:16px;width:14px;background:var(--muted);border:var(--line);border-radius:4px}
-.press .pillar.l{left:8px}.press .pillar.r{right:8px}
-.press .base{position:absolute;left:0;right:0;bottom:0;height:20px;background:var(--ink);border-radius:6px}
-.press .head{position:absolute;left:20px;right:20px;top:6px;height:66px;background:var(--tomato);border:var(--line);border-radius:14px;box-shadow:inset -8px -8px 0 rgba(27,26,46,.18)}
-.press .eye{position:absolute;top:18px;width:22px;height:26px;background:var(--paper);border:var(--line);border-radius:50%}
-.press .eye::after{content:"";position:absolute;left:6px;top:9px;width:8px;height:9px;background:var(--ink);border-radius:50%}
-.press .eye.l{left:22px}.press .eye.r{right:22px}
-.press .mouth{position:absolute;left:50%;top:44px;width:22px;height:11px;margin-left:-11px;border:var(--line);border-top:0;border-radius:0 0 14px 14px;background:var(--ink)}
-.press .sheets{position:absolute;left:36px;right:36px;bottom:20px;height:44px;background:
-  repeating-linear-gradient(var(--paper) 0 8px,var(--ink) 8px 11px);border:var(--line);border-radius:4px;transform-origin:bottom}
-.press.busy .head{animation:stomp .55s cubic-bezier(.6,0,.9,.4) infinite alternate}
-.press.busy .sheets{animation:squash .55s cubic-bezier(.6,0,.9,.4) infinite alternate}
-@keyframes stomp{to{transform:translateY(34px)}}
-@keyframes squash{to{transform:scaleY(.24)}}
+.press{flex:0 0 150px;line-height:0}
+.press svg{width:150px;height:auto;display:block;overflow:visible}
+.press .p-sheets{transform-box:fill-box;transform-origin:50% 100%}
+.press .p-spark{transform-box:fill-box;transform-origin:center;animation:twinkle 2.4s ease-in-out infinite}
+.press.busy .p-head{animation:stomp .55s cubic-bezier(.6,0,.9,.4) infinite alternate}
+.press.busy .p-sheets{animation:squash .55s cubic-bezier(.6,0,.9,.4) infinite alternate}
+@keyframes twinkle{50%{transform:scale(.6) rotate(20deg);opacity:.6}}
+@keyframes stomp{to{transform:translateY(52px)}}
+@keyframes squash{to{transform:scaleY(.26)}}
 
 /* pannelli */
 .panel{background:var(--paper);border:var(--line);border-radius:22px;box-shadow:var(--drop);padding:20px}
@@ -140,7 +134,7 @@ h1 span{color:var(--sun)}
 details{font-size:15px}
 details summary{cursor:pointer;font-weight:700}
 details p{margin:8px 0 0;max-width:65ch}
-@media (prefers-reduced-motion:reduce){.press.busy .head,.press.busy .sheets{animation:none}.btn,.tray{transition:none}}
+@media (prefers-reduced-motion:reduce){.press.busy .p-head,.press.busy .p-sheets,.press .p-spark{animation:none}.btn,.tray{transition:none}}
 </style>
 </head>
 <body>
@@ -148,12 +142,16 @@ details p{margin:8px 0 0;max-width:65ch}
   <header class="top">
     <div class="brand">
     <div class="press" id="press" aria-hidden="true">
-      <div class="pillar l"></div><div class="pillar r"></div>
-      <div class="sheets"></div>
-      <div class="head"><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div></div>
-      <div class="base"></div>
+      <svg viewBox="70 62 400 390" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round">
+<rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/>
+<g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g>
+<rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g>
+<g class="p-head"><rect x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/>
+<ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/>
+<ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/>
+<path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></svg>
     </div>
-    <div class="langbar">
+      <div class="langbar">
       <label class="vh" for="lang" data-i18n="lang">Lingua</label>
       <button class="btn sm ok" type="button" id="installBtn" hidden data-i18n="install">Installa l'app</button>
       <button class="btn sm alt snd" type="button" id="muteBtn" aria-pressed="true" aria-label="Suoni" data-i18n-aria="sound">
