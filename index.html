@@ -711,10 +711,13 @@ async function okToReplace(hits){
   return !!(await ask({title:t("existTitle",{n:nf(hits)}),text:t("existBody"),buttons:[{label:t("replace"),cls:"danger",value:1}]}));
 }
 
+/* salvataggio riuscito: l'app torna come appena aperta, con l'elenco vuoto, e resta solo il messaggio di conferma */
+function finish(msg){reset();render();say(msg);music.festa()}
+
 /* un solo file: salva con nome */
 $("saveAs").addEventListener("click",async function(){
   var it=doneItems()[0];if(!it)return;
-  if(await saveBlob(outName(it),it.out)){say(t("saved",{name:savedAs}));music.festa()}
+  if(await saveBlob(outName(it),it.out))finish(t("saved",{name:savedAs}));
 });
 
 /* più file: un'altra cartella con la stessa struttura; dove le cartelle non si possono scrivere, uno ZIP */
@@ -733,7 +736,7 @@ $("saveElse").addEventListener("click",async function(){
     var zip=new JSZip();
     list.forEach(function(j){zip.file(j.rel,j.blob)});
     var blob=await zip.generateAsync({type:"blob",compression:"STORE"});
-    if(await saveBlob(t("zipName"),blob)){say(t("savedZip",{name:savedAs,n:nf(list.length)}));music.festa()}
+    if(await saveBlob(t("zipName"),blob))finish(t("savedZip",{name:savedAs,n:nf(list.length)}));
     return;
   }
   var dest;
@@ -746,7 +749,7 @@ $("saveElse").addEventListener("click",async function(){
   var r=await writeJobs(list.map(function(j){
     return {blob:j.blob,target:async function(){return (await dirFor(dest,j.rel)).getFileHandle(j.rel.split("/").pop(),{create:true})}};
   }),"writing");
-  if(r.ok){say(t("savedTo",{dir:dest.name,n:nf(r.n)}));music.festa()}
+  if(r.ok)finish(t("savedTo",{dir:dest.name,n:nf(r.n)}));
   else say(t("writeStop",{n:nf(r.n)}),true);
 });
 
@@ -788,7 +791,7 @@ $("saveBeside").addEventListener("click",async function(){
   for(var i=0;i<jobs.length;i++){try{await jobs[i].it.dir.getFileHandle(jobs[i].name);hits++}catch(e){}}
   if(!await okToReplace(hits))return;
   var r=await writeJobs(jobs,"writing");
-  if(r.ok){say(t("savedBeside",{n:nf(r.n)}));music.festa()}
+  if(r.ok)finish(t("savedBeside",{n:nf(r.n)}));
   else say(t("writeStop",{n:nf(r.n)}),true);
 });
 
@@ -801,9 +804,8 @@ $("overBtn").addEventListener("click",async function(){
   var r=await writeJobs(done.map(function(it){
     return {blob:it.out,target:function(){return it.handle},after:async function(fh){it.file=await fh.getFile();it.status="over"}};
   }),"overwriting");
-  if(r.ok){say(t("overwritten",{n:nf(r.n)}));music.festa()}
-  else say(t("overStop",{n:nf(r.n)}),true);
-  render();
+  if(r.ok)finish(t("overwritten",{n:nf(r.n)}));
+  else{render();say(t("overStop",{n:nf(r.n)}),true)}
 });
 
 /* ---------- avvio ---------- */

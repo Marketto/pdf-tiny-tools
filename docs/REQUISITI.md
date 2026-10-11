@@ -48,6 +48,7 @@ Le opzioni dipendono da quanti file ci sono nell'elenco.
 
 **Regole comuni**
 
+- A salvataggio o sovrascrittura riusciti l'app torna come appena aperta, con l'elenco dei file vuoto; resta visibile solo il messaggio di conferma. Se la scrittura si interrompe o viene annullata, l'elenco resta com'è per poter riprovare.
 - La sovrascrittura chiede sempre conferma.
 - Se nella destinazione esistono già file con lo stesso nome, lo si dice e si chiede prima di sostituirli.
 - Durante la scrittura di più file compare la schermata con la mascotte che rimette i fogli nello schedario; si può annullare tra un file e l'altro, e i file già scritti restano scritti.
