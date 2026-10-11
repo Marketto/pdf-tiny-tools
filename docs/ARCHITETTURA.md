@@ -61,7 +61,7 @@ In tutte e tre si scende al massimo di 6 livelli, si saltano le cartelle nascost
 
 ## Suoni e musica
 
-Niente file audio: tutto è sintetizzato con Web Audio. Il pulsante con l'altoparlante ha tre stati, ricordati in `localStorage`: suoni e musica, solo effetti, silenzio.
+Niente file audio: tutto è sintetizzato con Web Audio. Il pulsante con l'altoparlante accende o spegne insieme effetti e musica; la scelta è ricordata in `localStorage`. Il sottofondo ha un volume volutamente basso (`VOL` nella sezione «musica»).
 
 La musica è un giro di otto battute (`PROG` e `TEMA` nella sezione «musica»). Un temporizzatore mette in coda le note con un terzo di secondo di anticipo, così l'umore può cambiare al volo: `music.setMood("drive")` quando parte la compressione (il tempo sale gradualmente e il filtro si apre), `music.setMood("calm")` alla fine, `music.festa()` ai salvataggi in blocco, alla sovrascrittura completata e al salvataggio dell'unico file. I browser non fanno partire l'audio prima di un'interazione, quindi la musica comincia al primo tocco; quando la pagina va in secondo piano l'audio si sospende.
 
