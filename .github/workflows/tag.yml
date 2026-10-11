@@ -1,0 +1,26 @@
+name: Tag di versione
+
+# Quando il file VERSION cambia su main, crea il tag v<versione> su quel commit.
+on:
+  push:
+    branches: [main]
+    paths: [VERSION]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Crea il tag se non esiste
+        run: |
+          v="v$(tr -d '[:space:]' < VERSION)"
+          if git rev-parse -q --verify "refs/tags/$v" >/dev/null; then
+            echo "Il tag $v esiste già"; exit 0
+          fi
+          git tag "$v" "$GITHUB_SHA"
+          git push origin "$v"
