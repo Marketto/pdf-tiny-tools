@@ -923,7 +923,7 @@ var music=(function(){
   var FHARM=bars([". . E5 G5 C6 - E6 -","A5 - C6 C6 A5 - A5 F5","B5 - - B5 D6 - G5 B5","G5 C6 E6 - E6 - - -"]);
   /* mistero giocoso: stessa melodia, ma al posto del la minore c'è un re maggiore (colore lidio, da «chissà cosa c'è qui») */
   var PROGM=[["C"],["D"],["F"],["G"],["C"],["D"],["F","G"],["C"]];
-  var MOOD={calm:{bpm:84,cut:2200,prog:PROG,lead:TEMA},drive:{bpm:150,cut:4200,prog:PROG,lead:TEMA},mystery:{bpm:100,cut:2600,prog:PROGM,lead:TEMA}};
+  var MOOD={calm:{bpm:84,cut:2200,prog:PROG,lead:TEMA},drive:{bpm:150,cut:4200,prog:PROG,lead:TEMA},mystery:{bpm:112,cut:2600,prog:PROGM,lead:TEMA}};
   /* volume del sottofondo: deve restare sotto gli effetti e non stancare */
   var VOL=.26;
   var on=false,timer=0,bus=null,lp=null,noiseBuf=null,mood="calm",bpm=84,step=0,next=0,holdUntil=0;
