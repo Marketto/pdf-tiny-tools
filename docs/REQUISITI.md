@@ -71,7 +71,7 @@ Le opzioni dipendono da quanti file ci sono nell'elenco.
 - **Un solo pulsante** accende e spegne insieme effetti e musica.
 - Musica di sottofondo dinamica, originale, in stile 8 bit anni '80/'90: calma durante l'uso, concitata e ritmata durante la compressione, celebrativa al salvataggio.
 - La versione calma è lenta e su toni bassi, per un effetto rilassato.
-- Mentre legge i file di una cartella la musica prende toni di mistero, poi torna calma.
+- Mentre legge i file di una cartella la musica prende toni di mistero, poi torna calma. Il mistero deve restare allegro e curioso, non cupo.
 - Il volume del sottofondo deve restare gradevole e mai invadente.
 - Jingle all'avvio e suono di schiacciata durante la compressione.
 

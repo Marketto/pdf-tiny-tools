@@ -914,23 +914,16 @@ var music=(function(){
       return out;
     });
   }
-  var CH={C:[36,[48,52,55,60]],Am:[45,[57,60,64,69]],F:[41,[53,57,60,65]],G:[43,[55,59,62,67]],
-          Cm:[36,[48,51,55,60]],Ab:[44,[56,60,63,68]],Fm:[41,[53,56,60,65]]};
+  var CH={C:[36,[48,52,55,60]],Am:[45,[57,60,64,69]],F:[41,[53,57,60,65]],G:[43,[55,59,62,67]],D:[38,[50,54,57,62]]};
   var PROG=[["C"],["Am"],["F"],["G"],["C"],["Am"],["F","G"],["C"]];
   var TEMA=bars(["E5 - G5 - C6 - G5 E5","A5 - - G5 E5 - C5 -","F5 - A5 - C6 - A5 F5","G5 - - B5 D6 - B5 G5",
                  "E5 - G5 - C6 - E6 D6","C6 - A5 - E5 - A5 -","F5 A5 C6 A5 G5 B5 D6 B5","C6 - - - G5 - C5 -"]);
   var FPROG=[["C"],["F"],["G"],["C"]];
   var FLEAD=bars(["C5 E5 G5 C6 E6 - G6 -","F6 - A6 G6 F6 - C6 A5","G6 - - D6 G6 - B5 D6","C6 E6 G6 - C6 - - -"]);
   var FHARM=bars([". . E5 G5 C6 - E6 -","A5 - C6 C6 A5 - A5 F5","B5 - - B5 D6 - G5 B5","G5 C6 E6 - E6 - - -"]);
-  /* mistero: lo stesso tema portato in minore (mi, la e si abbassati, tranne sull'accordo di sol) */
-  var PROGM=[["Cm"],["Ab"],["Fm"],["G"],["Cm"],["Ab"],["Fm","G"],["Cm"]];
-  var TEMAM=TEMA.map(function(bar,b){
-    return bar.map(function(n){
-      var p=PROGM[b],onG=p[p.length>1&&n.at>=4?1:0]==="G",pc=n.m%12;
-      return {at:n.at,len:n.len,m:n.m-(!onG&&(pc===4||pc===9||pc===11)?1:0)};
-    });
-  });
-  var MOOD={calm:{bpm:84,cut:2200,prog:PROG,lead:TEMA},drive:{bpm:150,cut:4200,prog:PROG,lead:TEMA},mystery:{bpm:92,cut:1700,prog:PROGM,lead:TEMAM}};
+  /* mistero giocoso: stessa melodia, ma al posto del la minore c'è un re maggiore (colore lidio, da «chissà cosa c'è qui») */
+  var PROGM=[["C"],["D"],["F"],["G"],["C"],["D"],["F","G"],["C"]];
+  var MOOD={calm:{bpm:84,cut:2200,prog:PROG,lead:TEMA},drive:{bpm:150,cut:4200,prog:PROG,lead:TEMA},mystery:{bpm:100,cut:2600,prog:PROGM,lead:TEMA}};
   /* volume del sottofondo: deve restare sotto gli effetti e non stancare */
   var VOL=.26;
   var on=false,timer=0,bus=null,lp=null,noiseBuf=null,mood="calm",bpm=84,step=0,next=0,holdUntil=0;
@@ -968,9 +961,10 @@ var music=(function(){
       note(c,"square",hz(arp[[0,1,2,3,2,1,2,1][i16%8]]),0,t0,s16*1.6,.035,7);
       if(i16%2===0)tick(c,t0,.03,.012);
     }else if(style==="mystery"){
-      /* in punta di piedi: basso lungo, poche note staccate, un ticchettio rado */
-      if(i16%8===0)note(c,"triangle",hz(root),0,t0,e8*3.8,.28,.15);
-      if(i16===0||i16===3||i16===6||i16===10||i16===12)note(c,"square",hz(arp[[0,2,1,3,2][[0,3,6,10,12].indexOf(i16)]]),0,t0,s16*.55,.045,14);
+      /* in punta di piedi: basso pizzicato tonica-quinta, poche note staccate, un luccichio in fondo alla battuta */
+      if(i16%8===0)note(c,"triangle",hz(root+(i16===8?7:0)),0,t0,e8*.9,.3,3);
+      if(i16===0||i16===3||i16===6||i16===10||i16===12)note(c,"square",hz(arp[[0,2,1,3,2][[0,3,6,10,12].indexOf(i16)]]),0,t0,s16*.55,.05,14);
+      if(i16===14)note(c,"square",hz(arp[3]+12),0,t0,s16*.5,.028,16);
       if(i16%4===2)tick(c,t0,.025,.02);
     }else if(style==="drive"){
       note(c,"triangle",hz(root+(i16%4===2?12:0)),0,t0,s16*.9,.3,1);
@@ -988,7 +982,7 @@ var music=(function(){
     lead[bar].forEach(function(n){
       if(n.at!==i8)return;
       var d=e8*n.len;
-      if(style==="mystery")note(c,"triangle",hz(n.m),0,t0,d*.8,.2,1.2/d);
+      if(style==="mystery")note(c,"square",hz(n.m),0,t0,Math.min(d*.6,e8*1.1),.12,3);
       else note(c,"square",hz(n.m),0,t0,d*.97,.14,style==="calm"?1.6/d:2.2);
     });
     if(harm)harm[bar].forEach(function(n){
