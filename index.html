@@ -122,6 +122,7 @@ h1 span{color:var(--sun)}
   .tray .btn{flex:1 1 150px;text-align:center;font-size:21px;padding:14px 16px}
 }
 .snd{padding:5px 9px;line-height:0}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:15;margin:0;max-width:calc(100% - 32px);background:var(--ink);color:var(--paper);font-weight:700;border-radius:999px;padding:8px 18px;box-shadow:3px 3px 0 var(--grape)}
 .snd svg{width:24px;height:24px;display:block}
 .snd .off{display:none}
 .snd[aria-pressed="false"] .off{display:block}
@@ -182,6 +183,9 @@ details p{margin:8px 0 0;max-width:65ch}
       <button class="btn sm ok" type="button" id="installBtn" hidden data-i18n="install">Installa l'app</button>
       <button class="btn sm alt snd" type="button" id="muteBtn" aria-pressed="true" aria-label="Suoni" data-i18n-aria="sound">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="on" d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/><path class="off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+      </button>
+      <button class="btn sm alt snd" type="button" id="shareBtn" aria-label="Condividi" data-i18n-aria="share">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M8.6 10.7l6.8-4M8.6 13.3l6.8 4" fill="none"/><circle cx="18" cy="5.5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="18.5" r="2.6"/></svg>
       </button>
       <select id="lang"></select>
     </div>
@@ -256,6 +260,8 @@ details p{margin:8px 0 0;max-width:65ch}
   <p id="loaderN" role="status" aria-live="polite"></p>
   <button class="btn alt" type="button" id="loaderCancel" data-i18n="cancel">Annulla</button>
 </div>
+
+<p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
 
 <script src="i18n.js"></script>
 <script src="vendor/pdf-lib.min.js"></script>
@@ -771,6 +777,22 @@ function wink(){
   setTimeout(wink,hold+2200+Math.random()*5200);
 }
 if(!calm)setTimeout(wink,1800+Math.random()*2500);
+
+/* ---------- condivisione: foglio di sistema se c'è, altrimenti copia il link ---------- */
+var toastT=0;
+function toast(txt){
+  var el=$("toast");el.textContent=txt;el.hidden=false;
+  clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},2200);
+}
+$("shareBtn").addEventListener("click",async function(){
+  var url=location.origin+location.pathname.replace(/index\.html$/,"");
+  if(navigator.share){
+    try{await navigator.share({title:t("title"),text:t("desc"),url:url});return}
+    catch(e){if(e&&e.name==="AbortError")return}
+  }
+  try{await navigator.clipboard.writeText(url);toast(t("copied"))}
+  catch(e){toast(url)}
+});
 
 /* ---------- installazione ---------- */
 var instBtn=$("installBtn"),iosHint=$("iosHint"),deferred=null;
