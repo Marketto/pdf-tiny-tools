@@ -30,6 +30,7 @@ La pubblicazione è automatica: non c'è nulla da caricare a mano.
 ## Da sapere
 
 - **Non creare né spostare tag a mano**: un tag esistente non viene riscritto dal flusso. Se un numero è sbagliato, usa il successivo.
-- Chi ha già aperto il sito vede la versione nuova alla **seconda** apertura, per via della cache offline.
+- Chi apre il sito con la rete attiva vede subito la versione nuova: la pagina si chiede sempre prima alla rete. Chi ha installato una versione fino alla 1.8.2 deve aprire l'app e ricaricarla una volta, perché quelle versioni servivano prima la cache.
+- GitHub Pages può impiegare un minuto o due a servire i file nuovi dopo che il flusso risulta completato.
 - Se il flusso di pubblicazione fallisce al passo «configure-pages», in Settings → Pages la sorgente non è «GitHub Actions»: può cambiarla solo il proprietario del repository.
 - Se hai aggiunto un file che il sito deve servire, mettilo anche nell'elenco del passo «Prepara il sito» in `pages.yml` e, se serve offline, in `CORE` dentro `sw.js`.

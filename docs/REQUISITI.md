@@ -84,6 +84,7 @@ Le opzioni dipendono da quanti file ci sono nell'elenco.
 
 - Pubblicazione automatica su GitHub Pages a ogni push su `main`.
 - Ogni pubblicazione che cambia l'app aggiorna il numero in `VERSION`, da cui nasce il tag.
+- Dopo una pubblicazione, chi apre o aggiorna l'app deve vedere subito la versione nuova, senza doverla ricaricare più volte; senza rete continua a funzionare l'ultima versione scaricata.
 
 ## Documentazione
 

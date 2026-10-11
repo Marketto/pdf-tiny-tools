@@ -85,7 +85,8 @@ La musica è un giro di otto battute (`PROG` e `TEMA` nella sezione «musica»).
 ## App installabile e offline
 
 - `manifest.webmanifest` e le icone rendono l'app installabile.
-- `sw.js` tiene in cache i file dell'app e li serve subito, aggiornandoli in sottofondo: per questo una versione nuova si vede alla seconda apertura.
+- `sw.js` tiene in cache i file dell'app per l'uso senza rete. Pagina e testi si chiedono prima alla rete (la cache subentra se manca o non risponde entro quattro secondi), così una versione nuova si vede alla prima apertura; librerie, icone e font si prendono prima dalla cache.
+- Quando una versione nuova prende il controllo, la pagina aperta si ricarica da sola, ma solo se non ci sono file in elenco né finestre aperte.
 - Il nome della cache viene cambiato dal flusso di pubblicazione a ogni deploy, così le versioni vecchie vengono scartate.
 
 ## Pubblicazione

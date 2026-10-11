@@ -1093,6 +1093,17 @@ instBtn.addEventListener("click",async function(){
 });
 })();
 </script>
-<script>if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+<script>
+/* cache offline. Quando arriva una versione nuova la pagina si ricarica da sola, ma solo se non c'è lavoro in corso. */
+if("serviceWorker" in navigator&&location.protocol==="https:"){
+  var hadSW=!!navigator.serviceWorker.controller,reloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",function(){
+    if(!hadSW||reloaded)return;
+    var idle=!document.querySelector("#rows .row:not(.demo)")&&document.getElementById("loader").hidden&&document.getElementById("modal").hidden;
+    if(idle){reloaded=true;location.reload()}
+  });
+  navigator.serviceWorker.register("sw.js").catch(function(){});
+}
+</script>
 </body>
 </html>
