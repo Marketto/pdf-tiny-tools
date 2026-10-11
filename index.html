@@ -91,6 +91,16 @@ h1 span{color:var(--sun)}
 .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:4px 4px 0 var(--ink)}
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
 .hint{font-size:15px;color:var(--muted);margin:14px 0 0}
+@media (hover:none) and (pointer:coarse){
+  .tray{border:0;padding:0;background:none}
+  .tray>p,.hint.desk{display:none}
+  .tray .btn{flex:1 1 150px;text-align:center;font-size:21px;padding:14px 16px}
+}
+.snd{padding:5px 9px;line-height:0}
+.snd svg{width:24px;height:24px;display:block}
+.snd .off{display:none}
+.snd[aria-pressed="false"] .off{display:block}
+.snd[aria-pressed="false"] .on{display:none}
 
 /* forza */
 .lvls{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
@@ -118,7 +128,7 @@ h1 span{color:var(--sun)}
 #msg{font-weight:700;min-height:1.4em;margin:12px 0 0}
 #msg.bad{color:#b3170c}
 .langbar{display:flex;justify-content:flex-end;align-items:center;gap:12px;flex-wrap:wrap}
-.langbar select{margin-inline-start:auto}
+.langbar .snd{margin-inline-start:auto}
 .iosHint{margin:0;background:var(--sun);border:var(--line);border-radius:14px;padding:10px 14px;font-weight:700;box-shadow:3px 3px 0 var(--ink)}
 .langbar select{font-family:var(--body);font-weight:700;font-size:16px;color:var(--ink);background:var(--paper);border:var(--line);border-radius:12px;padding:5px 10px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;max-width:100%}
 .langbar select:focus-visible{outline:4px solid var(--grape);outline-offset:3px}
@@ -137,6 +147,9 @@ details p{margin:8px 0 0;max-width:65ch}
   <div class="langbar">
     <label class="vh" for="lang" data-i18n="lang">Lingua</label>
     <button class="btn sm ok" type="button" id="installBtn" hidden data-i18n="install">Installa l'app</button>
+    <button class="btn sm alt snd" type="button" id="muteBtn" aria-pressed="true" aria-label="Suoni" data-i18n-aria="sound">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="on" d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/><path class="off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+    </button>
     <select id="lang"></select>
   </div>
   <p class="iosHint" id="iosHint" hidden data-i18n="iosHint"></p>
@@ -163,7 +176,7 @@ details p{margin:8px 0 0;max-width:65ch}
         <input class="vh" type="file" id="pickDirInput" webkitdirectory multiple tabindex="-1" aria-hidden="true">
       </div>
     </div>
-    <p class="hint" data-i18n-html="dropbox"><b>Dropbox:</b> scegli la cartella Dropbox sincronizzata sul computer. Vengono presi tutti i PDF, sottocartelle comprese.</p>
+    <p class="hint desk" data-i18n-html="dropbox"><b>Dropbox:</b> scegli la cartella Dropbox sincronizzata sul computer. Vengono presi tutti i PDF, sottocartelle comprese.</p>
   </section>
 
   <section class="panel">
@@ -278,18 +291,25 @@ $("pickDirInput").addEventListener("change",function(e){
   var fs=Array.from(e.target.files||[]);reset();
   fs.forEach(function(f){
     var rel=(f.webkitRelativePath||f.name).split("/").slice(1).join("/")||f.name;
-    if(!rel.split("/").some(function(x){return ALLDIRS[x]}))addFile(f,rel);
+    var parts=rel.split("/");
+    if(parts.length-1<=MAXDEPTH&&!parts.some(function(x){return ALLDIRS[x]||x.charAt(0)==="."}))addFile(f,rel);
   });
   readOnlyDir=true;
   e.target.value="";loaded(items.length);
 });
-async function walkHandle(dir,prefix){
-  for await(var entry of dir.values()){
-    if(entry.kind==="file"){
-      if(isPdf(entry.name))addFile(await entry.getFile(),prefix+entry.name,entry);
-    }else if(!ALLDIRS[entry.name]&&entry.name.charAt(0)!=="."){
-      await walkHandle(entry,prefix+entry.name+"/");
-    }
+var MAXDEPTH=6;
+async function walkHandle(dir,prefix,depth){
+  var list=[];
+  try{for await(var e of dir.values())list.push(e)}catch(err){return}
+  for(var i=0;i<list.length;i++){
+    var entry=list[i];
+    try{
+      if(entry.kind==="file"){
+        if(isPdf(entry.name))addFile(await entry.getFile(),prefix+entry.name,entry);
+      }else if(entry.kind==="directory"&&depth<MAXDEPTH&&!ALLDIRS[entry.name]&&entry.name.charAt(0)!=="."){
+        await walkHandle(entry,prefix+entry.name+"/",depth+1);
+      }
+    }catch(err){}
   }
 }
 $("pickDir").addEventListener("click",async function(){
@@ -298,7 +318,7 @@ $("pickDir").addEventListener("click",async function(){
     try{
       var h=await window.showDirectoryPicker({mode:"readwrite"});
       reset();say(t("reading"));
-      await walkHandle(h,"");rootDir=h;loaded(items.length);return;
+      await walkHandle(h,"",0);rootDir=h;loaded(items.length);return;
     }catch(err){
       if(err&&err.name==="AbortError")return;
     }
@@ -312,16 +332,18 @@ function readAll(reader){
     var all=[];(function next(){reader.readEntries(function(b){if(!b.length)res(all);else{all=all.concat(Array.from(b));next()}},function(){res(all)})})();
   });
 }
-async function walkEntry(entry,prefix){
-  if(entry.isFile){
-    if(isPdf(entry.name)){
-      var f=await new Promise(function(res){entry.file(res,function(){res(null)})});
-      if(f)addFile(f,prefix+entry.name);
+async function walkEntry(entry,prefix,depth){
+  try{
+    if(entry.isFile){
+      if(isPdf(entry.name)){
+        var f=await new Promise(function(res){entry.file(res,function(){res(null)})});
+        if(f)addFile(f,prefix+entry.name);
+      }
+    }else if(entry.isDirectory&&depth<=MAXDEPTH&&!ALLDIRS[entry.name]&&entry.name.charAt(0)!=="."){
+      var kids=await readAll(entry.createReader());
+      for(var i=0;i<kids.length;i++)await walkEntry(kids[i],prefix+entry.name+"/",depth+1);
     }
-  }else if(entry.isDirectory&&!ALLDIRS[entry.name]){
-    var kids=await readAll(entry.createReader());
-    for(var i=0;i<kids.length;i++)await walkEntry(kids[i],prefix+entry.name+"/");
-  }
+  }catch(err){}
 }
 var tray=$("tray");
 ["dragenter","dragover"].forEach(function(t){tray.addEventListener(t,function(e){e.preventDefault();tray.classList.add("over")})});
@@ -333,7 +355,7 @@ tray.addEventListener("drop",async function(e){
     for(var i=0;i<dt.items.length;i++){var en=dt.items[i].webkitGetAsEntry();if(en)entries.push(en)}
   }
   rootDir=null;
-  if(entries.length){for(var j=0;j<entries.length;j++)await walkEntry(entries[j],"")}
+  if(entries.length){for(var j=0;j<entries.length;j++)await walkEntry(entries[j],"",0)}
   else Array.from(dt.files||[]).forEach(function(f){addFile(f)});
   loaded(items.length-before);
 });
@@ -483,7 +505,7 @@ goBtn.addEventListener("click",async function(){
   items.forEach(function(it){it.status="wait";it.out=null;it.note="";it.pct=0;it.size=it.file.size});
   render();
   for(var i=0;i<items.length;i++){
-    var it=items[i];it.status="work";render();
+    var it=items[i];it.status="work";render();squashSound();
     try{
       var last=-1;
       var r=await squeezePdf(it,preset,function(p){if(p-last>=5){last=p;it.pct=p;render()}});
@@ -498,6 +520,7 @@ goBtn.addEventListener("click",async function(){
   busy=false;press.classList.remove("busy");render();
   var ok=items.filter(function(x){return x.status==="done"}).length;
   say(ok?t("done",{ok:nf(ok),n:nf(items.length)}):t("none"),!ok);
+  if(ok)sfx(playDone);
 });
 
 /* ---------- salvataggio ---------- */
@@ -594,6 +617,74 @@ sel.addEventListener("change",function(){
 });
 lang=pickLang();sel.value=lang;applyLang();
 
+/* ---------- suoni: tutto sintetizzato qui, nessun file audio ---------- */
+var AC=window.AudioContext||window.webkitAudioContext,actx=null,muted=false,jingleDone=false,lastSquash=0;
+try{muted=localStorage.getItem("mute")==="1"}catch(e){}
+var muteBtn=$("muteBtn");
+function showMute(){muteBtn.setAttribute("aria-pressed",muted?"false":"true")}
+function audio(){
+  if(!AC||muted)return null;
+  try{if(!actx)actx=new AC()}catch(e){return null}
+  return actx;
+}
+function tone(c,type,f0,f1,t0,dur,vol){
+  var o=c.createOscillator(),g=c.createGain();
+  o.type=type;o.frequency.setValueAtTime(f0,t0);
+  if(f1!==f0)o.frequency.exponentialRampToValueAtTime(f1,t0+dur);
+  g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(vol,t0+.012);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+  o.connect(g);g.connect(c.destination);o.start(t0);o.stop(t0+dur+.03);
+}
+function hiss(c,t0,dur,vol,f0,f1){
+  var n=Math.floor(c.sampleRate*dur),buf=c.createBuffer(1,n,c.sampleRate),d=buf.getChannelData(0);
+  for(var i=0;i<n;i++)d[i]=Math.random()*2-1;
+  var s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
+  s.buffer=buf;f.type="bandpass";f.Q.value=1.2;
+  f.frequency.setValueAtTime(f0,t0);f.frequency.exponentialRampToValueAtTime(f1,t0+dur);
+  g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(vol,t0+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+  s.connect(f);f.connect(g);g.connect(c.destination);s.start(t0);
+}
+/* jingle d'avvio: quattro note che salgono, uno scivolo e un tonfo morbido */
+function playJingle(c){
+  var t=c.currentTime+.04,notes=[523.25,659.25,783.99,1046.5];
+  notes.forEach(function(f,i){tone(c,"triangle",f,f,t+i*.1,.16,.16);tone(c,"square",f*2,f*2,t+i*.1,.07,.03)});
+  tone(c,"triangle",1046.5,1568,t+.42,.2,.15);
+  tone(c,"sine",180,60,t+.64,.2,.32);
+  hiss(c,t+.62,.14,.07,1800,500);
+}
+/* schiacciata: fischio che scende, sbuffo d'aria, tonfo */
+function playSquash(c){
+  var t=c.currentTime+.02;
+  tone(c,"sawtooth",620,90,t,.26,.07);
+  tone(c,"triangle",900,140,t,.26,.1);
+  hiss(c,t+.08,.3,.16,2600,350);
+  tone(c,"sine",150,42,t+.25,.26,.5);
+}
+function playDone(c){
+  var t=c.currentTime+.02;
+  tone(c,"triangle",659.25,659.25,t,.14,.15);tone(c,"triangle",987.77,987.77,t+.12,.3,.16);
+}
+function sfx(fn){
+  var c=audio();if(!c)return;
+  if(c.state==="running"){fn(c);return}
+  try{c.resume().then(function(){fn(c)}).catch(function(){})}catch(e){}
+}
+function squashSound(){var now=Date.now();if(now-lastSquash<700)return;lastSquash=now;sfx(playSquash)}
+function startJingle(){
+  if(jingleDone||muted)return;
+  var c=audio();if(!c)return;
+  if(c.state==="running"){jingleDone=true;playJingle(c)}
+}
+function firstTouch(){
+  if(!jingleDone&&!muted){jingleDone=true;sfx(playJingle)}
+  window.removeEventListener("pointerdown",firstTouch,true);window.removeEventListener("keydown",firstTouch,true);
+}
+muteBtn.addEventListener("click",function(){
+  muted=!muted;try{localStorage.setItem("mute",muted?"1":"0")}catch(e){}
+  showMute();if(!muted){jingleDone=true;sfx(playDone)}
+});
+showMute();startJingle();
+if(!jingleDone){window.addEventListener("pointerdown",firstTouch,true);window.addEventListener("keydown",firstTouch,true)}
+
 /* ---------- installazione ---------- */
 var instBtn=$("installBtn"),iosHint=$("iosHint"),deferred=null;
 var standalone=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
@@ -602,6 +693,7 @@ var isIOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigat
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferred=e;if(!standalone)instBtn.hidden=false});
 window.addEventListener("appinstalled",function(){deferred=null;instBtn.hidden=true;iosHint.hidden=true});
 if(isIOS&&!standalone)instBtn.hidden=false;
+if(isIOS)$("pickDir").hidden=true;
 instBtn.addEventListener("click",async function(){
   if(deferred){
     var d=deferred;deferred=null;
