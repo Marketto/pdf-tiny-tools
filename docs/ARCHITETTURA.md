@@ -44,7 +44,7 @@ Lo script è diviso da commenti `/* ---------- nome ---------- */`:
 | salvataggio | Pulsanti sotto l'elenco, finestre di dialogo (`ask`), scrittura nelle cartelle (`writeJobs`) con schermata annullabile, ZIP di ripiego |
 | avvio | Menu delle lingue |
 | suoni | Jingle e effetti, sintetizzati con Web Audio (nessun file audio) |
-| musica | Sottofondo generato nota per nota: un tema solo in quattro umori (calma durante l'uso, mistero mentre legge una cartella, concitata mentre comprime, fanfara ai salvataggi) |
+| musica | Sottofondo generato nota per nota: un tema solo in più umori (calma durante l'uso, mistero mentre legge una cartella, concitata mentre comprime, gioia mentre scrive i file, fanfara a salvataggio riuscito) |
 | occhi | La mascotte strizza gli occhi a intervalli casuali, scegliendo a caso tra due espressioni |
 | condivisione | Pulsante di condivisione: foglio di sistema dove esiste, altrimenti copia il link |
 | installazione | Pulsante «Installa l'app» e istruzioni per iPhone |
@@ -76,7 +76,7 @@ Le regole di comportamento sono in `REQUISITI.md`; qui come sono realizzate.
 
 Niente file audio: tutto è sintetizzato con Web Audio. Il pulsante con l'altoparlante accende o spegne insieme effetti e musica; la scelta è ricordata in `localStorage`. Il sottofondo ha un volume volutamente basso (`VOL` nella sezione «musica»).
 
-La musica è un giro di otto battute (`PROG` e `TEMA` nella sezione «musica»). Un temporizzatore mette in coda le note con un terzo di secondo di anticipo, così l'umore può cambiare al volo: `music.setMood("mystery")` mentre la schermata di caricamento legge una cartella (la stessa melodia su un giro con un accordo di re maggiore al posto del la minore, suonata staccata e rada: curiosa, non cupa), `music.setMood("drive")` quando parte la compressione (il tempo sale gradualmente e il filtro si apre), `music.setMood("calm")` alla fine, `music.festa()` ai salvataggi in blocco, alla sovrascrittura completata e al salvataggio dell'unico file. I browser non fanno partire l'audio prima di un'interazione, quindi la musica comincia al primo tocco; quando la pagina va in secondo piano l'audio si sospende.
+La musica è un giro di otto battute (`PROG` e `TEMA` nella sezione «musica»). Un temporizzatore mette in coda le note con un terzo di secondo di anticipo, così l'umore può cambiare al volo: `music.setMood("mystery")` mentre la schermata di caricamento legge una cartella (la stessa melodia su un giro con un accordo di re maggiore al posto del la minore, suonata staccata e rada: curiosa, non cupa), `music.setMood("joy")` mentre la stessa schermata scrive i file (tema a passo svelto, a due voci, con batteria), `music.setMood("drive")` quando parte la compressione (il tempo sale gradualmente e il filtro si apre), `music.setMood("calm")` alla fine, `music.festa()` ai salvataggi in blocco, alla sovrascrittura completata e al salvataggio dell'unico file. I browser non fanno partire l'audio prima di un'interazione, quindi la musica comincia al primo tocco; quando la pagina va in secondo piano l'audio si sospende.
 
 ## Lingue
 
