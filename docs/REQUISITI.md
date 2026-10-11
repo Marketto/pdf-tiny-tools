@@ -15,7 +15,7 @@ Qui sono raccolte le decisioni prese dal proprietario del progetto su come l'app
 - Le cartelle vengono lette fino a 6 livelli di profondità; i file illeggibili si saltano senza interrompere.
 - **Ogni nuova selezione sostituisce l'elenco precedente**, per evitare malintesi.
 - Su schermi touch il riquadro «trascina qui» non compare: restano i pulsanti.
-- Durante la lettura di una cartella compare una schermata a tutto schermo che blocca il resto dell'app, con la mascotte che prende i fogli da uno schedario e un pulsante «Annulla» in basso al centro. Annullando torna l'elenco di prima.
+- Durante la lettura di una cartella compare una schermata a tutto schermo che blocca il resto dell'app, con la mascotte che prende i fogli da uno schedario e un pulsante «Annulla» in basso al centro. Annullando torna l'elenco di prima. Il conteggio in questa schermata dice «PDF trovati»: «pronti» si usa solo a lettura finita, quando i file sono davvero pronti da comprimere.
 
 ## Compressione
 

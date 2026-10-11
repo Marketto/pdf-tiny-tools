@@ -60,6 +60,7 @@ it: {
   savedTo: "PDF salvati in «{dir}»: {n}.",
   savedBeside: "PDF salvati accanto agli originali: {n}.",
   noWrite: "Le opzioni spente richiedono il permesso di scrivere nelle cartelle: funzionano scegliendo file o cartella con Chrome o Edge su computer.",
+  found: "PDF trovati: {n}",
   lang: "Lingua"
 },
 en: {
@@ -121,6 +122,7 @@ en: {
   savedTo: "PDFs saved to “{dir}”: {n}.",
   savedBeside: "PDFs saved next to the originals: {n}.",
   noWrite: "The greyed-out options need permission to write to folders: they work when you choose the files or folder with Chrome or Edge on a computer.",
+  found: "PDFs found: {n}",
   lang: "Language"
 },
 zh: {
@@ -182,6 +184,7 @@ zh: {
   savedTo: "已保存到「{dir}」的 PDF：{n}。",
   savedBeside: "已保存在原文件旁边的 PDF：{n}。",
   noWrite: "变灰的选项需要写入文件夹的权限：在电脑上用 Chrome 或 Edge 选择文件或文件夹时才可用。",
+  found: "已找到的 PDF：{n}",
   lang: "语言"
 },
 hi: {
@@ -243,6 +246,7 @@ hi: {
   savedTo: "“{dir}” में सहेजी गई PDF: {n}।",
   savedBeside: "मूल फ़ाइलों के साथ सहेजी गई PDF: {n}।",
   noWrite: "धुँधले विकल्पों के लिए फ़ोल्डर में लिखने की अनुमति चाहिए: कंप्यूटर पर Chrome या Edge से फ़ाइल या फ़ोल्डर चुनने पर ये काम करते हैं।",
+  found: "मिली PDF: {n}",
   lang: "भाषा"
 },
 es: {
@@ -304,6 +308,7 @@ es: {
   savedTo: "PDF guardados en «{dir}»: {n}.",
   savedBeside: "PDF guardados junto a los originales: {n}.",
   noWrite: "Las opciones apagadas necesitan permiso para escribir en carpetas: funcionan al elegir los archivos o la carpeta con Chrome o Edge en un ordenador.",
+  found: "PDF encontrados: {n}",
   lang: "Idioma"
 },
 fr: {
@@ -365,6 +370,7 @@ fr: {
   savedTo: "PDF enregistrés dans « {dir} » : {n}.",
   savedBeside: "PDF enregistrés à côté des originaux : {n}.",
   noWrite: "Les options grisées nécessitent l'autorisation d'écrire dans les dossiers : elles fonctionnent quand vous choisissez les fichiers ou le dossier avec Chrome ou Edge sur un ordinateur.",
+  found: "PDF trouvés : {n}",
   lang: "Langue"
 },
 ar: {
@@ -426,6 +432,7 @@ ar: {
   savedTo: "ملفات PDF المحفوظة في «{dir}»: {n}.",
   savedBeside: "ملفات PDF المحفوظة بجانب الأصلية: {n}.",
   noWrite: "الخيارات المعطّلة تحتاج إلى إذن بالكتابة في المجلدات: تعمل عند اختيار الملفات أو المجلد عبر Chrome أو Edge على الحاسوب.",
+  found: "ملفات PDF التي عُثر عليها: {n}",
   lang: "اللغة"
 },
 bn: {
@@ -487,6 +494,7 @@ bn: {
   savedTo: "“{dir}”-এ সেভ হওয়া PDF: {n}।",
   savedBeside: "আসল ফাইলের পাশে সেভ হওয়া PDF: {n}।",
   noWrite: "ঝাপসা অপশনগুলোর জন্য ফোল্ডারে লেখার অনুমতি লাগে: কম্পিউটারে Chrome বা Edge দিয়ে ফাইল বা ফোল্ডার বেছে নিলে এগুলো কাজ করে।",
+  found: "পাওয়া PDF: {n}",
   lang: "ভাষা"
 },
 pt: {
@@ -548,6 +556,7 @@ pt: {
   savedTo: "PDFs salvos em “{dir}”: {n}.",
   savedBeside: "PDFs salvos ao lado dos originais: {n}.",
   noWrite: "As opções apagadas precisam de permissão para gravar em pastas: funcionam quando você escolhe os arquivos ou a pasta com o Chrome ou o Edge no computador.",
+  found: "PDFs encontrados: {n}",
   lang: "Idioma"
 },
 ru: {
@@ -609,6 +618,7 @@ ru: {
   savedTo: "Сохранено PDF в «{dir}»: {n}.",
   savedBeside: "Сохранено PDF рядом с оригиналами: {n}.",
   noWrite: "Неактивным вариантам нужно разрешение на запись в папки: они работают, если выбрать файлы или папку в Chrome или Edge на компьютере.",
+  found: "Найдено PDF: {n}",
   lang: "Язык"
 },
 ur: {
@@ -670,6 +680,7 @@ ur: {
   savedTo: "”{dir}“ میں محفوظ ہونے والی PDF: {n}۔",
   savedBeside: "اصل فائلوں کے ساتھ محفوظ ہونے والی PDF: {n}۔",
   noWrite: "مدھم آپشنز کو فولڈرز میں لکھنے کی اجازت درکار ہے: کمپیوٹر پر Chrome یا Edge سے فائلیں یا فولڈر چننے پر یہ کام کرتے ہیں۔",
+  found: "ملنے والی PDF: {n}",
   lang: "زبان"
 },
 id: {
@@ -731,6 +742,7 @@ id: {
   savedTo: "PDF yang disimpan ke “{dir}”: {n}.",
   savedBeside: "PDF yang disimpan di samping file asli: {n}.",
   noWrite: "Opsi yang redup butuh izin menulis ke folder: opsi itu berfungsi jika file atau folder dipilih lewat Chrome atau Edge di komputer.",
+  found: "PDF ditemukan: {n}",
   lang: "Bahasa"
 },
 de: {
@@ -792,6 +804,7 @@ de: {
   savedTo: "In „{dir}“ gespeicherte PDFs: {n}.",
   savedBeside: "Neben den Originalen gespeicherte PDFs: {n}.",
   noWrite: "Die ausgegrauten Optionen brauchen Schreibzugriff auf Ordner: Sie funktionieren, wenn du Dateien oder Ordner mit Chrome oder Edge am Computer auswählst.",
+  found: "PDFs gefunden: {n}",
   lang: "Sprache"
 }
 };

@@ -347,7 +347,7 @@ async function loaderOff(){
 function addFile(file,rel,handle,dir){
   if(!isPdf(file.name)||cancelLoad)return;
   items.push({id:nextId++,name:file.name,rel:rel||file.name,file:file,size:file.size,status:"wait",pct:0,out:null,note:"",handle:handle||null,dir:dir||null});
-  if(loading)$("loaderN").textContent=t("ready",{n:nf(items.length)});
+  if(loading)$("loaderN").textContent=t("found",{n:nf(items.length)});
 }
 function loaded(n){
   if(!n){render();say(t("noPdf"),true);return}
