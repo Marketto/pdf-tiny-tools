@@ -51,6 +51,8 @@ h1,h2{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 h1{font-size:clamp(44px,11vw,76px);line-height:.92;color:var(--paper);
   -webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:5px 5px 0 var(--ink);letter-spacing:.5px}
 h1 span{color:var(--sun)}
+.titleRow{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.ver{font-family:var(--body);font-weight:700;font-size:14px;line-height:1;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:4px 9px;margin-bottom:6px;transform:rotate(-4deg);box-shadow:2px 2px 0 var(--ink);font-variant-numeric:tabular-nums}
 .sub{margin:14px 0 0;font-weight:700;max-width:34ch}
 
 /* mascotte: la pressa */
@@ -60,6 +62,28 @@ h1 span{color:var(--sun)}
 .press .p-spark{transform-box:fill-box;transform-origin:center;animation:twinkle 2.4s ease-in-out infinite}
 .press.busy .p-head{animation:stomp .55s cubic-bezier(.6,0,.9,.4) infinite alternate}
 .press.busy .p-sheets{animation:squash .55s cubic-bezier(.6,0,.9,.4) infinite alternate}
+/* caricamento cartella: tutto schermo, blocca il resto */
+.loader{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;
+  padding:calc(24px + env(safe-area-inset-top,0px)) 16px calc(110px + env(safe-area-inset-bottom,0px));
+  background-color:var(--sky);background-image:radial-gradient(var(--sky-dot) 2.2px,transparent 2.6px);background-size:18px 18px}
+.loaderScene{width:min(520px,100%);line-height:0}
+.loaderScene svg{width:100%;height:auto;overflow:visible}
+.loader h2{font-size:clamp(26px,7vw,38px);color:var(--paper);-webkit-text-stroke:2.5px var(--ink);paint-order:stroke fill;text-shadow:3px 3px 0 var(--ink)}
+.loader p{margin:0;font-weight:700;font-size:20px;min-height:1.4em;font-variant-numeric:tabular-nums}
+.loader #loaderCancel{position:absolute;left:50%;bottom:calc(32px + env(safe-area-inset-bottom,0px));transform:translateX(-50%)}
+.loader #loaderCancel:hover{transform:translate(calc(-50% - 1px),-1px)}
+.loader #loaderCancel:active{transform:translate(calc(-50% + 3px),3px)}
+.loader .fly,.loader .p-head,.loader .p-hand,.loader .drawer,.loader .p-spark{transform-box:fill-box;transform-origin:center}
+.loader .fly{opacity:0;animation:fly 1.5s cubic-bezier(.4,0,.5,1) infinite}
+.loader .f2{animation-delay:.5s}.loader .f3{animation-delay:1s}
+.loader .p-head{animation:bob .5s ease-in-out infinite alternate}
+.loader .p-hand{animation:grab .5s ease-in-out infinite alternate}
+.loader .drawer{animation:rattle .5s ease-in-out infinite alternate}
+.loader .p-spark{animation:twinkle 1.2s ease-in-out infinite}
+@keyframes fly{0%{transform:translate(0,10px) rotate(-12deg) scale(.7);opacity:0}12%{opacity:1}45%{transform:translate(120px,-62px) rotate(16deg) scale(1)}85%{opacity:1}100%{transform:translate(262px,96px) rotate(0) scale(.85);opacity:0}}
+@keyframes bob{to{transform:translateY(-14px) rotate(-3deg)}}
+@keyframes grab{to{transform:translate(-34px,-30px)}}
+@keyframes rattle{to{transform:translateX(-5px)}}
 @keyframes twinkle{50%{transform:scale(.6) rotate(20deg);opacity:.6}}
 @keyframes stomp{to{transform:translateY(52px)}}
 @keyframes squash{to{transform:scaleY(.26)}}
@@ -134,23 +158,14 @@ h1 span{color:var(--sun)}
 details{font-size:15px}
 details summary{cursor:pointer;font-weight:700}
 details p{margin:8px 0 0;max-width:65ch}
-@media (prefers-reduced-motion:reduce){.press.busy .p-head,.press.busy .p-sheets,.press .p-spark{animation:none}.btn,.tray{transition:none}}
+@media (prefers-reduced-motion:reduce){.press.busy .p-head,.press.busy .p-sheets,.press .p-spark,.loader .p-head,.loader .p-hand,.loader .drawer,.loader .p-spark{animation:none}.loader .fly{animation-duration:3s}.btn,.tray{transition:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="app">
   <header class="top">
     <div class="brand">
-    <div class="press" id="press" aria-hidden="true">
-      <svg viewBox="70 62 400 390" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round">
-<rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/>
-<g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g>
-<rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g>
-<g class="p-head"><rect x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/>
-<ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/>
-<ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/>
-<path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></svg>
-    </div>
+    <div class="press" id="press" aria-hidden="true"><!-- mascot:page --><svg viewBox="70 62 400 390" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"><rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g><rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g><g class="p-head"><rect x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/><ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/><ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></svg><!-- /mascot:page --></div>
       <div class="langbar">
       <label class="vh" for="lang" data-i18n="lang">Lingua</label>
       <button class="btn sm ok" type="button" id="installBtn" hidden data-i18n="install">Installa l'app</button>
@@ -162,7 +177,7 @@ details p{margin:8px 0 0;max-width:65ch}
     </div>
     <p class="iosHint" id="iosHint" hidden data-i18n="iosHint"></p>
     <div class="txt">
-      <h1 data-i18n-html="h1">Schiaccia <span>PDF</span></h1>
+      <div class="titleRow"><h1 data-i18n-html="h1">Schiaccia <span>PDF</span></h1><span class="ver" id="ver" translate="no">dev</span></div>
       <p class="sub" data-i18n="sub">Carica i PDF pieni di foto, tira la leva, salvali più leggeri. Tutto resta sul tuo dispositivo.</p>
     </div>
   </header>
@@ -224,6 +239,13 @@ details p{margin:8px 0 0;max-width:65ch}
   </section>
 </div>
 
+<div class="loader" id="loader" role="dialog" aria-modal="true" aria-labelledby="loaderTitle" hidden>
+  <div class="loaderScene" aria-hidden="true"><!-- mascot:loader --><svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"><rect x="30" y="96" width="160" height="184" rx="14" fill="#cdb8ff"/><rect x="42" y="156" width="136" height="52" rx="8" fill="#e3d6ff"/><rect x="92" y="174" width="36" height="14" rx="7" fill="#fff"/><rect x="42" y="216" width="136" height="52" rx="8" fill="#e3d6ff"/><rect x="92" y="234" width="36" height="14" rx="7" fill="#fff"/><g class="drawer"><path d="M48 70h124l10 22H38z" fill="#fff"/><path d="M60 70v-8h34v8M104 70v-12h34v12" fill="#fff6a8"/><rect x="26" y="92" width="168" height="54" rx="10" fill="#e3d6ff"/><rect x="92" y="112" width="36" height="14" rx="7" fill="#fff"/></g></g><g transform="translate(250 50) scale(.52)"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"><rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g><rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g><g class="p-head"><rect x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/><ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/><ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><circle class="p-hand" cx="112" cy="250" r="24" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></g><g class="fly f1"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g><g class="fly f2"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g><g class="fly f3"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g></svg><!-- /mascot:loader --></div>
+  <h2 id="loaderTitle" data-i18n="reading">Leggo la cartella…</h2>
+  <p id="loaderN" role="status" aria-live="polite"></p>
+  <button class="btn alt" type="button" id="loaderCancel" data-i18n="cancel">Annulla</button>
+</div>
+
 <script src="i18n.js"></script>
 <script src="vendor/pdf-lib.min.js"></script>
 <script src="vendor/jszip.min.js"></script>
@@ -271,9 +293,23 @@ function fmt(n){
 function isPdf(name){return /\.pdf$/i.test(name)}
 
 /* ---------- carico ---------- */
+var loading=false,cancelLoad=false,loadStart=0;
+function loaderOn(){
+  loading=true;cancelLoad=false;loadStart=Date.now();
+  $("loaderN").textContent="";$("loader").hidden=false;$("app").inert=true;
+  try{$("loaderCancel").focus()}catch(e){}
+}
+/* resta visibile almeno un attimo, così non è un lampo; restituisce true se è stato annullato */
+async function loaderOff(){
+  var wait=900-(Date.now()-loadStart);
+  if(wait>0&&!cancelLoad)await new Promise(function(r){setTimeout(r,wait)});
+  loading=false;$("loader").hidden=true;$("app").inert=false;
+  return cancelLoad;
+}
 function addFile(file,rel,handle){
-  if(!isPdf(file.name))return;
+  if(!isPdf(file.name)||cancelLoad)return;
   items.push({id:nextId++,name:file.name,rel:rel||file.name,file:file,size:file.size,status:"wait",pct:0,out:null,note:"",handle:handle||null});
+  if(loading)$("loaderN").textContent=t("ready",{n:nf(items.length)});
 }
 function loaded(n,replace){
   if(!n){say(t("noPdf"),true);return}
@@ -301,8 +337,10 @@ $("pickDirInput").addEventListener("change",function(e){
 var MAXDEPTH=6;
 async function walkHandle(dir,prefix,depth){
   var list=[];
+  if(cancelLoad)return;
   try{for await(var e of dir.values())list.push(e)}catch(err){return}
   for(var i=0;i<list.length;i++){
+    if(cancelLoad)return;
     var entry=list[i];
     try{
       if(entry.kind==="file"){
@@ -318,8 +356,10 @@ $("pickDir").addEventListener("click",async function(){
   if(window.showDirectoryPicker){
     try{
       var h=await window.showDirectoryPicker({mode:"readwrite"});
-      reset();say(t("reading"));
-      await walkHandle(h,"",0);rootDir=h;loaded(items.length);return;
+      reset();say("");render();loaderOn();
+      await walkHandle(h,"",0);
+      if(await loaderOff()){reset();render();return}
+      rootDir=h;loaded(items.length);$("go").focus();return;
     }catch(err){
       if(err&&err.name==="AbortError")return;
     }
@@ -334,6 +374,7 @@ function readAll(reader){
   });
 }
 async function walkEntry(entry,prefix,depth){
+  if(cancelLoad)return;
   try{
     if(entry.isFile){
       if(isPdf(entry.name)){
@@ -356,9 +397,21 @@ tray.addEventListener("drop",async function(e){
     for(var i=0;i<dt.items.length;i++){var en=dt.items[i].webkitGetAsEntry();if(en)entries.push(en)}
   }
   rootDir=null;
-  if(entries.length){for(var j=0;j<entries.length;j++)await walkEntry(entries[j],"",0)}
+  if(entries.length){
+    var hasDir=entries.some(function(x){return x.isDirectory});
+    if(hasDir)loaderOn();
+    for(var j=0;j<entries.length;j++)await walkEntry(entries[j],"",0);
+    if(hasDir&&await loaderOff()){items.length=before;render();return}
+  }
   else Array.from(dt.files||[]).forEach(function(f){addFile(f)});
   loaded(items.length-before);
+});
+
+$("loaderCancel").addEventListener("click",function(){cancelLoad=true});
+window.addEventListener("keydown",function(e){
+  if(!loading)return;
+  if(e.key==="Escape"){cancelLoad=true;return}
+  if(e.key==="Tab"){e.preventDefault();$("loaderCancel").focus()}
 });
 
 /* ---------- vista ---------- */

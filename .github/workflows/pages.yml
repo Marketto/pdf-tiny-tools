@@ -22,11 +22,23 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Nuova versione della cache offline a ogni pubblicazione
-        run: sed -i -E "s/schiaccia-pdf-v[0-9]+/schiaccia-pdf-${GITHUB_SHA::7}/" sw.js && grep -n "const CACHE" sw.js
+      - name: Controlla le traduzioni
+        run: node tools/check-i18n.mjs
+      - name: Prepara il sito
+        # Solo i file dell'app: strumenti, documentazione e configurazione degli agenti restano fuori.
+        run: |
+          mkdir _site
+          cp -r index.html i18n.js sw.js manifest.webmanifest favicon.ico icons vendor _site/
+          touch _site/.nojekyll
+          # Nuova versione della cache offline a ogni pubblicazione
+          sed -i -E "s/schiaccia-pdf-v[0-9]+/schiaccia-pdf-${GITHUB_SHA::7}/" _site/sw.js
+          grep -n "const CACHE" _site/sw.js
+          # Numero di versione mostrato accanto al titolo
+          sed -i "s|<span class=\"ver\" id=\"ver\" translate=\"no\">dev</span>|<span class=\"ver\" id=\"ver\" translate=\"no\">v$(tr -d '[:space:]' < VERSION)</span>|" _site/index.html
+          grep -o 'id="ver"[^<]*<' _site/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
