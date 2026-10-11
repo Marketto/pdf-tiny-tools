@@ -9,6 +9,21 @@ Qui sono raccolte le decisioni prese dal proprietario del progetto su come l'app
 - Interfaccia a fumetto con mascotte kawaii; testi giocosi, tradotti a senso e non alla lettera.
 - Gli originali non vengono mai modificati senza una conferma esplicita.
 
+## Modalità: PDF o JPG
+
+- La stessa app alleggerisce i PDF oppure le foto JPG, con la stessa esperienza d'uso.
+- Si passa dall'una all'altra toccando la parola «PDF» nel titolo, che ruota come un rullo a due facce (PDF e JPG). Il rullo deve far capire che è toccabile: ha due freccette e, la prima volta, accenna da solo un mezzo giro.
+- Cambiando modalità cambiano il colore della mascotte (rosa per i PDF, verde menta per i JPG), il colore d'accento, i testi e le opzioni del passo 2. Se c'era un elenco di file, si svuota.
+- La modalità scelta viene ricordata; un link che finisce con `#jpg` apre direttamente quella delle foto, e il pulsante di condivisione lo include.
+- Il rullo è un vero pulsante: funziona da tastiera e i lettori di schermo dicono qual è la modalità attiva.
+
+## Foto JPG
+
+- Al posto dei tre livelli di forza si scelgono due soglie: **lato lungo massimo** (originale, 2560, 1920, 1280 px) e **peso massimo** (nessun limite, 1 MB, 500 KB, 200 KB). Valgono insieme.
+- Data, luogo e altri dati dello scatto si conservano, salvo togliere la spunta.
+- Si accettano solo file JPG; il file salvato resta un JPG con lo stesso nome ed estensione.
+- Caricamento, elenco e salvataggio funzionano come per i PDF.
+
 ## Caricamento
 
 - Si possono scegliere uno o più PDF, una cartella intera, oppure trascinarli nella pagina.
@@ -19,7 +34,7 @@ Qui sono raccolte le decisioni prese dal proprietario del progetto su come l'app
 
 ## Compressione
 
-- Tre livelli di forza: leggero, medio, forte.
+- Per i PDF, tre livelli di forza: leggero, medio, forte.
 - Si ricomprimono solo le immagini; il testo resta selezionabile.
 - Un file che non si alleggerisce viene segnalato e lasciato com'è.
 
@@ -86,6 +101,7 @@ Le opzioni dipendono da quanti file ci sono nell'elenco.
 
 - Pubblicazione automatica su GitHub Pages a ogni push su `main`.
 - Ogni pubblicazione che cambia l'app aggiorna il numero in `VERSION`, da cui nasce il tag.
+- I numeri seguono il versionamento semantico, sempre a tre cifre: maggiore per i cambi che rompono abitudini o aggiungono una funzione di primo piano, minore per le funzioni nuove, correzione per difetti e ritocchi.
 - Dopo una pubblicazione, chi apre o aggiorna l'app deve vedere subito la versione nuova, senza doverla ricaricare più volte; senza rete continua a funzionare l'ultima versione scaricata.
 
 ## Documentazione

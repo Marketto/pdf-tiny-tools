@@ -1,6 +1,6 @@
 # Schiaccia PDF (pdf-tiny-tools)
 
-Web app statica che comprime i PDF nel browser ricomprimendo le immagini. Nessun server, nessuna build, nessun framework: quello che c'è nel repository è quello che viene pubblicato su GitHub Pages.
+Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini che contengono) e le foto JPG (entro un lato lungo e un peso massimi). Le due modalità si scambiano dal rullo nel titolo. Nessun server, nessuna build, nessun framework: quello che c'è nel repository è quello che viene pubblicato su GitHub Pages.
 
 ## Mappa
 
@@ -25,7 +25,7 @@ Prima di lavorare, guarda in quale riga cade la richiesta e usa la skill o l'age
 |---|---|
 | Testi, traduzioni, una lingua nuova | skill `traduzioni`; per rileggere una lingua, agente `traduttore` |
 | Mascotte, icone, favicon, animazione di caricamento | skill `mascotte-e-icone` |
-| Qualità o peso dei PDF, immagini non compresse, PDF che si rompono | agente `motore-pdf` |
+| Qualità o peso dei PDF e delle foto JPG, immagini non compresse, file che si rompono | agente `motore-pdf` |
 | «Funziona ancora?», controllo prima di pubblicare | skill `verifica`; per un giro completo e un rapporto, agente `collaudo` |
 | Nuova versione, tag, pubblicazione | skill `rilascio` |
 | Layout, stile, suoni, installazione, cartelle | lavora direttamente su `index.html`, poi skill `verifica` |
@@ -40,6 +40,7 @@ Se una richiesta tocca più righe, fai una cosa alla volta e chiudi sempre con `
 - **Gli originali non si toccano** se non dopo la conferma esplicita già prevista (pulsante «Sovrascrivi gli originali»).
 - **La mascotte ha una sola fonte**, `tools/mascot.mjs`. Non ritoccare a mano gli SVG dentro `index.html` o in `icons/`: si rigenerano.
 - **La documentazione si aggiorna insieme al codice.** Ogni requisito, correzione o miglioria chiesta dal proprietario va riportata in `docs/REQUISITI.md` nello stesso commit, e con lei `docs/ARCHITETTURA.md`, il README e le skill toccate dal cambiamento. Prima di cambiare un comportamento, leggi cosa dice `docs/REQUISITI.md`.
+- **Versionamento semantico**, sempre a tre cifre (`MAGGIORE.MINORE.CORREZIONE`); le regole sono nella skill `rilascio`.
 - **I tag non si creano a mano**: basta cambiare `VERSION` (vedi skill `rilascio`).
 - I percorsi nel sito sono relativi (l'app vive sotto `/pdf-tiny-tools/`).
 - Commit e documentazione in italiano.

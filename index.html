@@ -51,6 +51,23 @@ h1,h2{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 h1{font-size:clamp(44px,11vw,76px);line-height:.92;color:var(--paper);
   -webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:5px 5px 0 var(--ink);letter-spacing:.5px}
 h1 span{color:var(--sun)}
+/* la parola del titolo è un rullo a due facce: PDF e JPG. Toccandolo si cambia cosa schiacciare. */
+.roll{font:inherit;color:inherit;background:none;border:0;padding:0 .03em;margin:0;cursor:pointer;display:inline-flex;align-items:center;gap:.1em;
+  letter-spacing:inherit;-webkit-text-stroke:inherit;paint-order:inherit;text-shadow:inherit;perspective:500px;border-radius:10px;-webkit-tap-highlight-color:transparent}
+.drum{display:inline-grid;transform-style:preserve-3d;transform:translateZ(-.5em) rotateX(0deg);transition:transform .55s cubic-bezier(.3,1.6,.5,1)}
+.face{grid-area:1/1;text-align:center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.f-pdf{transform:rotateX(0deg) translateZ(.5em)}
+h1 .f-jpg{transform:rotateX(-90deg) translateZ(.5em);color:var(--mint)}
+.mode-jpg .drum{transform:translateZ(-.5em) rotateX(90deg)}
+.rollArrows{flex:none;width:.24em;height:.56em;color:var(--ink);-webkit-text-stroke:0;filter:none}
+.roll:hover .rollArrows{color:var(--grape)}
+.roll:focus-visible{outline:4px solid var(--grape);outline-offset:4px}
+.roll.wiggle .drum{animation:nudge 1.1s ease-in-out 1.4s 1}
+@keyframes nudge{0%,100%{transform:translateZ(-.5em) rotateX(0deg)}45%{transform:translateZ(-.5em) rotateX(40deg)}}
+/* modalità JPG: mascotte verde menta e accento verde */
+.mode-jpg{--grape:#0f9d7a}
+.mode-jpg .m-skin{fill:#a8ecd0}
+.m-skin{transition:fill .4s}
 .titleRow{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .ver{font-family:var(--body);font-weight:700;font-size:14px;line-height:1;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:4px 9px;margin-bottom:6px;transform:rotate(-4deg);box-shadow:2px 2px 0 var(--ink);font-variant-numeric:tabular-nums}
 .sub{margin:14px 0 0;font-weight:700;max-width:34ch}
@@ -152,7 +169,13 @@ h1 span{color:var(--sun)}
 .lvl small{font-size:14px;color:var(--muted);line-height:1.2;display:block}
 .lvl input:checked+span{background:var(--grape);color:var(--paper);box-shadow:4px 4px 0 var(--ink);transform:translate(-2px,-2px)}
 .lvl input:checked+span small{color:var(--paper)}
-@media (max-width:520px){.lvls{grid-template-columns:1fr}}
+.lvls.four{grid-template-columns:repeat(4,1fr)}
+.lvls.four b{font-size:18px;white-space:nowrap}
+.optLbl{font-weight:700;margin:0 0 8px}
+.optLbl+.lvls{margin-bottom:16px}
+.check{display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
+.check input{width:22px;height:22px;accent-color:var(--grape);flex:none}
+@media (max-width:520px){.lvls{grid-template-columns:1fr}.lvls.four{grid-template-columns:repeat(2,1fr)}}
 
 /* pila */
 .rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
@@ -185,14 +208,14 @@ h1 span{color:var(--sun)}
 details{font-size:15px}
 details summary{cursor:pointer;font-weight:700}
 details p{margin:8px 0 0;max-width:65ch}
-@media (prefers-reduced-motion:reduce){.press.busy .p-head,.press.busy .p-sheets,.press .p-spark,.loader .p-head,.loader .p-hand,.loader .drawer,.loader .p-spark{animation:none}.loader .fly{animation-duration:3s}.btn,.tray{transition:none}}
+@media (prefers-reduced-motion:reduce){.drum,.m-skin{transition:none}.roll.wiggle .drum{animation:none}.press.busy .p-head,.press.busy .p-sheets,.press .p-spark,.loader .p-head,.loader .p-hand,.loader .drawer,.loader .p-spark{animation:none}.loader .fly{animation-duration:3s}.btn,.tray{transition:none}}
 </style>
 </head>
 <body>
 <div class="wrap" id="app">
   <header class="top">
     <div class="brand">
-    <div class="press" id="press" aria-hidden="true"><!-- mascot:page --><svg viewBox="70 62 400 390" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"><rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g><rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g><g class="p-head"><rect x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/><g class="e-open"><ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/></g><g class="e-c" display="none"><path d="M178 200l40 22l-40 22M334 200l-40 22l40 22" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="e-d" display="none"><path d="M168 234q30 -32 60 0M284 234q30 -32 60 0" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="blush"><ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/></g><path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></svg><!-- /mascot:page --></div>
+    <div class="press" id="press" aria-hidden="true"><!-- mascot:page --><svg viewBox="70 62 400 390" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"><rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g><rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g><g class="p-head"><rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/><g class="e-open"><ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/></g><g class="e-c" display="none"><path d="M178 200l40 22l-40 22M334 200l-40 22l40 22" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="e-d" display="none"><path d="M168 234q30 -32 60 0M284 234q30 -32 60 0" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="blush"><ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/></g><path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></svg><!-- /mascot:page --></div>
       <div class="langbar">
       <label class="vh" for="lang" data-i18n="lang">Lingua</label>
       <button class="btn sm ok" type="button" id="installBtn" hidden data-i18n="install">Installa l'app</button>
@@ -207,7 +230,7 @@ details p{margin:8px 0 0;max-width:65ch}
     </div>
     <p class="iosHint" id="iosHint" hidden data-i18n="iosHint"></p>
     <div class="txt">
-      <div class="titleRow"><h1 data-i18n-html="h1">Schiaccia <span>PDF</span></h1><span class="ver" id="ver" translate="no">dev</span></div>
+      <div class="titleRow"><h1 id="title">Schiaccia <span>PDF</span></h1><span class="ver" id="ver" translate="no">dev</span></div>
       <p class="sub" data-i18n="sub">Carica i PDF pieni di foto, tira la leva, salvali più leggeri. Tutto resta sul tuo dispositivo.</p>
     </div>
   </header>
@@ -227,10 +250,29 @@ details p{margin:8px 0 0;max-width:65ch}
 
   <section class="panel">
     <div class="tag" data-i18n="s2">2 · Quanta forza?</div>
+    <div id="optsPdf">
     <div class="lvls" role="radiogroup" aria-label="Forza di compressione" data-i18n-aria="lvlAria">
       <label class="lvl"><input type="radio" name="lvl" id="lvlSoft" value="soft"><span><b data-i18n="soft">Carezza</b><small data-i18n="softD">Qualità quasi intatta</small></span></label>
       <label class="lvl"><input type="radio" name="lvl" id="lvlMid" value="mid" checked><span><b data-i18n="mid">Stretta</b><small data-i18n="midD">Per mail e archivio</small></span></label>
       <label class="lvl"><input type="radio" name="lvl" id="lvlHard" value="hard"><span><b data-i18n="hard">Martellata</b><small data-i18n="hardD">Peso minimo, si nota</small></span></label>
+    </div>
+    </div>
+    <div id="optsJpg" hidden>
+      <p class="optLbl" id="sideLbl" data-i18n="sideLbl">Lato lungo massimo</p>
+      <div class="lvls four" role="radiogroup" aria-labelledby="sideLbl">
+        <label class="lvl"><input type="radio" name="side" id="side0" value="0"><span><b data-i18n="orig">Originale</b></span></label>
+        <label class="lvl"><input type="radio" name="side" id="side2560" value="2560"><span><b translate="no">2560 px</b></span></label>
+        <label class="lvl"><input type="radio" name="side" id="side1920" value="1920" checked><span><b translate="no">1920 px</b></span></label>
+        <label class="lvl"><input type="radio" name="side" id="side1280" value="1280"><span><b translate="no">1280 px</b></span></label>
+      </div>
+      <p class="optLbl" id="weightLbl" data-i18n="weightLbl">Peso massimo</p>
+      <div class="lvls four" role="radiogroup" aria-labelledby="weightLbl">
+        <label class="lvl"><input type="radio" name="weight" id="weight0" value="0"><span><b data-i18n="noLimit">Nessun limite</b></span></label>
+        <label class="lvl"><input type="radio" name="weight" id="weight1048576" value="1048576"><span><b translate="no">1 MB</b></span></label>
+        <label class="lvl"><input type="radio" name="weight" id="weight512000" value="512000" checked><span><b translate="no">500 KB</b></span></label>
+        <label class="lvl"><input type="radio" name="weight" id="weight204800" value="204800"><span><b translate="no">200 KB</b></span></label>
+      </div>
+      <label class="check" for="keepExif"><input type="checkbox" id="keepExif" checked><span data-i18n="keepExif">Conserva data e luogo dello scatto</span></label>
     </div>
   </section>
 
@@ -264,7 +306,7 @@ details p{margin:8px 0 0;max-width:65ch}
 </div>
 
 <div class="loader" id="loader" role="dialog" aria-modal="true" aria-labelledby="loaderTitle" hidden>
-  <div class="loaderScene" aria-hidden="true"><!-- mascot:loader --><svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"><rect x="30" y="96" width="160" height="184" rx="14" fill="#cdb8ff"/><rect x="42" y="156" width="136" height="52" rx="8" fill="#e3d6ff"/><rect x="92" y="174" width="36" height="14" rx="7" fill="#fff"/><rect x="42" y="216" width="136" height="52" rx="8" fill="#e3d6ff"/><rect x="92" y="234" width="36" height="14" rx="7" fill="#fff"/><g class="drawer"><path d="M48 70h124l10 22H38z" fill="#fff"/><path d="M60 70v-8h34v8M104 70v-12h34v12" fill="#fff6a8"/><rect x="26" y="92" width="168" height="54" rx="10" fill="#e3d6ff"/><rect x="92" y="112" width="36" height="14" rx="7" fill="#fff"/></g></g><g transform="translate(250 50) scale(.52)"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"><rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g><rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g><g class="p-head"><rect x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/><g class="e-open"><ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/></g><g class="e-c" display="none"><path d="M178 200l40 22l-40 22M334 200l-40 22l40 22" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="e-d" display="none"><path d="M168 234q30 -32 60 0M284 234q30 -32 60 0" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="blush"><ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/></g><path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><circle class="p-hand" cx="112" cy="250" r="24" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></g><g class="fly f1"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g><g class="fly f2"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g><g class="fly f3"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g></svg><!-- /mascot:loader --></div>
+  <div class="loaderScene" aria-hidden="true"><!-- mascot:loader --><svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"><rect x="30" y="96" width="160" height="184" rx="14" fill="#cdb8ff"/><rect x="42" y="156" width="136" height="52" rx="8" fill="#e3d6ff"/><rect x="92" y="174" width="36" height="14" rx="7" fill="#fff"/><rect x="42" y="216" width="136" height="52" rx="8" fill="#e3d6ff"/><rect x="92" y="234" width="36" height="14" rx="7" fill="#fff"/><g class="drawer"><path d="M48 70h124l10 22H38z" fill="#fff"/><path d="M60 70v-8h34v8M104 70v-12h34v12" fill="#fff6a8"/><rect x="26" y="92" width="168" height="54" rx="10" fill="#e3d6ff"/><rect x="92" y="112" width="36" height="14" rx="7" fill="#fff"/></g></g><g transform="translate(250 50) scale(.52)"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"><rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g><rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g><g class="p-head"><rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/><g class="e-open"><ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/></g><g class="e-c" display="none"><path d="M178 200l40 22l-40 22M334 200l-40 22l40 22" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="e-d" display="none"><path d="M168 234q30 -32 60 0M284 234q30 -32 60 0" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="blush"><ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/></g><path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><circle class="p-hand m-skin" cx="112" cy="250" r="24" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></g><g class="fly f1"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g><g class="fly f2"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g><g class="fly f3"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g></svg><!-- /mascot:loader --></div>
   <h2 id="loaderTitle"></h2>
   <p id="loaderN" role="status" aria-live="polite"></p>
   <button class="btn alt" type="button" id="loaderCancel" data-i18n="cancel">Annulla</button>
@@ -288,6 +330,8 @@ details p{margin:8px 0 0;max-width:65ch}
 "use strict";
 var PRESETS={soft:{q:.82,max:2400},mid:{q:.68,max:1700},hard:{q:.5,max:1200}};
 var items=[],rootDir=null,busy=false,nextId=1,readOnlyDir=false;
+/* cosa si schiaccia: "pdf" o "jpg". Si cambia dal rullo nel titolo. */
+var mode="pdf";
 var $=function(id){return document.getElementById(id)};
 var rowsEl=$("rows"),msgEl=$("msg"),goBtn=$("go"),press=$("press");
 
@@ -299,8 +343,10 @@ function pickLang(){
   for(var i=0;i<l.length;i++){var c=String(l[i]).toLowerCase().split("-")[0];if(c==="in")c="id";if(I[c])return c}
   return I.en?"en":"it";
 }
+/* In modalità JPG vale la variante "chiaveJ" se esiste; altrimenti lo stesso testo con «PDF» sostituito da «JPG». */
 function t(k,p){
-  var str=(I[lang]&&I[lang][k])||(I.en&&I.en[k])||k;
+  var d=I[lang]||{},e=I.en||{},str=(mode==="jpg"&&(d[k+"J"]||e[k+"J"]))||d[k]||e[k]||k;
+  if(mode==="jpg"&&k!=="h1")str=str.replace(/PDF/g,"JPG").replace(/pdf/g,"jpg");
   if(p)for(var x in p)str=str.split("{"+x+"}").join(p[x]);
   return str;
 }
@@ -312,6 +358,7 @@ function applyLang(){
   var md=document.querySelector('meta[name="description"]');if(md)md.content=t("desc");
   each("[data-i18n]",function(n){n.textContent=t(n.getAttribute("data-i18n"))});
   each("[data-i18n-html]",function(n){n.innerHTML=t(n.getAttribute("data-i18n-html"))});
+  showTitle();
   each("[data-i18n-aria]",function(n){n.setAttribute("aria-label",t(n.getAttribute("data-i18n-aria")))});
   if($("demoMeta")){$("demoMeta").textContent=fmt(19293798)+" → "+fmt(3250586);$("demoPct").textContent="−"+nf(83)+"%"}
   render();
@@ -322,7 +369,35 @@ function fmt(n){
   if(n<1024*1024)return nf(Math.max(1,Math.round(n/1024)))+" KB";
   return nf(n/1048576,{minimumFractionDigits:1,maximumFractionDigits:1})+" MB";
 }
-function isPdf(name){return /\.pdf$/i.test(name)}
+function isPdf(name){return (mode==="jpg"?/\.jpe?g$/i:/\.pdf$/i).test(name)}
+
+/* titolo con il rullo: si ricostruisce solo quando cambia la lingua, così la rotazione resta animata */
+function showTitle(){
+  var h1=$("title"),b=$("modeBtn");
+  if(!b||h1.getAttribute("data-lang")!==lang){
+    h1.innerHTML=t("h1");h1.setAttribute("data-lang",lang);
+    var sp=h1.querySelector("span");if(!sp)return;
+    b=document.createElement("button");b.type="button";b.id="modeBtn";b.className="roll";
+    b.innerHTML='<span class="drum"><span class="face f-pdf">PDF</span><span class="face f-jpg">JPG</span></span><svg class="rollArrows" viewBox="0 0 12 26" aria-hidden="true"><path d="M2 9l4-6 4 6M2 17l4 6 4-6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    b.addEventListener("click",function(){setMode(mode==="pdf"?"jpg":"pdf")});
+    sp.replaceWith(b);
+  }
+  b.setAttribute("aria-label",t("modeLbl",{kind:mode.toUpperCase()}));
+}
+function setMode(m,quiet){
+  if(busy||loading||(m!=="pdf"&&m!=="jpg"))return;
+  if(m!==mode&&items.length)reset();
+  mode=m;
+  document.body.classList.toggle("mode-jpg",m==="jpg");
+  $("optsPdf").hidden=m==="jpg";$("optsJpg").hidden=m!=="jpg";
+  $("pickFiles").accept=m==="jpg"?"image/jpeg,.jpg,.jpeg":"application/pdf,.pdf";
+  if(!quiet){
+    try{localStorage.setItem("mode",m)}catch(e){}
+    try{history.replaceState(null,"",m==="jpg"?"#jpg":location.pathname+location.search)}catch(e){}
+    say("");applyLang();
+    var b=$("modeBtn");if(b)b.classList.remove("wiggle");
+  }
+}
 
 /* ---------- carico ---------- */
 var loading=false,cancelLoad=false,loadStart=0;
@@ -361,7 +436,7 @@ document.querySelector('label[for="pickFiles"]').addEventListener("click",async 
   if(!window.showOpenFilePicker||busy)return;
   e.preventDefault();
   try{
-    var hs=await window.showOpenFilePicker({multiple:true,types:[{description:"PDF",accept:{"application/pdf":[".pdf"]}}]});
+    var hs=await window.showOpenFilePicker({multiple:true,types:[mode==="jpg"?{description:"JPG",accept:{"image/jpeg":[".jpg",".jpeg"]}}:{description:"PDF",accept:{"application/pdf":[".pdf"]}}]});
     reset();
     for(var i=0;i<hs.length;i++)addFile(await hs[i].getFile(),null,hs[i]);
     loaded(items.length);
@@ -587,6 +662,74 @@ async function squeezeImage(ctx,ref,st,preset){
   return true;
 }
 
+/* ---- JPG: dati dello scatto (EXIF) ---- */
+/* Trova nel file originale il blocco con data, luogo e fotocamera. La foto viene raddrizzata dal browser
+   mentre la ridisegniamo, quindi nel blocco copiato l'orientamento va riportato a «normale». */
+function exifSegment(bytes){
+  if(bytes[0]!==0xFF||bytes[1]!==0xD8)return null;
+  var p=2;
+  while(p+10<bytes.length&&bytes[p]===0xFF){
+    var m=bytes[p+1];if(m===0xDA||m===0xD9)break;
+    var len=(bytes[p+2]<<8)|bytes[p+3];
+    if(m===0xE1&&bytes[p+4]===0x45&&bytes[p+5]===0x78&&bytes[p+6]===0x69&&bytes[p+7]===0x66&&bytes[p+8]===0&&bytes[p+9]===0){
+      if(p+2+len>bytes.length)return null;
+      var seg=bytes.slice(p,p+2+len),t0=10,le=seg[t0]===0x49;
+      var u16=function(o){return le?seg[o]|(seg[o+1]<<8):(seg[o]<<8)|seg[o+1]};
+      var u32=function(o){return (le?seg[o]|(seg[o+1]<<8)|(seg[o+2]<<16)|(seg[o+3]<<24):(seg[o]<<24)|(seg[o+1]<<16)|(seg[o+2]<<8)|seg[o+3])>>>0};
+      var ifd=t0+u32(t0+4);
+      if(ifd+2<=seg.length){
+        var n=u16(ifd);
+        for(var i=0;i<n;i++){
+          var e=ifd+2+i*12;if(e+12>seg.length)break;
+          if(u16(e)===0x0112){seg[e+8]=le?1:0;seg[e+9]=le?0:1;break}
+        }
+      }
+      return seg;
+    }
+    p+=2+len;
+  }
+  return null;
+}
+function jpgOpts(){
+  return {side:+document.querySelector('input[name="side"]:checked').value,
+          weight:+document.querySelector('input[name="weight"]:checked').value,
+          exif:$("keepExif").checked};
+}
+/* Rimpicciolisce fino al lato lungo scelto; se c'è un peso massimo cerca la qualità più alta che ci sta,
+   e se non basta nemmeno la più bassa riduce ancora le dimensioni. */
+async function squeezeJpg(it,o,onPct){
+  var bmp;
+  try{bmp=await createImageBitmap(it.file,{imageOrientation:"from-image"})}catch(e){bmp=await createImageBitmap(it.file)}
+  var w=bmp.width,h=bmp.height,k=o.side?Math.min(1,o.side/Math.max(w,h)):1;
+  var cap=(isIOS?16e6:120e6)/(w*h);if(k*k>cap)k=Math.sqrt(cap);
+  var seg=null;
+  if(o.exif){try{seg=exifSegment(new Uint8Array(await it.file.slice(0,262144).arrayBuffer()))}catch(e){}}
+  var limit=o.weight?Math.max(8000,o.weight-(seg?seg.length:0)):0,best=null,last=null;
+  for(var round=0;round<5&&!best;round++){
+    var cv=document.createElement("canvas");cv.width=Math.max(1,Math.round(w*k));cv.height=Math.max(1,Math.round(h*k));
+    var g=cv.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,cv.width,cv.height);
+    g.imageSmoothingQuality="high";g.drawImage(bmp,0,0,cv.width,cv.height);
+    if(!limit)best=await toJpeg(cv,.8);
+    else{
+      var lo=.3,hi=.92;last=await toJpeg(cv,hi);
+      if(last&&last.size<=limit)best=last;
+      else for(var s=0;s<6;s++){
+        var q=(lo+hi)/2;last=await toJpeg(cv,q);
+        if(last&&last.size<=limit){best=last;lo=q}else hi=q;
+      }
+      if(!best){last=await toJpeg(cv,.3);if(last&&last.size<=limit)best=last}
+    }
+    cv.width=cv.height=0;onPct(Math.min(95,(round+1)*30));
+    if(!best&&last)k*=Math.max(.5,Math.sqrt(limit/last.size)*.95);
+    if(!limit&&!best)break;
+  }
+  if(bmp.close)bmp.close();
+  best=best||last;if(!best)throw new Error("unreadable");
+  var bytes=new Uint8Array(await best.arrayBuffer());
+  if(seg){var out=new Uint8Array(bytes.length+seg.length);out.set(bytes.subarray(0,2),0);out.set(seg,2);out.set(bytes.subarray(2),2+seg.length);bytes=out}
+  return {blob:new Blob([bytes],{type:"image/jpeg"}),images:1,changed:1};
+}
+
 async function squeezePdf(it,preset,onPct){
   var bytes=new Uint8Array(await it.file.arrayBuffer());
   var doc=await L.PDFDocument.load(bytes,{updateMetadata:false});
@@ -610,8 +753,9 @@ async function squeezePdf(it,preset,onPct){
 
 goBtn.addEventListener("click",async function(){
   if(busy||!items.length)return;
-  if(!L.PDFDocument){say(t("engine"),true);return}
-  var preset=PRESETS[document.querySelector('input[name="lvl"]:checked').value];
+  var jpg=mode==="jpg";
+  if(!jpg&&!L.PDFDocument){say(t("engine"),true);return}
+  var preset=jpg?jpgOpts():PRESETS[document.querySelector('input[name="lvl"]:checked').value];
   busy=true;press.classList.add("busy");say("");music.setMood("drive");
   items.forEach(function(it){it.status="wait";it.out=null;it.note="";it.pct=0;it.size=it.file.size});
   render();
@@ -619,7 +763,7 @@ goBtn.addEventListener("click",async function(){
     var it=items[i];it.status="work";render();squashSound();
     try{
       var last=-1;
-      var r=await squeezePdf(it,preset,function(p){if(p-last>=5){last=p;it.pct=p;render()}});
+      var r=await (jpg?squeezeJpg:squeezePdf)(it,preset,function(p){if(p-last>=5){last=p;it.pct=p;render()}});
       if(r.blob.size<it.size*.98){it.out=r.blob;it.status="done"}
       else{it.status="same";it.note=r.images?"noGain":"noImages"}
     }catch(e){
@@ -638,7 +782,8 @@ goBtn.addEventListener("click",async function(){
 var canDir=!!window.showDirectoryPicker,savedAs="",BADCHARS='/ \\ : * ? " < > |';
 function doneItems(){return items.filter(function(x){return x.status==="done"})}
 function plainItems(){return items.filter(function(x){return x.status==="same"||x.status==="err"})}
-function outName(it){return it.name.replace(/\.pdf$/i,"")+t("suffix")+".pdf"}
+function splitName(name){var m=/^(.*?)(\.[^.]+)?$/.exec(name);return [m[1],m[2]||""]}
+function outName(it){var n=splitName(it.name);return n[0]+t("suffix")+n[1]}
 
 /* un file verso il sistema: finestra «salva con nome» dove c'è, altrimenti download */
 async function saveBlob(filename,blob){
@@ -646,7 +791,7 @@ async function saveBlob(filename,blob){
   if(window.showSaveFilePicker){
     try{
       var zip=/\.zip$/i.test(filename);
-      var fh=await window.showSaveFilePicker({suggestedName:filename,types:[zip?{description:"ZIP",accept:{"application/zip":[".zip"]}}:{description:"PDF",accept:{"application/pdf":[".pdf"]}}]});
+      var fh=await window.showSaveFilePicker({suggestedName:filename,types:[zip?{description:"ZIP",accept:{"application/zip":[".zip"]}}:(/\.jpe?g$/i.test(filename)?{description:"JPG",accept:{"image/jpeg":[".jpg",".jpeg"]}}:{description:"PDF",accept:{"application/pdf":[".pdf"]}})]});
       var w=await fh.createWritable();await w.write(blob);await w.close();
       savedAs=fh.name;return true;
     }catch(e){
@@ -763,7 +908,7 @@ $("saveBeside").addEventListener("click",async function(){
   bp.type=bs.type="button";inp.type="text";inp.id="besideText";inp.autocomplete="off";inp.spellcheck=false;inp.value=text;
   seg.appendChild(bp);seg.appendChild(bs);lab.appendChild(inp);
   box.appendChild(seg);box.appendChild(lab);box.appendChild(prev);box.appendChild(err);err.hidden=true;
-  function newName(name,m,x){var base=name.replace(/\.pdf$/i,"");return m==="prefix"?x+name:base+x+".pdf"}
+  function newName(name,m,x){var n=splitName(name);return m==="prefix"?x+name:n[0]+x+n[1]}
   function show(){
     bp.setAttribute("aria-pressed",mode==="prefix");bs.setAttribute("aria-pressed",mode==="suffix");
     prev.textContent=t("example")+": "+done[0].name+" → "+newName(done[0].name,mode,inp.value);
@@ -818,7 +963,15 @@ sel.addEventListener("change",function(){
   lang=sel.value;try{localStorage.setItem("lang",lang)}catch(e){}
   say("");applyLang();
 });
-lang=pickLang();sel.value=lang;applyLang();
+lang=pickLang();sel.value=lang;
+/* modalità iniziale: dal link (#jpg o #pdf), altrimenti l'ultima usata */
+var firstMode=null,hadMode=false;
+try{firstMode=localStorage.getItem("mode");hadMode=!!firstMode}catch(e){}
+if(/^#(jpg|pdf)$/i.test(location.hash))firstMode=location.hash.slice(1).toLowerCase();
+setMode(firstMode==="jpg"?"jpg":"pdf",true);
+applyLang();
+if(!hadMode&&$("modeBtn"))$("modeBtn").classList.add("wiggle");
+window.addEventListener("hashchange",function(){if(/^#(jpg|pdf)$/i.test(location.hash))setMode(location.hash.slice(1).toLowerCase())});
 
 /* un solo interruttore per effetti e musica: 0 = accesi, 2 = silenzio */
 /* ---------- suoni: tutto sintetizzato qui, nessun file audio ---------- */
@@ -1088,7 +1241,7 @@ function toast(txt){
   clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},2200);
 }
 $("shareBtn").addEventListener("click",async function(){
-  var url=location.origin+location.pathname.replace(/index\.html$/,"");
+  var url=location.origin+location.pathname.replace(/index\.html$/,"")+(mode==="jpg"?"#jpg":"");
   if(navigator.share){
     try{await navigator.share({title:t("title"),text:t("desc"),url:url});return}
     catch(e){if(e&&e.name==="AbortError")return}

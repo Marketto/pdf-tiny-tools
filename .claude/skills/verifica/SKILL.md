@@ -22,7 +22,7 @@ cd tools && npm install   # solo la prima volta
 node tools/smoke-test.mjs
 ```
 
-Apre l'app in cinque lingue (compresa una da destra a sinistra e una non supportata), controlla che non ci siano errori JavaScript né scorrimento orizzontale a 400 px, poi crea un PDF di prova, lo comprime e verifica che esca più leggero.
+Apre l'app in cinque lingue (compresa una da destra a sinistra e una non supportata), controlla che non ci siano errori JavaScript né scorrimento orizzontale a 400 px, poi crea un PDF di prova, lo comprime e verifica che esca più leggero. Infine passa alla modalità JPG dal rullo del titolo, comprime una foto di prova e controlla nome, peso, lato lungo e dati dello scatto del file salvato.
 
 ## Cosa la prova automatica non copre
 

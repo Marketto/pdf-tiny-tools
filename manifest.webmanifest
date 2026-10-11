@@ -1,7 +1,7 @@
 {
   "name": "Schiaccia PDF",
   "short_name": "Schiaccia PDF",
-  "description": "Comprimi i PDF pieni di immagini direttamente sul dispositivo.",
+  "description": "Alleggerisci PDF e foto JPG direttamente sul dispositivo.",
   "lang": "it",
   "start_url": "./",
   "scope": "./",

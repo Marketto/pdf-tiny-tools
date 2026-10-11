@@ -17,8 +17,12 @@ La pubblicazione è automatica: non c'è nulla da caricare a mano.
 ## Procedura
 
 1. Esegui la skill `verifica` per intero. Se fallisce, fermati.
-2. Scegli il numero: correzioni → ultima cifra (`1.1.1`), funzioni nuove → cifra centrale (`1.2`), cambi che rompono abitudini o dati degli utenti → prima cifra.
-3. Scrivi il numero in `VERSION` (solo il numero, senza `v`) e fai un commit «Versione X.Y» che contenga anche le modifiche non ancora inviate.
+2. Scegli il numero con il **versionamento semantico**, sempre a tre cifre `MAGGIORE.MINORE.CORREZIONE`:
+   - **CORREZIONE** (`2.0.0` → `2.0.1`): difetti sistemati, ritocchi a testi, suoni o aspetto che non aggiungono funzioni.
+   - **MINORE** (`2.0.1` → `2.1.0`): funzioni nuove che non tolgono né cambiano quelle esistenti. La correzione torna a 0.
+   - **MAGGIORE** (`2.1.0` → `3.0.0`): cambi che rompono abitudini, dati salvati o link degli utenti, oppure una funzione di primo piano (la 2.0.0 ha aggiunto i JPG). Minore e correzione tornano a 0.
+   - Mai saltare numeri, mai riusare un numero già pubblicato, mai due cifre sole (`2.1` non è valido: si scrive `2.1.0`).
+3. Scrivi il numero in `VERSION` (solo il numero, senza `v`) e fai un commit «Versione X.Y.Z» che contenga anche le modifiche non ancora inviate.
 4. Push su `main`.
 5. Controlla l'esito:
    ```bash

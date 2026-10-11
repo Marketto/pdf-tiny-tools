@@ -30,12 +30,12 @@ export function mascot({ icon = false, hand = false } = {}) {
   const [bx, bw] = icon ? [116, 280] : [84, 344];
   const spark = icon ? "" :
     `<path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
-  const paw = hand ? `<circle class="p-hand" cx="112" cy="250" r="24" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>` : "";
+  const paw = hand ? `<circle class="p-hand m-skin" cx="112" cy="250" r="24" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>` : "";
   return `<g stroke="${INK}" stroke-width="10" stroke-linejoin="round" stroke-linecap="round">` +
     `<rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/>` +
     `<g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g>` +
     `<rect x="${bx}" y="392" width="${bw}" height="50" rx="25" fill="#a48cf0"/></g>` +
-    `<g class="p-head"><rect x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>${face(!icon)}</g>${paw}${spark}`;
+    `<g class="p-head"><rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>${face(!icon)}</g>${paw}${spark}`;
 }
 
 export const pageSvg = () =>

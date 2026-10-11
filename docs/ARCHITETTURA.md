@@ -21,6 +21,16 @@ flowchart LR
 
 Il testo, i link e la struttura delle pagine non vengono toccati: cambia solo il contenuto dei flussi immagine. Per questo il testo resta selezionabile e per questo un PDF senza immagini non si alleggerisce.
 
+## Due modalità
+
+La variabile `mode` vale `"pdf"` o `"jpg"`; `setMode()` la cambia, mette la classe `mode-jpg` su `<body>` (da cui dipendono colore della mascotte, accento e rotazione del rullo), scambia le opzioni del passo 2 e il filtro dei file accettati. Il rullo è un pulsante costruito da `showTitle()` al posto dello `<span>PDF</span>` del titolo: due facce disposte ad angolo retto e ruotate con una trasformazione 3D.
+
+I testi non sono duplicati: in modalità JPG `t()` usa la chiave con la `J` finale se esiste (`subJ`), altrimenti il testo normale con «PDF» sostituito da «JPG».
+
+## Come viaggia una foto JPG
+
+`squeezeJpg()` decodifica la foto (il browser la raddrizza secondo l'orientamento registrato), la ridisegna entro il lato lungo scelto e la ricodifica. Con un peso massimo cerca per bisezione la qualità più alta che ci sta, tra 0,30 e 0,92; se non basta nemmeno la più bassa riduce le dimensioni e riprova, fino a cinque giri. Senza peso massimo usa qualità 0,80. Se richiesto, il blocco EXIF dell'originale (data, luogo, fotocamera) viene ricopiato in testa al file nuovo con l'orientamento riportato a «normale», perché i pixel sono già dritti. Il profilo colore non si ricopia: i pixel ridisegnati sono in sRGB. Su iPhone la superficie di disegno è limitata a 16 milioni di pixel.
+
 ## I tre livelli di forza
 
 | Livello | Qualità JPEG | Lato lungo massimo |
@@ -37,10 +47,10 @@ Lo script è diviso da commenti `/* ---------- nome ---------- */`:
 
 | Sezione | Cosa fa |
 |---|---|
-| lingue | Scelta della lingua dal browser, funzione `t()`, applicazione dei testi |
+| lingue | Scelta della lingua dal browser, funzione `t()`, applicazione dei testi, titolo con il rullo e cambio di modalità |
 | carico | Scelta file, lettura cartelle (fino a 6 livelli), trascinamento, schermata di caricamento annullabile |
 | vista | Disegna l'elenco dei file e i totali |
-| motore | Compressione: `squeezePdf` e `squeezeImage` |
+| motore | Compressione: `squeezePdf` e `squeezeImage` per i PDF, `squeezeJpg` ed `exifSegment` per le foto |
 | salvataggio | Pulsanti sotto l'elenco, finestre di dialogo (`ask`), scrittura nelle cartelle (`writeJobs`) con schermata annullabile, ZIP di ripiego |
 | avvio | Menu delle lingue |
 | suoni | Jingle e effetti, sintetizzati con Web Audio (nessun file audio) |

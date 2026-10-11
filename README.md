@@ -1,8 +1,9 @@
-# Schiaccia PDF
+# Schiaccia PDF (e JPG)
 
 Compressore di PDF a fumetti che gira tutto nel browser: carichi i PDF pieni di immagini, scegli la forza, salvi le versioni leggere. I file non lasciano mai il dispositivo.
 
-- Ricomprime in JPEG le immagini dentro il PDF; testo, link e pagine restano come sono.
+- **PDF**: ricomprime in JPEG le immagini dentro il documento; testo, link e pagine restano come sono.
+- **JPG**: toccando la parola «PDF» nel titolo, che ruota come un rullo, l'app passa alle foto: si sceglie un lato lungo massimo e un peso massimo, e data e luogo dello scatto si possono conservare.
 - Funziona su file singoli, su più file o su una cartella intera (sottocartelle comprese).
 - Con un solo file si salva con nome o si sovrascrive l'originale; con più file si salva in un'altra cartella mantenendo la struttura, accanto agli originali con un prefisso o un suffisso, oppure si sovrascrive, sempre dopo conferma. Scrivere nelle cartelle richiede Chrome o Edge da computer; altrove si scarica il file o uno ZIP.
 - Si installa come app su Android e iPhone e funziona anche senza rete dopo la prima apertura.

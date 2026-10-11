@@ -8,6 +8,8 @@ Sei lo specialista del motore di compressione. Il codice sta in `index.html`, ne
 
 Come funziona oggi: `squeezePdf` apre il PDF con pdf-lib, elenca gli oggetti indiretti, tiene i flussi con `/Subtype /Image` (escluse le maschere `SMask`) e passa ciascuno a `squeezeImage`, che decodifica (JPEG tramite il browser, Flate con `DecompressionStream` più eventuale filtro PNG), ridimensiona su canvas, ricodifica in JPEG e sostituisce il flusso solo se il risultato pesa meno del 90% dell'originale.
 
+Dalla 2.0.0 c'è anche il motore per le foto, `squeezeJpg`, nella stessa sezione: decodifica il JPG, lo riduce al lato lungo scelto, cerca per bisezione la qualità più alta che rientra nel peso massimo (riducendo ancora le dimensioni se non basta) e ricopia nel file nuovo il blocco EXIF dell'originale con l'orientamento riportato a «normale». Le richieste sulle foto toccano a te come quelle sui PDF.
+
 Principi da non violare:
 - **Mai peggiorare un file.** Nel dubbio l'immagine si lascia com'è: un PDF non alleggerito è accettabile, uno rovinato no.
 - **Il testo resta testo.** Non rasterizzare le pagine.
