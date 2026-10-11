@@ -40,7 +40,7 @@ it: {
   install: "Installa l'app",
   iosHint: "Su iPhone e iPad: tocca Condividi, poi «Aggiungi alla schermata Home».",
   share: "Condividi", copied: "Link copiato",
-  sound: "Suoni",
+  sndAll: "Suoni e musica", sndFx: "Solo effetti", sndOff: "Silenzio",
   lang: "Lingua"
 },
 en: {
@@ -82,7 +82,7 @@ en: {
   install: "Install the app",
   iosHint: "On iPhone and iPad: tap Share, then “Add to Home Screen”.",
   share: "Share", copied: "Link copied",
-  sound: "Sound",
+  sndAll: "Sound and music", sndFx: "Effects only", sndOff: "Muted",
   lang: "Language"
 },
 zh: {
@@ -124,7 +124,7 @@ zh: {
   install: "安装应用",
   iosHint: "在 iPhone 和 iPad 上：点一下分享按钮，再选「添加到主屏幕」。",
   share: "分享", copied: "链接已复制",
-  sound: "声音",
+  sndAll: "声音和音乐", sndFx: "仅音效", sndOff: "静音",
   lang: "语言"
 },
 hi: {
@@ -166,7 +166,7 @@ hi: {
   install: "ऐप इंस्टॉल करें",
   iosHint: "iPhone और iPad पर: शेयर बटन दबाएँ, फिर “होम स्क्रीन में जोड़ें” चुनें।",
   share: "शेयर करें", copied: "लिंक कॉपी हो गया",
-  sound: "आवाज़",
+  sndAll: "आवाज़ और संगीत", sndFx: "सिर्फ़ इफ़ेक्ट", sndOff: "म्यूट",
   lang: "भाषा"
 },
 es: {
@@ -208,7 +208,7 @@ es: {
   install: "Instalar la app",
   iosHint: "En iPhone y iPad: toca Compartir y luego «Añadir a pantalla de inicio».",
   share: "Compartir", copied: "Enlace copiado",
-  sound: "Sonido",
+  sndAll: "Sonido y música", sndFx: "Solo efectos", sndOff: "Silencio",
   lang: "Idioma"
 },
 fr: {
@@ -250,7 +250,7 @@ fr: {
   install: "Installer l'appli",
   iosHint: "Sur iPhone et iPad : touchez Partager, puis « Sur l'écran d'accueil ».",
   share: "Partager", copied: "Lien copié",
-  sound: "Sons",
+  sndAll: "Sons et musique", sndFx: "Effets seulement", sndOff: "Muet",
   lang: "Langue"
 },
 ar: {
@@ -292,7 +292,7 @@ ar: {
   install: "ثبّت التطبيق",
   iosHint: "على iPhone و iPad: اضغط زر المشاركة ثم اختر «إضافة إلى الشاشة الرئيسية».",
   share: "مشاركة", copied: "تم نسخ الرابط",
-  sound: "الصوت",
+  sndAll: "الأصوات والموسيقى", sndFx: "المؤثرات فقط", sndOff: "صامت",
   lang: "اللغة"
 },
 bn: {
@@ -334,7 +334,7 @@ bn: {
   install: "অ্যাপ ইনস্টল করুন",
   iosHint: "iPhone ও iPad-এ: শেয়ার বোতামে চাপ দিন, তারপর “হোম স্ক্রিনে যোগ করুন” বেছে নিন।",
   share: "শেয়ার করুন", copied: "লিংক কপি হয়েছে",
-  sound: "শব্দ",
+  sndAll: "শব্দ ও সংগীত", sndFx: "শুধু ইফেক্ট", sndOff: "নিঃশব্দ",
   lang: "ভাষা"
 },
 pt: {
@@ -376,7 +376,7 @@ pt: {
   install: "Instalar o app",
   iosHint: "No iPhone e no iPad: toque em Compartilhar e depois em “Adicionar à Tela de Início”.",
   share: "Compartilhar", copied: "Link copiado",
-  sound: "Som",
+  sndAll: "Som e música", sndFx: "Só efeitos", sndOff: "Mudo",
   lang: "Idioma"
 },
 ru: {
@@ -418,7 +418,7 @@ ru: {
   install: "Установить приложение",
   iosHint: "На iPhone и iPad: нажмите «Поделиться», затем «На экран „Домой“».",
   share: "Поделиться", copied: "Ссылка скопирована",
-  sound: "Звук",
+  sndAll: "Звуки и музыка", sndFx: "Только эффекты", sndOff: "Без звука",
   lang: "Язык"
 },
 ur: {
@@ -460,7 +460,7 @@ ur: {
   install: "ایپ انسٹال کریں",
   iosHint: "iPhone اور iPad پر: شیئر کا بٹن دبائیں، پھر ”ہوم اسکرین میں شامل کریں“ چنیں۔",
   share: "شیئر کریں", copied: "لنک کاپی ہو گیا",
-  sound: "آواز",
+  sndAll: "آواز اور موسیقی", sndFx: "صرف ایفیکٹس", sndOff: "خاموش",
   lang: "زبان"
 },
 id: {
@@ -502,7 +502,7 @@ id: {
   install: "Pasang aplikasi",
   iosHint: "Di iPhone dan iPad: ketuk Bagikan, lalu “Tambah ke Layar Utama”.",
   share: "Bagikan", copied: "Tautan disalin",
-  sound: "Suara",
+  sndAll: "Suara dan musik", sndFx: "Efek saja", sndOff: "Senyap",
   lang: "Bahasa"
 },
 de: {
@@ -544,7 +544,7 @@ de: {
   install: "App installieren",
   iosHint: "Auf iPhone und iPad: auf „Teilen“ tippen, dann „Zum Home-Bildschirm“.",
   share: "Teilen", copied: "Link kopiert",
-  sound: "Ton",
+  sndAll: "Ton und Musik", sndFx: "Nur Effekte", sndOff: "Stumm",
   lang: "Sprache"
 }
 };

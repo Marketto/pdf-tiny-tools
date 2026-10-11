@@ -44,6 +44,7 @@ Lo script è diviso da commenti `/* ---------- nome ---------- */`:
 | salvataggio | Download, ZIP, scrittura in cartella, sovrascrittura con conferma e schermata annullabile (i file già riscritti restano riscritti) |
 | avvio | Menu delle lingue |
 | suoni | Jingle e effetti, sintetizzati con Web Audio (nessun file audio) |
+| musica | Sottofondo generato nota per nota: un tema solo in tre umori (calma durante l'uso, concitata mentre comprime, fanfara ai salvataggi) |
 | occhi | La mascotte strizza gli occhi a intervalli casuali, scegliendo a caso tra due espressioni |
 | condivisione | Pulsante di condivisione: foglio di sistema dove esiste, altrimenti copia il link |
 | installazione | Pulsante «Installa l'app» e istruzioni per iPhone |
@@ -57,6 +58,12 @@ Tre strade, a seconda del browser:
 3. **Trascinamento** di file e cartelle: sola lettura.
 
 In tutte e tre si scende al massimo di 6 livelli, si saltano le cartelle nascoste e quelle di uscita (in qualsiasi lingua), e un file illeggibile viene saltato senza interrompere la lettura.
+
+## Suoni e musica
+
+Niente file audio: tutto è sintetizzato con Web Audio. Il pulsante con l'altoparlante ha tre stati, ricordati in `localStorage`: suoni e musica, solo effetti, silenzio.
+
+La musica è un giro di otto battute (`PROG` e `TEMA` nella sezione «musica»). Un temporizzatore mette in coda le note con un terzo di secondo di anticipo, così l'umore può cambiare al volo: `music.setMood("drive")` quando parte la compressione (il tempo sale gradualmente e il filtro si apre), `music.setMood("calm")` alla fine, `music.festa()` ai salvataggi in blocco, alla sovrascrittura completata e al salvataggio dell'unico file. I browser non fanno partire l'audio prima di un'interazione, quindi la musica comincia al primo tocco; quando la pagina va in secondo piano l'audio si sospende.
 
 ## Lingue
 
