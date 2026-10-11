@@ -148,6 +148,11 @@ h1 span{color:var(--sun)}
 .badge.wait{background:var(--paper)}.badge.work{background:var(--sun)}.badge.err{background:var(--tomato);color:var(--paper)}.badge.same{background:var(--paper)}
 .row .bar{position:absolute;inset-inline-start:0;bottom:0;height:5px;background:var(--grape);transition:width .2s}
 .row.demo{border-style:dashed;opacity:.8}
+/* telefono e tablet in verticale: nome, poi dimensioni, poi stato e pulsante, uno sotto l'altro */
+@media (max-width:900px),(orientation:portrait){
+  .row{grid-template-columns:minmax(0,1fr);gap:4px}
+  .row .side{grid-row:auto;grid-column:1;justify-content:flex-start;margin-top:6px}
+}
 .total{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:16px}
 .total strong{font-family:var(--display);font-weight:400;font-size:22px}
 #msg{font-weight:700;min-height:1.4em;margin:12px 0 0}
