@@ -76,6 +76,7 @@ h1 span{color:var(--sun)}
 .loader .fly,.loader .p-head,.loader .p-hand,.loader .drawer,.loader .p-spark{transform-box:fill-box;transform-origin:center}
 .loader .fly{opacity:0;animation:fly 1.5s cubic-bezier(.4,0,.5,1) infinite}
 .loader .f2{animation-delay:.5s}.loader .f3{animation-delay:1s}
+.loader.back .fly{animation-direction:reverse}
 .loader .p-head{animation:bob .5s ease-in-out infinite alternate}
 .loader .p-hand{animation:grab .5s ease-in-out infinite alternate}
 .loader .drawer{animation:rattle .5s ease-in-out infinite alternate}
@@ -241,7 +242,7 @@ details p{margin:8px 0 0;max-width:65ch}
 
 <div class="loader" id="loader" role="dialog" aria-modal="true" aria-labelledby="loaderTitle" hidden>
   <div class="loaderScene" aria-hidden="true"><!-- mascot:loader --><svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"><rect x="30" y="96" width="160" height="184" rx="14" fill="#cdb8ff"/><rect x="42" y="156" width="136" height="52" rx="8" fill="#e3d6ff"/><rect x="92" y="174" width="36" height="14" rx="7" fill="#fff"/><rect x="42" y="216" width="136" height="52" rx="8" fill="#e3d6ff"/><rect x="92" y="234" width="36" height="14" rx="7" fill="#fff"/><g class="drawer"><path d="M48 70h124l10 22H38z" fill="#fff"/><path d="M60 70v-8h34v8M104 70v-12h34v12" fill="#fff6a8"/><rect x="26" y="92" width="168" height="54" rx="10" fill="#e3d6ff"/><rect x="92" y="112" width="36" height="14" rx="7" fill="#fff"/></g></g><g transform="translate(250 50) scale(.52)"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"><rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g><rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g><g class="p-head"><rect x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/><ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/><ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><circle class="p-hand" cx="112" cy="250" r="24" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></g><g class="fly f1"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g><g class="fly f2"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g><g class="fly f3"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g></svg><!-- /mascot:loader --></div>
-  <h2 id="loaderTitle" data-i18n="reading">Leggo la cartella…</h2>
+  <h2 id="loaderTitle"></h2>
   <p id="loaderN" role="status" aria-live="polite"></p>
   <button class="btn alt" type="button" id="loaderCancel" data-i18n="cancel">Annulla</button>
 </div>
@@ -294,8 +295,11 @@ function isPdf(name){return /\.pdf$/i.test(name)}
 
 /* ---------- carico ---------- */
 var loading=false,cancelLoad=false,loadStart=0;
-function loaderOn(){
+/* mode "back": i fogli tornano nello schedario (sovrascrittura) */
+function loaderOn(mode,title){
   loading=true;cancelLoad=false;loadStart=Date.now();
+  $("loader").classList.toggle("back",mode==="back");
+  $("loaderTitle").textContent=title||t("reading");
   $("loaderN").textContent="";$("loader").hidden=false;$("app").inert=true;
   try{$("loaderCancel").focus()}catch(e){}
 }
@@ -652,14 +656,17 @@ $("sureYes").addEventListener("click",async function(){
   $("sure").hidden=true;
   var done=items.filter(function(x){return x.status==="done"&&x.handle}),n=0;
   try{
-    for(var i=0;i<done.length;i++){
+    say("");loaderOn("back",t("overwriting",{i:nf(1),n:nf(done.length)}));
+    for(var i=0;i<done.length&&!cancelLoad;i++){
+      $("loaderTitle").textContent=t("overwriting",{i:nf(i+1),n:nf(done.length)});
       var it=done[i],w=await it.handle.createWritable();
       await w.write(it.out);await w.close();
       it.file=await it.handle.getFile();it.status="over";n++;
-      say(t("overwriting",{i:nf(n),n:nf(done.length)}));
     }
-    say(t("overwritten",{n:nf(n)}));
-  }catch(e){say(t("overStop",{n:nf(n)}),true)}
+    await loaderOff();
+    if(n<done.length)say(t("overStop",{n:nf(n)}),true);
+    else say(t("overwritten",{n:nf(n)}));
+  }catch(e){await loaderOff();say(t("overStop",{n:nf(n)}),true)}
   render();
 });
 

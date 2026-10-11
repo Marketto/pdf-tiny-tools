@@ -41,7 +41,7 @@ Lo script è diviso da commenti `/* ---------- nome ---------- */`:
 | carico | Scelta file, lettura cartelle (fino a 6 livelli), trascinamento, schermata di caricamento annullabile |
 | vista | Disegna l'elenco dei file e i totali |
 | motore | Compressione: `squeezePdf` e `squeezeImage` |
-| salvataggio | Download, ZIP, scrittura in cartella, sovrascrittura con conferma |
+| salvataggio | Download, ZIP, scrittura in cartella, sovrascrittura con conferma e schermata annullabile (i file già riscritti restano riscritti) |
 | avvio | Menu delle lingue |
 | suoni | Jingle e effetti, sintetizzati con Web Audio (nessun file audio) |
 | installazione | Pulsante «Installa l'app» e istruzioni per iPhone |

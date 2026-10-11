@@ -21,6 +21,8 @@ Il disegno ha **una sola fonte**: `tools/mascot.mjs`. Da lì si generano:
 3. Guarda il risultato: apri l'app e le icone. Un disegno non si verifica leggendo il codice.
 4. Esegui la skill `verifica`.
 
+La scena di caricamento ha due versi: lettura di una cartella (i fogli escono dallo schedario) e sovrascrittura degli originali (classe `back` su `#loader`: gli stessi fogli tornano nello schedario).
+
 ## Vincoli da rispettare
 
 - **Classi usate dalle animazioni:** `p-head` (testa che schiaccia), `p-sheets` (fogli che si appiattiscono), `p-spark` (scintilla), `p-hand`, `fly`, `drawer` (caricamento). Se le rinomini, aggiorna il CSS in `index.html`.
