@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="Schiaccia PDF">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Baloo+2:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Baloo+2:wght@500;700&family=Baloo+Da+2:wght@500;700&family=Baloo+Bhaijaan+2:wght@500;700&family=Rubik:wght@500;700;900&display=swap">
 <style>
 /* Layout: un banco da officina a fumetti. Colonna unica: pressa-mascotte, vassoio di carico, leva della forza, pila dei risultati. */
 :root{
@@ -28,8 +28,8 @@
   --mint:#3ddc97;
   --grape:#7b5cff;
   --muted:#5b5a70;
-  --display:"Lilita One","Arial Rounded MT Bold","Trebuchet MS",sans-serif;
-  --body:"Baloo 2","Trebuchet MS","Segoe UI",sans-serif;
+  --display:"Lilita One","Baloo 2","Baloo Da 2","Baloo Bhaijaan 2","Rubik","Arial Rounded MT Bold","PingFang SC","Microsoft YaHei","Noto Sans SC","Trebuchet MS",sans-serif;
+  --body:"Baloo 2","Baloo Da 2","Baloo Bhaijaan 2","Rubik","PingFang SC","Microsoft YaHei","Noto Sans SC","Trebuchet MS","Segoe UI",sans-serif;
   --line:3px solid var(--ink);
   --drop:5px 5px 0 var(--ink);
 }
@@ -111,12 +111,19 @@ h1 span{color:var(--sun)}
 .row .side{grid-row:1 / span 2;grid-column:2;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .badge{font-family:var(--display);font-size:17px;border:var(--line);border-radius:999px;padding:1px 11px;background:var(--mint);white-space:nowrap}
 .badge.wait{background:var(--paper)}.badge.work{background:var(--sun)}.badge.err{background:var(--tomato);color:var(--paper)}.badge.same{background:var(--paper)}
-.row .bar{position:absolute;left:0;bottom:0;height:5px;background:var(--grape);transition:width .2s}
+.row .bar{position:absolute;inset-inline-start:0;bottom:0;height:5px;background:var(--grape);transition:width .2s}
 .row.demo{border-style:dashed;opacity:.8}
 .total{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:16px}
 .total strong{font-family:var(--display);font-weight:400;font-size:22px}
 #msg{font-weight:700;min-height:1.4em;margin:12px 0 0}
 #msg.bad{color:#b3170c}
+.langbar{display:flex;justify-content:flex-end}
+.langbar select{font-family:var(--body);font-weight:700;font-size:16px;color:var(--ink);background:var(--paper);border:var(--line);border-radius:12px;padding:5px 10px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;max-width:100%}
+.langbar select:focus-visible{outline:4px solid var(--grape);outline-offset:3px}
+[dir="rtl"] h1,[dir="rtl"] .btn.go{letter-spacing:0}
+[dir="rtl"] .tag{transform:rotate(2deg)}
+:lang(zh) h1,:lang(hi) h1,:lang(bn) h1,:lang(ar) h1,:lang(ur) h1,:lang(ru) h1{font-weight:900;line-height:1.1}
+:lang(zh) .tag,:lang(zh) .btn,:lang(zh) .lvl b,:lang(zh) .badge,:lang(zh) .total strong,:lang(ru) .tag,:lang(ru) .btn,:lang(ru) .lvl b,:lang(ru) .badge,:lang(ru) .total strong,:lang(hi) .tag,:lang(hi) .btn,:lang(hi) .lvl b,:lang(hi) .badge,:lang(hi) .total strong,:lang(bn) .tag,:lang(bn) .btn,:lang(bn) .lvl b,:lang(bn) .badge,:lang(bn) .total strong,:lang(ar) .tag,:lang(ar) .btn,:lang(ar) .lvl b,:lang(ar) .badge,:lang(ar) .total strong,:lang(ur) .tag,:lang(ur) .btn,:lang(ur) .lvl b,:lang(ur) .badge,:lang(ur) .total strong{font-weight:700}
 details{font-size:15px}
 details summary{cursor:pointer;font-weight:700}
 details p{margin:8px 0 0;max-width:65ch}
@@ -125,6 +132,10 @@ details p{margin:8px 0 0;max-width:65ch}
 </head>
 <body>
 <div class="wrap">
+  <div class="langbar">
+    <label class="vh" for="lang" data-i18n="lang">Lingua</label>
+    <select id="lang"></select>
+  </div>
   <header class="top">
     <div class="press" id="press" aria-hidden="true">
       <div class="pillar l"></div><div class="pillar r"></div>
@@ -133,68 +144,69 @@ details p{margin:8px 0 0;max-width:65ch}
       <div class="base"></div>
     </div>
     <div class="txt">
-      <h1>Schiaccia <span>PDF</span></h1>
-      <p class="sub">Carica i PDF pieni di foto, tira la leva, salvali più leggeri. Tutto resta sul tuo computer.</p>
+      <h1 data-i18n-html="h1">Schiaccia <span>PDF</span></h1>
+      <p class="sub" data-i18n="sub">Carica i PDF pieni di foto, tira la leva, salvali più leggeri. Tutto resta sul tuo dispositivo.</p>
     </div>
   </header>
 
   <section class="panel">
-    <div class="tag">1 · Carica</div>
+    <div class="tag" data-i18n="s1">1 · Carica</div>
     <div class="tray" id="tray">
-      <p>Trascina qui i PDF o una cartella intera</p>
+      <p data-i18n="drop">Trascina qui i PDF o una cartella intera</p>
       <div class="btns">
-        <label class="btn" for="pickFiles">Scegli PDF<input class="vh" type="file" id="pickFiles" accept="application/pdf,.pdf" multiple></label>
-        <button class="btn alt" type="button" id="pickDir">Scegli cartella</button>
+        <label class="btn" for="pickFiles"><span data-i18n="pickFiles">Scegli PDF</span><input class="vh" type="file" id="pickFiles" accept="application/pdf,.pdf" multiple></label>
+        <button class="btn alt" type="button" id="pickDir" data-i18n="pickDir">Scegli cartella</button>
         <input class="vh" type="file" id="pickDirInput" webkitdirectory multiple tabindex="-1" aria-hidden="true">
       </div>
     </div>
-    <p class="hint"><b>Dropbox:</b> scegli la cartella Dropbox sincronizzata sul computer. Vengono presi tutti i PDF, sottocartelle comprese.</p>
+    <p class="hint" data-i18n-html="dropbox"><b>Dropbox:</b> scegli la cartella Dropbox sincronizzata sul computer. Vengono presi tutti i PDF, sottocartelle comprese.</p>
   </section>
 
   <section class="panel">
-    <div class="tag">2 · Quanta forza?</div>
-    <div class="lvls" role="radiogroup" aria-label="Forza di compressione">
-      <label class="lvl"><input type="radio" name="lvl" id="lvlSoft" value="soft"><span><b>Carezza</b><small>Qualità quasi intatta</small></span></label>
-      <label class="lvl"><input type="radio" name="lvl" id="lvlMid" value="mid" checked><span><b>Stretta</b><small>Per mail e archivio</small></span></label>
-      <label class="lvl"><input type="radio" name="lvl" id="lvlHard" value="hard"><span><b>Martellata</b><small>Peso minimo, si nota</small></span></label>
+    <div class="tag" data-i18n="s2">2 · Quanta forza?</div>
+    <div class="lvls" role="radiogroup" aria-label="Forza di compressione" data-i18n-aria="lvlAria">
+      <label class="lvl"><input type="radio" name="lvl" id="lvlSoft" value="soft"><span><b data-i18n="soft">Carezza</b><small data-i18n="softD">Qualità quasi intatta</small></span></label>
+      <label class="lvl"><input type="radio" name="lvl" id="lvlMid" value="mid" checked><span><b data-i18n="mid">Stretta</b><small data-i18n="midD">Per mail e archivio</small></span></label>
+      <label class="lvl"><input type="radio" name="lvl" id="lvlHard" value="hard"><span><b data-i18n="hard">Martellata</b><small data-i18n="hardD">Peso minimo, si nota</small></span></label>
     </div>
   </section>
 
   <button class="btn go" type="button" id="go" disabled>Schiaccia!</button>
 
   <section class="panel">
-    <div class="tag">3 · Salva</div>
+    <div class="tag" data-i18n="s3">3 · Salva</div>
     <ul class="rows" id="rows">
       <li class="row demo" id="demo">
-        <div class="name">vacanze-sardegna.pdf</div>
-        <div class="meta">18,4 MB → 3,1 MB</div>
-        <div class="side"><span class="badge same">Esempio</span><span class="badge">−83%</span></div>
+        <div class="name" data-i18n="demoName">vacanze-sardegna.pdf</div>
+        <div class="meta" id="demoMeta">18,4 MB → 3,1 MB</div>
+        <div class="side"><span class="badge same" data-i18n="example">Esempio</span><span class="badge" id="demoPct">−83%</span></div>
       </li>
     </ul>
     <div class="total" id="total" hidden>
       <strong id="saved"></strong>
       <div class="btns">
         <button class="btn ok" type="button" id="saveDir" hidden>Salva in «compressi»</button>
-        <button class="btn danger" type="button" id="overBtn" hidden>Sovrascrivi gli originali</button>
-        <button class="btn ok" type="button" id="saveZip">Salva tutti (ZIP)</button>
+        <button class="btn danger" type="button" id="overBtn" hidden data-i18n="overBtn">Sovrascrivi gli originali</button>
+        <button class="btn ok" type="button" id="saveZip" data-i18n="saveZip">Salva tutti (ZIP)</button>
       </div>
     </div>
     <div class="sure" id="sure" hidden>
       <p id="sureTxt"></p>
       <div class="btns">
-        <button class="btn danger" type="button" id="sureYes">Sì, sovrascrivi</button>
-        <button class="btn alt" type="button" id="sureNo">Annulla</button>
+        <button class="btn danger" type="button" id="sureYes" data-i18n="sureYes">Sì, sovrascrivi</button>
+        <button class="btn alt" type="button" id="sureNo" data-i18n="cancel">Annulla</button>
       </div>
     </div>
-    <p class="hint" id="noWrite" hidden>Questa vista può solo leggere la cartella. Per scrivere dentro la cartella o sovrascrivere gli originali usa Chrome o Edge sul computer.</p>
+    <p class="hint" id="noWrite" hidden data-i18n="noWrite">Da qui la cartella si può solo leggere.</p>
     <p id="msg" role="status" aria-live="polite"></p>
     <details>
-      <summary>Cosa fa di preciso</summary>
-      <p>Riduce e ricomprime in JPEG le immagini dentro il PDF. Testo, link e pagine restano come sono, quindi il testo si può ancora selezionare. Gli originali restano intatti, a meno che tu non scelga di sovrascriverli. Le immagini in CMYK, JBIG2, JPEG 2000 e fax restano invariate, e i PDF protetti da password vengono saltati.</p>
+      <summary data-i18n="what">Cosa fa di preciso</summary>
+      <p data-i18n="whatBody">Riduce e ricomprime in JPEG le immagini dentro il PDF.</p>
     </details>
   </section>
 </div>
 
+<script src="i18n.js"></script>
 <script src="vendor/pdf-lib.min.js"></script>
 <script src="vendor/jszip.min.js"></script>
 <script>
@@ -205,10 +217,38 @@ var items=[],rootDir=null,busy=false,nextId=1,readOnlyDir=false;
 var $=function(id){return document.getElementById(id)};
 var rowsEl=$("rows"),msgEl=$("msg"),goBtn=$("go"),press=$("press");
 
-function say(t,bad){msgEl.textContent=t||"";msgEl.className=bad?"bad":""}
+/* ---------- lingue ---------- */
+var I=window.I18N||{},ALLDIRS={},lang="it";
+Object.keys(I).forEach(function(k){ALLDIRS[I[k].outDir]=1});
+function pickLang(){
+  try{var st=localStorage.getItem("lang");if(st&&I[st])return st}catch(e){}
+  var l=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||"en"];
+  for(var i=0;i<l.length;i++){var c=String(l[i]).toLowerCase().split("-")[0];if(c==="in")c="id";if(I[c])return c}
+  return I.en?"en":"it";
+}
+function t(k,p){
+  var str=(I[lang]&&I[lang][k])||(I.en&&I.en[k])||k;
+  if(p)for(var x in p)str=str.split("{"+x+"}").join(p[x]);
+  return str;
+}
+function nf(n,o){try{return n.toLocaleString(lang,o)}catch(e){return String(n)}}
+function each(sel,fn){Array.prototype.forEach.call(document.querySelectorAll(sel),fn)}
+function applyLang(){
+  var r=document.documentElement;r.lang=lang;r.dir=t("dir");
+  document.title=t("title");
+  var md=document.querySelector('meta[name="description"]');if(md)md.content=t("desc");
+  each("[data-i18n]",function(n){n.textContent=t(n.getAttribute("data-i18n"))});
+  each("[data-i18n-html]",function(n){n.innerHTML=t(n.getAttribute("data-i18n-html"))});
+  each("[data-i18n-aria]",function(n){n.setAttribute("aria-label",t(n.getAttribute("data-i18n-aria")))});
+  $("saveDir").textContent=t("saveDir",{dir:t("outDir")});
+  if($("demoMeta")){$("demoMeta").textContent=fmt(19293798)+" → "+fmt(3250586);$("demoPct").textContent="−"+nf(83)+"%"}
+  render();
+}
+
+function say(txt,bad){msgEl.textContent=txt||"";msgEl.className=bad?"bad":""}
 function fmt(n){
-  if(n<1024*1024)return Math.max(1,Math.round(n/1024)).toLocaleString("it-IT")+" KB";
-  return (n/1048576).toLocaleString("it-IT",{minimumFractionDigits:1,maximumFractionDigits:1})+" MB";
+  if(n<1024*1024)return nf(Math.max(1,Math.round(n/1024)))+" KB";
+  return nf(n/1048576,{minimumFractionDigits:1,maximumFractionDigits:1})+" MB";
 }
 function isPdf(name){return /\.pdf$/i.test(name)}
 
@@ -218,8 +258,8 @@ function addFile(file,rel,handle){
   items.push({id:nextId++,name:file.name,rel:rel||file.name,file:file,size:file.size,status:"wait",pct:0,out:null,note:"",handle:handle||null});
 }
 function loaded(n,replace){
-  if(!n){say("Nessun PDF trovato lì dentro.",true);return}
-  say(n===1?"1 PDF pronto.":n+" PDF pronti.");
+  if(!n){say(t("noPdf"),true);return}
+  say(t("ready",{n:nf(n)}));
   render();
 }
 function reset(){items=[];rootDir=null;readOnlyDir=false}
@@ -234,7 +274,7 @@ $("pickDirInput").addEventListener("change",function(e){
   var fs=Array.from(e.target.files||[]);reset();
   fs.forEach(function(f){
     var rel=(f.webkitRelativePath||f.name).split("/").slice(1).join("/")||f.name;
-    if(rel.split("/").indexOf("compressi")<0)addFile(f,rel);
+    if(!rel.split("/").some(function(x){return ALLDIRS[x]}))addFile(f,rel);
   });
   readOnlyDir=true;
   e.target.value="";loaded(items.length);
@@ -243,7 +283,7 @@ async function walkHandle(dir,prefix){
   for await(var entry of dir.values()){
     if(entry.kind==="file"){
       if(isPdf(entry.name))addFile(await entry.getFile(),prefix+entry.name,entry);
-    }else if(entry.name!=="compressi"&&entry.name.charAt(0)!=="."){
+    }else if(!ALLDIRS[entry.name]&&entry.name.charAt(0)!=="."){
       await walkHandle(entry,prefix+entry.name+"/");
     }
   }
@@ -253,7 +293,7 @@ $("pickDir").addEventListener("click",async function(){
   if(window.showDirectoryPicker){
     try{
       var h=await window.showDirectoryPicker({mode:"readwrite"});
-      reset();say("Leggo la cartella…");
+      reset();say(t("reading"));
       await walkHandle(h,"");rootDir=h;loaded(items.length);return;
     }catch(err){
       if(err&&err.name==="AbortError")return;
@@ -274,7 +314,7 @@ async function walkEntry(entry,prefix){
       var f=await new Promise(function(res){entry.file(res,function(){res(null)})});
       if(f)addFile(f,prefix+entry.name);
     }
-  }else if(entry.isDirectory&&entry.name!=="compressi"){
+  }else if(entry.isDirectory&&!ALLDIRS[entry.name]){
     var kids=await readAll(entry.createReader());
     for(var i=0;i<kids.length;i++)await walkEntry(kids[i],prefix+entry.name+"/");
   }
@@ -305,17 +345,17 @@ function render(){
     li.appendChild(el("div","name",it.rel));
     var meta=fmt(it.size);
     if(it.out)meta+=" → "+fmt(it.out.size);
-    if(it.note)meta+=" · "+it.note;
+    if(it.note)meta+=" · "+t(it.note);
     li.appendChild(el("div","meta",meta));
     var side=el("div","side");
-    if(it.status==="wait")side.appendChild(el("span","badge wait","In coda"));
-    if(it.status==="work")side.appendChild(el("span","badge work",it.pct+"%"));
-    if(it.status==="err")side.appendChild(el("span","badge err","Saltato"));
-    if(it.status==="same")side.appendChild(el("span","badge same","Già al minimo"));
-    if(it.status==="over")side.appendChild(el("span","badge","Sostituito"));
+    if(it.status==="wait")side.appendChild(el("span","badge wait",t("queued")));
+    if(it.status==="work")side.appendChild(el("span","badge work",nf(it.pct)+"%"));
+    if(it.status==="err")side.appendChild(el("span","badge err",t("skipped")));
+    if(it.status==="same")side.appendChild(el("span","badge same",t("alreadyMin")));
+    if(it.status==="over")side.appendChild(el("span","badge",t("replaced")));
     if(it.status==="done"){
-      side.appendChild(el("span","badge","−"+Math.round((1-it.out.size/it.size)*100)+"%"));
-      var b=el("button","btn sm ok","Salva");b.type="button";
+      side.appendChild(el("span","badge","−"+nf(Math.round((1-it.out.size/it.size)*100))+"%"));
+      var b=el("button","btn sm ok",t("save"));b.type="button";
       b.addEventListener("click",function(){saveOne(it)});
       side.appendChild(b);
       done++;inB+=it.size;outB+=it.out.size;
@@ -325,10 +365,10 @@ function render(){
     rowsEl.appendChild(li);
   });
   goBtn.disabled=busy||!items.length;
-  goBtn.textContent=busy?"Schiaccio…":"Schiaccia!";
+  goBtn.textContent=busy?t("going"):t("go");
   $("total").hidden=!done||busy;
   if(done){
-    $("saved").textContent="Risparmiati "+fmt(inB-outB)+" (−"+Math.round((1-outB/inB)*100)+"%)";
+    $("saved").textContent=t("total",{size:fmt(inB-outB),pct:nf(Math.round((1-outB/inB)*100))});
     $("saveDir").hidden=!rootDir;
     $("saveZip").hidden=done<2;
     $("overBtn").hidden=!rootDir;
@@ -433,7 +473,7 @@ async function squeezePdf(it,preset,onPct){
 
 goBtn.addEventListener("click",async function(){
   if(busy||!items.length)return;
-  if(!L.PDFDocument){say("Il motore PDF non si è caricato. Ricarica la pagina.",true);return}
+  if(!L.PDFDocument){say(t("engine"),true);return}
   var preset=PRESETS[document.querySelector('input[name="lvl"]:checked').value];
   busy=true;press.classList.add("busy");say("");
   items.forEach(function(it){it.status="wait";it.out=null;it.note="";it.pct=0;it.size=it.file.size});
@@ -444,41 +484,41 @@ goBtn.addEventListener("click",async function(){
       var last=-1;
       var r=await squeezePdf(it,preset,function(p){if(p-last>=5){last=p;it.pct=p;render()}});
       if(r.blob.size<it.size*.98){it.out=r.blob;it.status="done"}
-      else{it.status="same";it.note=r.images?"niente da guadagnare":"nessuna immagine dentro"}
+      else{it.status="same";it.note=r.images?"noGain":"noImages"}
     }catch(e){
       it.status="err";
-      it.note=/encrypt/i.test(String(e&&e.message))?"protetto da password":"file non leggibile";
+      it.note=/encrypt/i.test(String(e&&e.message))?"locked":"unreadable";
     }
     render();
   }
   busy=false;press.classList.remove("busy");render();
   var ok=items.filter(function(x){return x.status==="done"}).length;
-  say(ok?"Fatto: "+ok+" su "+items.length+" alleggeriti.":"Nessun file si è alleggerito con questa forza. Prova più forte.",!ok);
+  say(ok?t("done",{ok:nf(ok),n:nf(items.length)}):t("none"),!ok);
 });
 
 /* ---------- salvataggio ---------- */
-function outName(it){return it.name.replace(/\.pdf$/i,"")+"-compresso.pdf"}
+function outName(it){return it.name.replace(/\.pdf$/i,"")+t("suffix")+".pdf"}
 var savedAs="";
 async function saveBlob(filename,blob){
   savedAs=filename;
   if(window.claude&&window.claude.use){
     var dl=await window.claude.use("downloads");
-    if(!dl){say("In questa vista non si possono salvare file. Apri lo strumento dalla tua pagina Claude.",true);return false}
+    if(!dl){say(t("noSave"),true);return false}
     try{await dl.save({filename:filename,data:blob});return true}
     catch(e){
       var c=e&&e.code;
-      say(c==="declined"?"Salvataggio annullato.":c==="rate_limited"?"C'è già una richiesta di salvataggio aperta. Rispondi a quella e riprova.":c==="too_large"?"File troppo grande per essere salvato da qui.":"Salvataggio non riuscito.",true);
+      say(t(c==="declined"?"cancelled":c==="rate_limited"?"pending":c==="too_large"?"tooLarge":"failed"),true);
       return false;
     }
   }
   if(window.showSaveFilePicker){
     try{
       var zip=/\.zip$/i.test(filename);
-      var fh=await window.showSaveFilePicker({suggestedName:filename,types:[zip?{description:"Archivio ZIP",accept:{"application/zip":[".zip"]}}:{description:"PDF",accept:{"application/pdf":[".pdf"]}}]});
+      var fh=await window.showSaveFilePicker({suggestedName:filename,types:[zip?{description:"ZIP",accept:{"application/zip":[".zip"]}}:{description:"PDF",accept:{"application/pdf":[".pdf"]}}]});
       var w=await fh.createWritable();await w.write(blob);await w.close();
       savedAs=fh.name;return true;
     }catch(e){
-      if(e&&e.name==="AbortError"){say("Salvataggio annullato.");return false}
+      if(e&&e.name==="AbortError"){say(t("cancelled"));return false}
     }
   }
   var a=document.createElement("a"),u=URL.createObjectURL(blob);
@@ -486,40 +526,40 @@ async function saveBlob(filename,blob){
   setTimeout(function(){URL.revokeObjectURL(u)},4000);
   return true;
 }
-async function saveOne(it){if(await saveBlob(outName(it),it.out))say("Salvato: "+savedAs)}
+async function saveOne(it){if(await saveBlob(outName(it),it.out))say(t("saved",{name:savedAs}))}
 
 $("saveZip").addEventListener("click",async function(){
   var done=items.filter(function(x){return x.status==="done"});
   if(!done.length)return;
   if(done.length===1){saveOne(done[0]);return}
-  if(!window.JSZip){say("Il motore ZIP non si è caricato. Salva i file uno alla volta.",true);return}
-  say("Preparo lo ZIP…");
+  if(!window.JSZip){say(t("zipMissing"),true);return}
+  say(t("zipPrep"));
   var zip=new JSZip();
   done.forEach(function(it){zip.file(it.rel,it.out)});
   var blob=await zip.generateAsync({type:"blob",compression:"STORE"});
-  if(await saveBlob("pdf-compressi.zip",blob))say("Salvato: "+savedAs+" con "+done.length+" PDF");
+  if(await saveBlob(t("zipName"),blob))say(t("savedZip",{name:savedAs,n:nf(done.length)}));
 });
 
 $("saveDir").addEventListener("click",async function(){
   if(!rootDir)return;
   var done=items.filter(function(x){return x.status==="done"}),n=0;
   try{
-    var out=await rootDir.getDirectoryHandle("compressi",{create:true});
+    var out=await rootDir.getDirectoryHandle(t("outDir"),{create:true});
     for(var i=0;i<done.length;i++){
       var parts=done[i].rel.split("/"),dir=out;
       for(var j=0;j<parts.length-1;j++)dir=await dir.getDirectoryHandle(parts[j],{create:true});
       var fh=await dir.getFileHandle(parts[parts.length-1],{create:true}),w=await fh.createWritable();
       await w.write(done[i].out);await w.close();n++;
-      say("Scrivo "+n+" di "+done.length+"…");
+      say(t("writing",{i:nf(n),n:nf(done.length)}));
     }
-    say("Salvati "+n+" PDF nella sottocartella «compressi». Gli originali sono intatti.");
-  }catch(e){say("Scrittura interrotta dopo "+n+" file. Controlla i permessi della cartella.",true)}
+    say(t("savedDir",{dir:t("outDir"),n:nf(n)}));
+  }catch(e){say(t("writeStop",{n:nf(n)}),true)}
 });
 
 $("overBtn").addEventListener("click",function(){
   var n=items.filter(function(x){return x.status==="done"&&x.handle}).length;
   if(!n)return;
-  $("sureTxt").textContent=(n===1?"Sostituisco 1 PDF originale":"Sostituisco "+n+" PDF originali")+" con la versione compressa. Non si torna indietro.";
+  $("sureTxt").textContent=t("sure",{n:nf(n)});
   $("sure").hidden=false;$("sureNo").focus();
 });
 $("sureNo").addEventListener("click",function(){$("sure").hidden=true});
@@ -531,12 +571,24 @@ $("sureYes").addEventListener("click",async function(){
       var it=done[i],w=await it.handle.createWritable();
       await w.write(it.out);await w.close();
       it.file=await it.handle.getFile();it.status="over";n++;
-      say("Sovrascrivo "+n+" di "+done.length+"…");
+      say(t("overwriting",{i:nf(n),n:nf(done.length)}));
     }
-    say("Sovrascritti "+n+" PDF originali.");
-  }catch(e){say("Scrittura interrotta dopo "+n+" file. Gli altri originali sono intatti.",true)}
+    say(t("overwritten",{n:nf(n)}));
+  }catch(e){say(t("overStop",{n:nf(n)}),true)}
   render();
 });
+
+/* ---------- avvio ---------- */
+var sel=$("lang");
+Object.keys(I).sort(function(a,b){return I[a].name.localeCompare(I[b].name)}).forEach(function(k){
+  var o=document.createElement("option");o.value=k;o.textContent=I[k].name;sel.appendChild(o);
+});
+sel.addEventListener("change",function(){
+  if(!I[sel.value])return;
+  lang=sel.value;try{localStorage.setItem("lang",lang)}catch(e){}
+  say("");applyLang();
+});
+lang=pickLang();sel.value=lang;applyLang();
 })();
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(function(){});</script>
