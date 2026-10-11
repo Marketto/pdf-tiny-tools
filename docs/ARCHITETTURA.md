@@ -44,6 +44,7 @@ Lo script è diviso da commenti `/* ---------- nome ---------- */`:
 | salvataggio | Download, ZIP, scrittura in cartella, sovrascrittura con conferma e schermata annullabile (i file già riscritti restano riscritti) |
 | avvio | Menu delle lingue |
 | suoni | Jingle e effetti, sintetizzati con Web Audio (nessun file audio) |
+| occhi | La mascotte strizza gli occhi a intervalli casuali, scegliendo a caso tra due espressioni |
 | installazione | Pulsante «Installa l'app» e istruzioni per iPhone |
 
 ## Lettura delle cartelle

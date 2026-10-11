@@ -25,7 +25,7 @@ La scena di caricamento ha due versi: lettura di una cartella (i fogli escono da
 
 ## Vincoli da rispettare
 
-- **Classi usate dalle animazioni:** `p-head` (testa che schiaccia), `p-sheets` (fogli che si appiattiscono), `p-spark` (scintilla), `p-hand`, `fly`, `drawer` (caricamento). Se le rinomini, aggiorna il CSS in `index.html`.
+- **Classi usate dalle animazioni:** `p-head` (testa che schiaccia), `p-sheets` (fogli che si appiattiscono), `p-spark` (scintilla), `e-open` / `e-c` / `e-d` (occhi aperti, strizzati a > <, ad arco) e `blush` (guance), comandati dalle classi `wink-c` e `wink-d` che lo script mette su `<body>` a intervalli casuali, `p-hand`, `fly`, `drawer` (caricamento). Se le rinomini, aggiorna il CSS in `index.html`.
 - **Icone a tutto campo:** sfondo giallo unito `#ffd23f`, senza bordo e senza angoli trasparenti; ci pensa il telefono a ritagliarle.
 - **Zona sicura Android:** tutto ciò che conta deve stare in un cerchio centrato largo l'80% dell'icona. La scala `0.98` in `build-icons.mjs` è il massimo per il disegno attuale: se allarghi la mascotte, riducila.
 - **Stile:** kawaii (forme tonde, pastello, occhioni lucidi) con contorno scuro `#3b2a4a`, perché deve legare con l'interfaccia a fumetto.

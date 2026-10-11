@@ -8,11 +8,20 @@ const eye = (cx) =>
   `<ellipse cx="${cx - 9}" cy="207" rx="12" ry="14" fill="#fff"/>` +
   `<circle cx="${cx + 11}" cy="236" r="5.5" fill="#fff"/>`;
 
-export const face = () =>
+const LINE = `fill="none" stroke="${INK}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"`;
+
+// Gli occhi hanno tre stati: aperti (e-open), strizzati a > < (e-c) e ad arco sorridente (e-d).
+// I due stati chiusi nascono nascosti (display="none"); la pagina li mostra a caso
+// mettendo per un attimo la classe wink-c o wink-d su <body>. Nelle icone non servono.
+export const face = (blink = true) =>
   `<ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/>` +
-  eye(198) + eye(314) +
-  `<ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/>` +
-  `<ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/>` +
+  `<g class="e-open">${eye(198)}${eye(314)}</g>` +
+  (blink
+    ? `<g class="e-c" display="none"><path d="M178 200l40 22l-40 22M334 200l-40 22l40 22" ${LINE}/></g>` +
+      `<g class="e-d" display="none"><path d="M168 234q30 -32 60 0M284 234q30 -32 60 0" ${LINE}/></g>`
+    : "") +
+  `<g class="blush"><ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/>` +
+  `<ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/></g>` +
   `<path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="${INK}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`;
 
 // icon: base più stretta e niente scintilla, per stare nel ritaglio tondo di Android.
@@ -26,7 +35,7 @@ export function mascot({ icon = false, hand = false } = {}) {
     `<rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/>` +
     `<g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g>` +
     `<rect x="${bx}" y="392" width="${bw}" height="50" rx="25" fill="#a48cf0"/></g>` +
-    `<g class="p-head"><rect x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>${face()}</g>${paw}${spark}`;
+    `<g class="p-head"><rect x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>${face(!icon)}</g>${paw}${spark}`;
 }
 
 export const pageSvg = () =>
