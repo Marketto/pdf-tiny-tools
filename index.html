@@ -311,18 +311,20 @@ function addFile(file,rel,handle){
   items.push({id:nextId++,name:file.name,rel:rel||file.name,file:file,size:file.size,status:"wait",pct:0,out:null,note:"",handle:handle||null});
   if(loading)$("loaderN").textContent=t("ready",{n:nf(items.length)});
 }
-function loaded(n,replace){
-  if(!n){say(t("noPdf"),true);return}
+function loaded(n){
+  if(!n){render();say(t("noPdf"),true);return}
   say(t("ready",{n:nf(n)}));
   render();
 }
 function reset(){items=[];rootDir=null;readOnlyDir=false}
 
 $("pickFiles").addEventListener("change",function(e){
-  var fs=Array.from(e.target.files||[]);var before=items.length;
-  rootDir=null;
+  var fs=Array.from(e.target.files||[]);
+  e.target.value="";
+  if(!fs.length)return;
+  reset();
   fs.forEach(function(f){addFile(f)});
-  e.target.value="";loaded(items.length-before);
+  loaded(items.length);
 });
 $("pickDirInput").addEventListener("change",function(e){
   var fs=Array.from(e.target.files||[]);reset();
@@ -356,9 +358,10 @@ $("pickDir").addEventListener("click",async function(){
   if(window.showDirectoryPicker){
     try{
       var h=await window.showDirectoryPicker({mode:"readwrite"});
-      reset();say("");render();loaderOn();
+      var old=items,oldRoot=rootDir,oldRO=readOnlyDir;
+      reset();say("");loaderOn();
       await walkHandle(h,"",0);
-      if(await loaderOff()){reset();render();return}
+      if(await loaderOff()){items=old;rootDir=oldRoot;readOnlyDir=oldRO;render();return}
       rootDir=h;loaded(items.length);$("go").focus();return;
     }catch(err){
       if(err&&err.name==="AbortError")return;
@@ -392,19 +395,20 @@ var tray=$("tray");
 ["dragleave","drop"].forEach(function(t){tray.addEventListener(t,function(e){e.preventDefault();tray.classList.remove("over")})});
 tray.addEventListener("drop",async function(e){
   if(busy)return;
-  var dt=e.dataTransfer,before=items.length,entries=[];
+  var dt=e.dataTransfer,entries=[],old=items,oldRoot=rootDir,oldRO=readOnlyDir;
   if(dt.items&&dt.items.length&&dt.items[0].webkitGetAsEntry){
     for(var i=0;i<dt.items.length;i++){var en=dt.items[i].webkitGetAsEntry();if(en)entries.push(en)}
   }
-  rootDir=null;
+  if(!entries.length&&!(dt.files&&dt.files.length))return;
+  reset();
   if(entries.length){
     var hasDir=entries.some(function(x){return x.isDirectory});
     if(hasDir)loaderOn();
     for(var j=0;j<entries.length;j++)await walkEntry(entries[j],"",0);
-    if(hasDir&&await loaderOff()){items.length=before;render();return}
+    if(hasDir&&await loaderOff()){items=old;rootDir=oldRoot;readOnlyDir=oldRO;render();return}
   }
   else Array.from(dt.files||[]).forEach(function(f){addFile(f)});
-  loaded(items.length-before);
+  loaded(items.length);
 });
 
 $("loaderCancel").addEventListener("click",function(){cancelLoad=true});
