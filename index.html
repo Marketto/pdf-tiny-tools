@@ -45,8 +45,9 @@ body{
 h1,h2{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 
 /* testata */
-.top{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-.top .txt{flex:1 1 280px;min-width:0}
+.top{display:flex;flex-direction:column;gap:16px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.top .txt{min-width:0}
 h1{font-size:clamp(44px,11vw,76px);line-height:.92;color:var(--paper);
   -webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:5px 5px 0 var(--ink);letter-spacing:.5px}
 h1 span{color:var(--sun)}
@@ -127,8 +128,8 @@ h1 span{color:var(--sun)}
 .total strong{font-family:var(--display);font-weight:400;font-size:22px}
 #msg{font-weight:700;min-height:1.4em;margin:12px 0 0}
 #msg.bad{color:#b3170c}
-.langbar{display:flex;justify-content:flex-end;align-items:center;gap:12px;flex-wrap:wrap}
-.langbar .snd{margin-inline-start:auto}
+.langbar{flex:1 1 0;min-width:0;display:flex;flex-wrap:wrap-reverse;justify-content:flex-end;align-items:center;gap:12px}
+
 .iosHint{margin:0;background:var(--sun);border:var(--line);border-radius:14px;padding:10px 14px;font-weight:700;box-shadow:3px 3px 0 var(--ink)}
 .langbar select{font-family:var(--body);font-weight:700;font-size:16px;color:var(--ink);background:var(--paper);border:var(--line);border-radius:12px;padding:5px 10px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;max-width:100%}
 .langbar select:focus-visible{outline:4px solid var(--grape);outline-offset:3px}
@@ -144,22 +145,24 @@ details p{margin:8px 0 0;max-width:65ch}
 </head>
 <body>
 <div class="wrap">
-  <div class="langbar">
-    <label class="vh" for="lang" data-i18n="lang">Lingua</label>
-    <button class="btn sm ok" type="button" id="installBtn" hidden data-i18n="install">Installa l'app</button>
-    <button class="btn sm alt snd" type="button" id="muteBtn" aria-pressed="true" aria-label="Suoni" data-i18n-aria="sound">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="on" d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/><path class="off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
-    </button>
-    <select id="lang"></select>
-  </div>
-  <p class="iosHint" id="iosHint" hidden data-i18n="iosHint"></p>
   <header class="top">
+    <div class="brand">
     <div class="press" id="press" aria-hidden="true">
       <div class="pillar l"></div><div class="pillar r"></div>
       <div class="sheets"></div>
       <div class="head"><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div></div>
       <div class="base"></div>
     </div>
+    <div class="langbar">
+      <label class="vh" for="lang" data-i18n="lang">Lingua</label>
+      <button class="btn sm ok" type="button" id="installBtn" hidden data-i18n="install">Installa l'app</button>
+      <button class="btn sm alt snd" type="button" id="muteBtn" aria-pressed="true" aria-label="Suoni" data-i18n-aria="sound">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="on" d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/><path class="off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+      </button>
+      <select id="lang"></select>
+    </div>
+    </div>
+    <p class="iosHint" id="iosHint" hidden data-i18n="iosHint"></p>
     <div class="txt">
       <h1 data-i18n-html="h1">Schiaccia <span>PDF</span></h1>
       <p class="sub" data-i18n="sub">Carica i PDF pieni di foto, tira la leva, salvali più leggeri. Tutto resta sul tuo dispositivo.</p>
