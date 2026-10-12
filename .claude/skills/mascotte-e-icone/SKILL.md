@@ -11,6 +11,7 @@ Il disegno ha **una sola fonte**: `tools/mascot.mjs`. Da lì si generano:
 |---|---|
 | Mascotte in testata | `index.html`, tra `<!-- mascot:page -->` e `<!-- /mascot:page -->` |
 | Scena di caricamento (schedario + mascotte + fogli) | `index.html`, tra `<!-- mascot:loader -->` e `<!-- /mascot:loader -->` |
+| Scena della scansione (foglio che si raddrizza + barra di luce) | `index.html`, tra `<!-- mascot:scan -->` e `<!-- /mascot:scan -->` |
 | Icona vettoriale | `icons/icon.svg` |
 | Icone Android, iPhone, favicon | `icons/icon-192.png`, `icons/icon-512.png`, `icons/apple-touch-icon.png`, `favicon.ico` |
 

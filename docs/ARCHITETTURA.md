@@ -31,6 +31,18 @@ I testi non sono duplicati: in modalità JPG `t()` usa la chiave con la `J` fina
 
 `squeezeJpg()` decodifica la foto (il browser la raddrizza secondo l'orientamento registrato), la ridisegna entro il lato lungo scelto e la ricodifica. Con un peso massimo cerca per bisezione la qualità più alta che ci sta, tra 0,30 e 0,92; se non basta nemmeno la più bassa riduce le dimensioni e riprova, fino a cinque giri. Senza peso massimo usa qualità 0,80. Se richiesto, il blocco EXIF dell'originale (data, luogo, fotocamera) viene ricopiato in testa al file nuovo con l'orientamento riportato a «normale», perché i pixel sono già dritti. Il profilo colore non si ricopia: i pixel ridisegnati sono in sRGB. Su iPhone la superficie di disegno è limitata a 16 milioni di pixel.
 
+## Scansione
+
+Sezione «scansione con la fotocamera» dello script. Il pulsante 📷 apre un `<input type="file" capture="environment">`, cioè la fotocamera di sistema: qualità piena, messa a fuoco e flash del telefono, nessun permesso da chiedere.
+
+1. `scanFile()` decodifica la foto (raddrizzata secondo l'orientamento registrato) e la riduce a 3000 px sul lato lungo per lavorare.
+2. `editCorners()` apre l'editor: un SVG sopra la foto con i quattro angoli; la lente è un canvas che ingrandisce tre volte la zona sotto il dito. Rotazione di 90° con aggiornamento degli angoli.
+3. `makePage()` calcola le dimensioni d'uscita dalle lunghezze dei lati (riportandole a A4 se vicine), risolve l'omografia tra rettangolo d'uscita e quadrilatero (`homography()`, sistema lineare 8×8) e campiona la foto con interpolazione bilineare (`warp()`), a blocchi di righe per non bloccare l'animazione.
+4. `enhance()` pulisce: per «Documento» stima la luce del foglio canale per canale (il punto più chiaro di ogni riquadro 16×16, allargato e sfumato) e divide per essa, poi tende i livelli; «Bianco e nero» parte da lì; «Foto» tende solo i livelli per canale.
+5. In modalità PDF le pagine JPG si accumulano in `scanPages` e `finishPdf()` le impagina con pdf-lib (lato lungo 842 punti, come un A4); in modalità JPG ogni pagina diventa subito un file.
+
+Le scansioni finiscono nell'elenco con `scan: true`: «Schiaccia!» le salta e i pulsanti di salvataggio mostrano solo le opzioni sensate (niente sovrascrittura né salvataggio accanto agli originali). Quando un'altra pagina viene chiesta, la fotocamera si riapre dentro il tocco del pulsante (`now` in `ask()`), perché i browser lo permettono solo in risposta a un gesto.
+
 ## I tre livelli di forza
 
 | Livello | Qualità JPEG | Lato lungo massimo |
@@ -86,7 +98,7 @@ Le regole di comportamento sono in `REQUISITI.md`; qui come sono realizzate.
 
 Niente file audio: tutto è sintetizzato con Web Audio. Il pulsante con l'altoparlante accende o spegne insieme effetti e musica; la scelta è ricordata in `localStorage`. Il sottofondo ha un volume volutamente basso (`VOL` nella sezione «musica»).
 
-La musica è un giro di otto battute (`PROG` e `TEMA` nella sezione «musica»). Un temporizzatore mette in coda le note con un terzo di secondo di anticipo, così l'umore può cambiare al volo: `music.setMood("mystery")` mentre la schermata di caricamento legge una cartella (la stessa melodia su un giro con un accordo di re maggiore al posto del la minore, suonata staccata e rada: curiosa, non cupa), `music.setMood("joy")` mentre la stessa schermata scrive i file (tema veloce e saltellante, a due voci, cassa su ogni tempo e battimani), `music.setMood("drive")` quando parte la compressione (il tempo sale gradualmente e il filtro si apre), `music.setMood("calm")` alla fine, `music.festa()` ai salvataggi in blocco, alla sovrascrittura completata e al salvataggio dell'unico file. I browser non fanno partire l'audio prima di un'interazione, quindi la musica comincia al primo tocco; quando la pagina va in secondo piano l'audio si sospende.
+La musica è un giro di otto battute (`PROG` e `TEMA` nella sezione «musica»). Un temporizzatore mette in coda le note con un terzo di secondo di anticipo, così l'umore può cambiare al volo: `music.setMood("mystery")` mentre la schermata di caricamento legge una cartella (la stessa melodia su un giro con un accordo di re maggiore al posto del la minore, suonata staccata e rada: curiosa, non cupa), `music.setMood("scan")` mentre elabora una scansione, `music.setMood("joy")` mentre la stessa schermata scrive i file (tema veloce e saltellante, a due voci, cassa su ogni tempo e battimani), `music.setMood("drive")` quando parte la compressione (il tempo sale gradualmente e il filtro si apre), `music.setMood("calm")` alla fine, `music.festa()` ai salvataggi in blocco, alla sovrascrittura completata e al salvataggio dell'unico file. I browser non fanno partire l'audio prima di un'interazione, quindi la musica comincia al primo tocco; quando la pagina va in secondo piano l'audio si sospende.
 
 ## Lingue
 

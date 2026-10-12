@@ -4,6 +4,7 @@ Compressore di PDF a fumetti che gira tutto nel browser: carichi i PDF pieni di 
 
 - **PDF**: ricomprime in JPEG le immagini dentro il documento; testo, link e pagine restano come sono.
 - **JPG**: toccando la parola «PDF» nel titolo, che ruota come un rullo, l'app passa alle foto: si sceglie un lato lungo massimo e un peso massimo, e data e luogo dello scatto si possono conservare.
+- **Scansione**: con il pulsante 📷 si fotografa un foglio, si sistemano gli angoli e l'app lo raddrizza e ne pulisce la luce; in modalità PDF le pagine si raccolgono in un unico PDF, in modalità JPG ogni scatto è una foto.
 - Funziona su file singoli, su più file o su una cartella intera (sottocartelle comprese).
 - Con un solo file si salva con nome o si sovrascrive l'originale; con più file si salva in un'altra cartella mantenendo la struttura, accanto agli originali con un prefisso o un suffisso, oppure si sovrascrive, sempre dopo conferma. Scrivere nelle cartelle richiede Chrome o Edge da computer; altrove si scarica il file o uno ZIP.
 - Si installa come app su Android e iPhone e funziona anche senza rete dopo la prima apertura.

@@ -56,6 +56,18 @@ export function loaderSvg() {
     sheet("f1") + sheet("f2") + sheet("f3") + `</svg>`;
 }
 
+// Scena della scansione: un foglio storto che si raddrizza sotto una barra di luce, la mascotte che controlla.
+export function scanSvg() {
+  const lines = [0, 1, 2, 3, 4, 5].map((i) => `<path d="M${92} ${92 + i * 26}h${i === 5 ? 70 : 126}" stroke="#c9bfe6" stroke-width="7" stroke-linecap="round"/>`).join("");
+  return `<svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg"><defs>` +
+    `<linearGradient id="beamG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3ddc97" stop-opacity="0"/><stop offset=".55" stop-color="#3ddc97" stop-opacity=".45"/><stop offset="1" stop-color="#3ddc97" stop-opacity="0"/></linearGradient>` +
+    `<clipPath id="pgClip"><rect x="62" y="56" width="186" height="226" rx="10"/></clipPath></defs>` +
+    `<g class="pg"><rect x="62" y="56" width="186" height="226" rx="10" fill="#fff" stroke="${INK}" stroke-width="6"/>${lines}` +
+    `<g clip-path="url(#pgClip)"><rect class="beam" x="56" y="40" width="198" height="46" fill="url(#beamG)"/><rect class="beamLine" x="56" y="74" width="198" height="5" rx="2.5" fill="#3ddc97"/></g></g>` +
+    [[40, 60], [262, 46], [48, 262]].map(([x, y], i) => `<path class="tw t${i}" d="M${x} ${y - 13}l4 9l9 4l-9 4l-4 9l-4 -9l-9 -4l9 -4z" fill="#fff6a8" stroke="${INK}" stroke-width="4" stroke-linejoin="round"/>`).join("") +
+    `<g transform="translate(270 50) scale(.52)">${mascot({ hand: true })}</g></svg>`;
+}
+
 export const iconSvg = (scale, rounded = false) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="${rounded ? 104 : 0}" fill="#ffd23f"/>` +
   `<g transform="translate(256 256) scale(${scale}) translate(-256 -277)">${mascot({ icon: true })}</g></svg>`;

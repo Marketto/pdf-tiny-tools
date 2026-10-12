@@ -24,6 +24,17 @@ Qui sono raccolte le decisioni prese dal proprietario del progetto su come l'app
 - Si accettano solo file JPG; il file salvato resta un JPG con lo stesso nome ed estensione.
 - Caricamento, elenco e salvataggio funzionano come per i PDF.
 
+## Scansione con la fotocamera
+
+- Un pulsante con l'emoji 📷, accanto a suoni e condivisione, apre la fotocamera del telefono (sul computer, la scelta di una foto).
+- Dopo lo scatto si apre un editor a tutto schermo: quattro angoli trascinabili da portare sui bordi del foglio, con una lente d'ingrandimento sotto il dito; si può ruotare la foto, rifare lo scatto o annullare.
+- Tre stili di pulizia: **Documento** (fondo bianco uniforme, ombre e dominanti di colore attenuate, contrasto tirato), **Bianco e nero** (per moduli e testi), **Foto** (solo livelli e colori ritoccati con delicatezza). L'ultimo stile scelto viene ricordato.
+- Il foglio viene raddrizzato in prospettiva; se le proporzioni sono vicine a un A4, vengono riportate a A4.
+- Il formato dipende dalla modalità del rullo: in **PDF**, dopo ogni pagina l'app chiede sempre se aggiungerne un'altra o finire, e alla fine le riunisce in un unico PDF; in **JPG** ogni scatto diventa un file JPG.
+- La scansione compare nell'elenco con il numero di pagine e si salva con gli stessi pulsanti degli altri file; non si ricomprime e non ha originali da sovrascrivere.
+- Durante l'elaborazione compare una schermata dedicata (un foglio storto che si raddrizza sotto una barra di luce) con una variante musicale propria, da macchina che lavora.
+- Come tutto il resto, le foto non lasciano il dispositivo.
+
 ## Caricamento
 
 - Si possono scegliere uno o più PDF, una cartella intera, oppure trascinarli nella pagina.
@@ -88,6 +99,7 @@ Le opzioni dipendono da quanti file ci sono nell'elenco.
 - Musica di sottofondo dinamica, originale, in stile 8 bit anni '80/'90: calma durante l'uso, concitata e ritmata durante la compressione, celebrativa al salvataggio.
 - La versione calma è lenta e su toni bassi, per un effetto rilassato.
 - Mentre scrive i file (salvataggio in una cartella o sovrascrittura) la musica diventa allegra, ritmata e vittoriosa (da festa, non da marcia), e si chiude con la fanfara a lavoro finito.
+- Mentre elabora una scansione la musica diventa un arpeggio che sale e scende, come la luce di uno scanner.
 - Mentre legge i file di una cartella la musica prende toni di mistero, poi torna calma. Il mistero deve restare allegro e curioso, non cupo.
 - Il volume del sottofondo deve restare gradevole e mai invadente.
 - Jingle all'avvio e suono di schiacciata durante la compressione.

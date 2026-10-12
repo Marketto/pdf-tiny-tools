@@ -100,6 +100,43 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `JPG: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- scansione: due pagine in un PDF, angoli di partenza
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 }, acceptDownloads: true });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(() => { for (const k of ["showOpenFilePicker", "showSaveFilePicker", "showDirectoryPicker"]) Object.defineProperty(window, k, { value: undefined }); });
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url);
+  const photo = Buffer.from(await page.evaluate(async () => {
+    const c = document.createElement("canvas"); c.width = 1600; c.height = 1200;
+    const g = c.getContext("2d"); g.fillStyle = "#544030"; g.fillRect(0, 0, 1600, 1200);
+    g.fillStyle = "#efe9dc"; g.fillRect(200, 100, 1200, 1000); g.fillStyle = "#222"; g.font = "40px Arial";
+    for (let i = 0; i < 12; i++) g.fillText("Riga " + (i + 1), 260, 200 + i * 70);
+    return [...new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/jpeg", .9))).arrayBuffer())];
+  }));
+  const shot = async (trigger) => { const [fc] = await Promise.all([page.waitForEvent("filechooser"), trigger()]); await fc.setFiles({ name: "foto.jpg", mimeType: "image/jpeg", buffer: photo }); };
+  await shot(() => page.click("#camBtn"));
+  await page.waitForSelector("#scanner:not([hidden])");
+  check(await page.locator("#scanSvg .hit").count() === 4, "Scansione: editor con quattro angoli trascinabili");
+  await page.click("#scanOk");
+  await page.waitForSelector("#modal:not([hidden])", { timeout: 30000 });
+  check((await page.innerText("#modalTitle")).includes("1"), "Scansione: dopo la prima pagina chiede se continuare");
+  await shot(() => page.click("#modalBtns button >> nth=0"));
+  await page.waitForSelector("#scanner:not([hidden])");
+  await page.click("#scanOk");
+  await page.waitForSelector("#modal:not([hidden])", { timeout: 30000 });
+  await page.click("#modalBtns button >> nth=1");
+  await page.waitForFunction(() => document.querySelectorAll("#rows .row").length === 1 && document.getElementById("loader").hidden, null, { timeout: 30000 });
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#saveAs")]);
+  const { readFile: read } = await import("node:fs/promises");
+  const pdf = await read(await dl.path());
+  const pages = await page.evaluate(async (b) => (await PDFLib.PDFDocument.load(new Uint8Array(b))).getPageCount(), [...pdf]);
+  check(/\.pdf$/.test(dl.suggestedFilename()) && pages === 2, `Scansione: PDF di ${pages} pagine salvato (${dl.suggestedFilename()})`);
+  check(errors.length === 0, `Scansione: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
 await browser.close(); server.close();
 console.log(failed ? `\n${failed} controlli falliti` : "\nTutto a posto");
 process.exit(failed ? 1 : 0);

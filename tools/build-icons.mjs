@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // Rigenera dalla mascotte (tools/mascot.mjs): le icone in icons/, favicon.ico
-// e i due disegni incorporati in index.html (tra i commenti mascot:page e mascot:loader).
+// e i disegni incorporati in index.html (tra i commenti mascot:page, mascot:loader e mascot:scan).
 // Uso: node tools/build-icons.mjs [--no-png]   (i PNG richiedono Playwright: vedi tools/package.json)
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { iconSvg, pageSvg, loaderSvg } from "./mascot.mjs";
+import { iconSvg, pageSvg, loaderSvg, scanSvg } from "./mascot.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const at = (p) => join(root, p);
@@ -16,7 +16,7 @@ function inject(html, tag, svg) {
   return html.replace(re, `$1${svg}$2`);
 }
 let html = readFileSync(at("index.html"), "utf8");
-html = inject(inject(html, "page", pageSvg()), "loader", loaderSvg());
+html = inject(inject(inject(html, "page", pageSvg()), "loader", loaderSvg()), "scan", scanSvg());
 writeFileSync(at("index.html"), html);
 writeFileSync(at("icons/icon.svg"), iconSvg(1.3, true));
 console.log("Aggiornati index.html e icons/icon.svg");
