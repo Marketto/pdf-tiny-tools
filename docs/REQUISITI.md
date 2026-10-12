@@ -68,7 +68,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg) · [CAR](#car-caric
 ## UI · Aspetto
 - R-UI-01 Mascotte: pressa kawaii con occhioni; ogni tanto strizza gli occhi a caso tra «> <» e sorriso ad arco.
 - R-UI-02 Icone dell'app a tutto campo su giallo unito, mascotte più grande possibile.
-- R-UI-03 Testata: accanto al logo, in flex, installazione, suoni, fotocamera, condivisione e lingua.
+- R-UI-03 Testata: accanto al logo, in flex, lingua, installazione e le tre icone suoni, fotocamera, condivisione. Le tre icone stanno sempre su una sola riga, anche su telefoni stretti o con caratteri ingranditi.
 - R-UI-04 Numero di versione visibile accanto al titolo.
 
 ## AUD · Suoni e musica
