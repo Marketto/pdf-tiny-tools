@@ -1,123 +1,81 @@
 # Architettura
 
-Schiaccia PDF è una pagina statica. Non c'è server applicativo, non c'è build: il browser scarica i file e fa tutto da solo, sul dispositivo dell'utente.
+Come è fatta l'app. Il *cosa* sta in `REQUISITI.md` (codici `R-…`); qui il *come*, con i nomi da cercare nel codice.
 
-## Come viaggia un PDF
+## Mappa del codice
 
-```mermaid
-flowchart LR
-  A[File, cartella<br>o trascinamento] --> B[Elenco dei PDF]
-  B --> C[pdf-lib apre il PDF]
-  C --> D{Per ogni immagine}
-  D -->|JPEG o Flate, RGB/grigio 8 bit| E[Decodifica nel browser<br>riduci, ricodifica in JPEG]
-  D -->|CMYK, JBIG2, JPX, fax, maschere| F[Lasciata com'è]
-  E --> G{Pesa meno<br>del 90%?}
-  G -->|sì| H[Sostituisce l'originale<br>dentro il PDF]
-  G -->|no| F
-  H --> I[pdf-lib salva]
-  F --> I
-  I --> J[Salva con nome, altra cartella,<br>accanto agli originali,<br>sovrascrittura o ZIP]
-```
+Tutto il JavaScript è in `index.html`, dentro un'unica funzione, diviso da commenti `/* ---------- nome ---------- */`. Per arrivare a una sezione: `grep -n -- "---------- scansione" index.html`.
 
-Il testo, i link e la struttura delle pagine non vengono toccati: cambia solo il contenuto dei flussi immagine. Per questo il testo resta selezionabile e per questo un PDF senza immagini non si alleggerisce.
-
-## Due modalità
-
-La variabile `mode` vale `"pdf"` o `"jpg"`; `setMode()` la cambia, mette la classe `mode-jpg` su `<body>` (da cui dipendono colore della mascotte, accento e rotazione del rullo), scambia le opzioni del passo 2 e il filtro dei file accettati. Il rullo è un pulsante costruito da `showTitle()` al posto dello `<span>PDF</span>` del titolo: due facce disposte ad angolo retto e ruotate con una trasformazione 3D.
-
-I testi non sono duplicati: in modalità JPG `t()` usa la chiave con la `J` finale se esiste (`subJ`), altrimenti il testo normale con «PDF» sostituito da «JPG».
-
-## Come viaggia una foto JPG
-
-`squeezeJpg()` decodifica la foto (il browser la raddrizza secondo l'orientamento registrato), la ridisegna entro il lato lungo scelto e la ricodifica. Con un peso massimo cerca per bisezione la qualità più alta che ci sta, tra 0,30 e 0,92; se non basta nemmeno la più bassa riduce le dimensioni e riprova, fino a cinque giri. Senza peso massimo usa qualità 0,80. Se richiesto, il blocco EXIF dell'originale (data, luogo, fotocamera) viene ricopiato in testa al file nuovo con l'orientamento riportato a «normale», perché i pixel sono già dritti. Il profilo colore non si ricopia: i pixel ridisegnati sono in sRGB. Su iPhone la superficie di disegno è limitata a 16 milioni di pixel.
-
-## Scansione
-
-Sezione «scansione con la fotocamera» dello script. Il pulsante 📷 apre un `<input type="file" capture="environment">`, cioè la fotocamera di sistema: qualità piena, messa a fuoco e flash del telefono, nessun permesso da chiedere.
-
-1. `scanFile()` decodifica la foto (raddrizzata secondo l'orientamento registrato) e la riduce a 3000 px sul lato lungo per lavorare.
-2. `editCorners()` apre l'editor: un SVG sopra la foto con i quattro angoli; la lente è un canvas che ingrandisce tre volte la zona sotto il dito. Rotazione di 90° con aggiornamento degli angoli.
-3. `makePage()` calcola le dimensioni d'uscita dalle lunghezze dei lati (riportandole a A4 se vicine), risolve l'omografia tra rettangolo d'uscita e quadrilatero (`homography()`, sistema lineare 8×8) e campiona la foto con interpolazione bilineare (`warp()`), a blocchi di righe per non bloccare l'animazione.
-4. `enhance()` pulisce: per «Documento» stima la luce del foglio canale per canale (il punto più chiaro di ogni riquadro 16×16, allargato e sfumato) e divide per essa, poi tende i livelli; «Bianco e nero» parte da lì; «Foto» tende solo i livelli per canale.
-5. In modalità PDF le pagine JPG si accumulano in `scanPages` e `finishPdf()` le impagina con pdf-lib (lato lungo 842 punti, come un A4); in modalità JPG ogni pagina diventa subito un file.
-
-Le scansioni finiscono nell'elenco con `scan: true`: «Schiaccia!» le salta e i pulsanti di salvataggio mostrano solo le opzioni sensate (niente sovrascrittura né salvataggio accanto agli originali). Quando un'altra pagina viene chiesta, la fotocamera si riapre dentro il tocco del pulsante (`now` in `ask()`), perché i browser lo permettono solo in risposta a un gesto.
-
-## I tre livelli di forza
-
-| Livello | Qualità JPEG | Lato lungo massimo |
+| Sezione (marcatore) | Funzioni principali | Requisiti |
 |---|---|---|
-| Carezza (`soft`) | 0,82 | 2400 px |
-| Stretta (`mid`) | 0,68 | 1700 px |
-| Martellata (`hard`) | 0,50 | 1200 px |
+| `lingue` | `pickLang`, `t`, `applyLang`, `showTitle`, `setMode`, `isPdf` | I18N, MOD |
+| `carico` | `addFile`, `walkHandle`, `walkEntry`, `loaderOn`, `loaderOff` | CAR |
+| `vista` | `render` | LST, SAV-08 |
+| `motore` | `squeezePdf`, `squeezeImage`, `squeezeJpg`, `exifSegment`, `jpgOpts` | CMP, JPG |
+| `salvataggio` | `saveBlob`, `ask`, `writeJobs`, `finish`, gestori di `saveAs`/`saveElse`/`saveBeside`/`overBtn` | SAV |
+| `scansione con la fotocamera` | `scanFile`, `detectPage`, `editCorners`, `makePage`, `warp`, `enhance`, `morePages`, `finishPdf`, `showPreview` | SCN |
+| `avvio` | menu lingue, modalità iniziale | I18N, MOD-04 |
+| `suoni` | `tone`, `hiss`, `sfx`, `playJingle`, `playSquash` | AUD-06 |
+| `musica` | oggetto `music` (`start`, `stop`, `setMood`, `festa`), `MOOD`, `playStep` | AUD |
+| `occhi` | `wink` | UI-01 |
+| `condivisione` | `toast`, gestore di `shareBtn` | APP-02 |
+| `installazione` | `beforeinstallprompt`, istruzioni iPhone | APP-01 |
 
-Sono in `PRESETS`, in cima allo script di `index.html`.
+Fuori dallo script principale: registrazione del service worker in fondo a `index.html` (APP-03).
 
-## Sezioni di `index.html`
-
-Lo script è diviso da commenti `/* ---------- nome ---------- */`:
-
-| Sezione | Cosa fa |
+| Altro file | Ruolo |
 |---|---|
-| lingue | Scelta della lingua dal browser, funzione `t()`, applicazione dei testi, titolo con il rullo e cambio di modalità |
-| carico | Scelta file, lettura cartelle (fino a 6 livelli), trascinamento, schermata di caricamento annullabile |
-| vista | Disegna l'elenco dei file e i totali |
-| motore | Compressione: `squeezePdf` e `squeezeImage` per i PDF, `squeezeJpg` ed `exifSegment` per le foto |
-| salvataggio | Pulsanti sotto l'elenco, finestre di dialogo (`ask`), scrittura nelle cartelle (`writeJobs`) con schermata annullabile, ZIP di ripiego |
-| avvio | Menu delle lingue |
-| suoni | Jingle e effetti, sintetizzati con Web Audio (nessun file audio) |
-| musica | Sottofondo generato nota per nota: un tema solo in più umori (calma durante l'uso, mistero mentre legge una cartella, concitata mentre comprime, gioia mentre scrive i file, fanfara a salvataggio riuscito) |
-| occhi | La mascotte strizza gli occhi a intervalli casuali, scegliendo a caso tra due espressioni |
-| condivisione | Pulsante di condivisione: foglio di sistema dove esiste, altrimenti copia il link |
-| installazione | Pulsante «Installa l'app» e istruzioni per iPhone |
+| `i18n.js` | `window.I18N`: un oggetto per lingua, stesse chiavi. Regole nella skill `traduzioni`. |
+| `sw.js` | Cache offline: rete prima per pagina e testi, cache prima per `vendor/`, `icons/`, font. |
+| `tools/mascot.mjs` | Unica fonte dei disegni della mascotte; `build-icons.mjs` li inietta in `index.html` tra `<!-- mascot:page|loader|scan -->`. |
+| `.github/workflows/pages.yml` | Controlla le traduzioni, copia in `_site/` i soli file dell'app, scrive versione e nome cache, pubblica. |
+| `.github/workflows/tag.yml` | Crea `v<VERSION>` quando cambia `VERSION`. |
 
-## Lettura delle cartelle
+## Stato globale
 
-Tre strade, a seconda del browser:
+`items` (elenco: `{name, rel, file, size, status, out, note, handle, dir, scan, pages, pageBlobs}`), `mode` (`"pdf"`/`"jpg"`), `rootDir` (cartella scelta), `busy` (compressione in corso), `loading` (schermata a tutto schermo aperta), `scanPages` (pagine del PDF in corso di scansione).
 
-1. **`showDirectoryPicker`** (Chrome ed Edge da computer): dà accesso in lettura e scrittura. Ogni file porta con sé il proprio riferimento (`handle`) e quello della cartella che lo contiene (`dir`): servono per sovrascrivere e per salvare accanto agli originali.
-2. **`<input webkitdirectory>`**: ripiego in sola lettura.
-3. **Trascinamento** di file e cartelle: sola lettura.
+`status`: `wait` → `work` → `done` | `same` (non alleggerito) | `err` | `over` (sovrascritto).
 
-In tutte e tre si scende al massimo di 6 livelli, si saltano le cartelle nascoste, e un file illeggibile viene saltato senza interrompere la lettura.
+## Testi e modalità
+- `t(k)`: in modalità JPG usa la chiave `kJ` se esiste, altrimenti sostituisce «PDF» con «JPG».
+- Il rullo è un `<button id="modeBtn">` costruito da `showTitle()` al posto di `<span>PDF</span>` della chiave `h1`; due facce 3D, ruotate dalla classe `mode-jpg` su `<body>`, che cambia anche `--grape` e il colore `.m-skin` della mascotte.
 
-## Salvataggio
+## PDF (CMP)
+`squeezePdf` apre con pdf-lib, prende i flussi `/Subtype /Image` (escluse le `SMask`), `squeezeImage` decodifica (JPEG col browser, Flate con `DecompressionStream` + filtro PNG), riduce, ricodifica JPEG, sostituisce solo se < 90%. Intoccati: CMYK, Indexed, `Decode`, `Mask`, JBIG2, JPX, CCITT. Forze in `PRESETS`: qualità 0,82/0,68/0,50, lato 2400/1700/1200.
 
-Le regole di comportamento sono in `REQUISITI.md`; qui come sono realizzate.
+## JPG (JPG)
+`squeezeJpg`: decodifica raddrizzando l'orientamento, ridisegna entro il lato scelto; con peso massimo bisezione della qualità tra 0,30 e 0,92, poi riduzione delle dimensioni fino a 5 giri; senza peso qualità 0,80. EXIF ricopiato in testa con orientamento riportato a 1 (`exifSegment`); profilo colore non ricopiato. Su iPhone massimo 16 Mpx.
 
-| Azione | Cosa serve | Come |
+## Scansione (SCN)
+1. 📷 apre `<input id="camInput" capture="environment">`: fotocamera di sistema, nessun permesso.
+2. `scanFile` riduce la foto a 3000 px (`work`).
+3. `detectPage(work)` (SCN-09/10): riduce a ~360 px, punteggio per pixel = luminosità − saturazione, soglia di Otsu, apertura/chiusura, componente connessa più grande che non tocca troppo i bordi. Angoli = estremi lungo le diagonali (e lungo gli assi, si tiene il quadrilatero più ampio). Maniglie dei lati = punto del bordo della maschera più vicino al centro di ogni lato, cercato lungo la perpendicolare. Rifiuta aree < 12% o forme troppo irregolari → rettangolo rientrato del 6%.
+4. `editCorners` (SCN-02/10): SVG sopra la foto; 4 angoli + 4 maniglie a metà lato; reticolato 8×10 calcolato con la stessa funzione di `warp`; la lente è un canvas che ingrandisce 3×. Spostando un angolo, le maniglie dei lati conservano lo scarto dal punto medio del lato.
+5. `makePage` → `warp`: omografia `H` (rettangolo d'uscita → angoli, `homography()`, sistema 8×8). Le maniglie dei lati, riportate nello spazio d'uscita con `H⁻¹`, definiscono quattro curve di Bézier quadratiche; una superficie di Coons dà lo spostamento per ogni punto, poi `H` lo porta sulla foto. Lati dritti = pura prospettiva. Campionamento bilineare a blocchi di righe (l'animazione resta fluida).
+6. `enhance`: Documento = luce del foglio stimata per canale (massimo in riquadri 16×16, allargato e sfumato), divisione, livelli; Bianco e nero = idem + soglia morbida; Foto = livelli per canale.
+7. Anteprima (SCN-12): `showPreview` usa `ask()` con un'immagine nel corpo. PDF: `morePages()` mostra l'ultima pagina con «Un'altra pagina», «Rifai questa pagina», «Finisci». JPG: «Tienila» / «Rifai».
+8. PDF: `finishPdf` impagina le pagine (lato lungo 842 pt) con pdf-lib. L'elemento in elenco ha `scan: true`, `pages`, `pageBlobs` (per l'anteprima, SCN-13); «Schiaccia!» lo salta, i salvataggi non offrono sovrascrittura né «accanto».
+9. La fotocamera si riapre dentro il tocco (`now` nei pulsanti di `ask()`), perché i browser lo permettono solo in risposta a un gesto; l'evento `cancel` dell'input riporta alla domanda.
+
+## Cartelle (CAR, SAV)
+Tre ingressi: `showDirectoryPicker` (lettura e scrittura: unico che consente «accanto» e «sovrascrivi»), `<input webkitdirectory>` e trascinamento (sola lettura). File scelti con `showOpenFilePicker` portano `handle` (sovrascrivibili). Ogni elemento tiene `handle` e `dir`. `writeJobs` scrive con la schermata `back`; prima si contano i file già presenti (`okToReplace`).
+
+| Salvataggio | Serve | Come |
 |---|---|---|
-| Salva con nome (un file) | niente | `showSaveFilePicker`, altrimenti download |
-| Altra cartella | `showDirectoryPicker` | si sceglie la destinazione e si ricrea il percorso relativo di ogni file; senza quella funzione, uno ZIP con gli stessi percorsi |
-| Accanto agli originali | `dir` su ogni file (cartella scelta con `showDirectoryPicker`) | nuovo nome con prefisso o suffisso nella stessa cartella dell'originale |
-| Sovrascrivi | `handle` su ogni file (cartella scelta, oppure file scelti con `showOpenFilePicker`) | `createWritable` sull'originale |
+| Salva con nome | — | `showSaveFilePicker`, altrimenti download |
+| Altra cartella | `showDirectoryPicker` | ricrea i percorsi relativi; senza: ZIP |
+| Accanto | `dir` su ogni file | stesso nome con prefisso/suffisso |
+| Sovrascrivi | `handle` su ogni file | `createWritable` sull'originale |
 
-`render()` accende o spegne i pulsanti in base a questi requisiti e mostra la riga di spiegazione quando qualcosa è spento. Prima di scrivere in una cartella si contano i file che esistono già e si chiede conferma. I file trascinati nella pagina non portano permessi di scrittura.
+## Schermata a tutto schermo
+`loaderOn(mode, titolo)` / `loaderOff()`; rende inerte `#app`, resta almeno 0,9 s. Classi su `#loader`: nessuna = lettura cartella (schedario), `back` = scrittura (fogli che tornano), `scan` = scansione (scena `mascot:scan`, senza «Annulla»). Ogni classe sceglie anche l'umore della musica.
 
-## Suoni e musica
+## Suoni e musica (AUD)
+Tutto Web Audio, niente file. `music` mette in coda le note ~0,35 s prima; umori in `MOOD` (bpm, filtro, giro, melodia) e stili in `playStep`: `calm`, `mystery` (giro con re maggiore, staccato), `drive`, `joy`, `scan`, `jump` (fanfara, `festa()`). Volume del sottofondo in `VOL`. L'audio parte al primo tocco e si sospende con la pagina nascosta.
 
-Niente file audio: tutto è sintetizzato con Web Audio. Il pulsante con l'altoparlante accende o spegne insieme effetti e musica; la scelta è ricordata in `localStorage`. Il sottofondo ha un volume volutamente basso (`VOL` nella sezione «musica»).
-
-La musica è un giro di otto battute (`PROG` e `TEMA` nella sezione «musica»). Un temporizzatore mette in coda le note con un terzo di secondo di anticipo, così l'umore può cambiare al volo: `music.setMood("mystery")` mentre la schermata di caricamento legge una cartella (la stessa melodia su un giro con un accordo di re maggiore al posto del la minore, suonata staccata e rada: curiosa, non cupa), `music.setMood("scan")` mentre elabora una scansione, `music.setMood("joy")` mentre la stessa schermata scrive i file (tema veloce e saltellante, a due voci, cassa su ogni tempo e battimani), `music.setMood("drive")` quando parte la compressione (il tempo sale gradualmente e il filtro si apre), `music.setMood("calm")` alla fine, `music.festa()` ai salvataggi in blocco, alla sovrascrittura completata e al salvataggio dell'unico file. I browser non fanno partire l'audio prima di un'interazione, quindi la musica comincia al primo tocco; quando la pagina va in secondo piano l'audio si sospende.
-
-## Lingue
-
-`i18n.js` definisce `window.I18N`: un oggetto per lingua, stesse chiavi ovunque. Il markup porta gli attributi `data-i18n*`; `applyLang()` li riempie. La lingua scelta a mano viene ricordata in `localStorage`. Arabo e urdu impostano `dir="rtl"` e il layout si specchia da solo perché usa proprietà logiche e flex.
-
-## App installabile e offline
-
-- `manifest.webmanifest` e le icone rendono l'app installabile.
-- `sw.js` tiene in cache i file dell'app per l'uso senza rete. Pagina e testi si chiedono prima alla rete (la cache subentra se manca o non risponde entro quattro secondi), così una versione nuova si vede alla prima apertura; librerie, icone e font si prendono prima dalla cache.
-- Quando una versione nuova prende il controllo, la pagina aperta si ricarica da sola, ma solo se non ci sono file in elenco né finestre aperte.
-- Il nome della cache viene cambiato dal flusso di pubblicazione a ogni deploy, così le versioni vecchie vengono scartate.
-
-## Pubblicazione
-
-`.github/workflows/pages.yml` controlla le traduzioni, copia in `_site/` solo i file dell'app e li pubblica su GitHub Pages a ogni push su `main`. Lo stesso flusso scrive accanto al titolo il numero preso da `VERSION` (in locale compare «dev»). `.github/workflows/tag.yml` crea il tag `v<numero>` quando cambia `VERSION`.
+## Cache offline (APP-03)
+`sw.js`: installazione con `cache: "reload"`; pagina e testi rete prima (cache se manca o > 4 s); `vendor/`, `icons/`, font cache prima. Il nome cache lo cambia `pages.yml`. Al cambio di service worker la pagina si ricarica se non c'è lavoro in corso.
 
 ## Limiti noti
-
-- Immagini CMYK, JBIG2, JPEG 2000 e CCITT non vengono ricompresse.
-- PDF protetti da password vengono saltati.
-- PDF molto grandi dipendono dalla memoria del dispositivo: tutto avviene in RAM.
-- Su iPhone non si possono scegliere cartelle; su Firefox e Safari non si può scrivere nelle cartelle.
+PDF: CMYK, JBIG2, JPEG 2000, CCITT non ricompressi; PDF con password saltati; tutto in RAM. Foto: colori ad ampia gamma un po' spenti; HEIC non leggibile. Scansione: rilevamento del foglio debole su sfondo chiaro; pieghe interne non corrette; ombre nette attenuate ma con alone. Cartelle: non scrivibili su iPhone, Firefox, Safari.

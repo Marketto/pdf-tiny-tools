@@ -15,7 +15,14 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 | `.claude/` | Skill e agenti descritti sotto |
 | `docs/` | Requisiti, architettura e guida al lavoro con gli agenti |
 
-Cosa deve fare l'app: `docs/REQUISITI.md`. Come è fatta: `docs/ARCHITETTURA.md`.
+Cosa deve fare l'app: `docs/REQUISITI.md` (voci con codice `R-AREA-nn`). Come è fatta: `docs/ARCHITETTURA.md` (mappa sezione → funzioni → requisiti).
+
+## Come cercare, spendendo poco
+
+1. Requisito: `grep -n "R-SCN" docs/REQUISITI.md` (aree: PRI MOD CAR CMP JPG SCN LST SAV UI AUD I18N APP REL DOC).
+2. Dove sta nel codice: tabella «Mappa del codice» in `docs/ARCHITETTURA.md`, poi `grep -n -- "---------- scansione" index.html` e leggi solo quella sezione.
+3. Testi: `grep -n "chiave:" i18n.js | head -13` (una riga per lingua).
+4. Non leggere `vendor/` né le parti SVG generate tra `<!-- mascot:… -->`.
 
 ## Smistamento: a chi tocca cosa
 
@@ -39,7 +46,7 @@ Se una richiesta tocca più righe, fai una cosa alla volta e chiudi sempre con `
 - **I file dell'utente non lasciano il dispositivo.** Nessuna chiamata di rete con contenuti o nomi dei file, nessuna telemetria.
 - **Gli originali non si toccano** se non dopo la conferma esplicita già prevista (pulsante «Sovrascrivi gli originali»).
 - **La mascotte ha una sola fonte**, `tools/mascot.mjs`. Non ritoccare a mano gli SVG dentro `index.html` o in `icons/`: si rigenerano.
-- **La documentazione si aggiorna insieme al codice.** Ogni requisito, correzione o miglioria chiesta dal proprietario va riportata in `docs/REQUISITI.md` nello stesso commit, e con lei `docs/ARCHITETTURA.md`, il README e le skill toccate dal cambiamento. Prima di cambiare un comportamento, leggi cosa dice `docs/REQUISITI.md`.
+- **Prima la documentazione, poi il codice.** Ogni richiesta del proprietario diventa prima una voce in `docs/REQUISITI.md` (nuovo codice o voce modificata) e, se cambia la struttura, il piano in `docs/ARCHITETTURA.md`; solo dopo si implementa, e alla fine si riallinea `ARCHITETTURA.md` a ciò che è stato fatto, con README e skill toccati. Una sola fonte per ogni informazione: rimanda invece di ripetere.
 - **Versionamento semantico**, sempre a tre cifre (`MAGGIORE.MINORE.CORREZIONE`); le regole sono nella skill `rilascio`.
 - **I tag non si creano a mano**: basta cambiare `VERSION` (vedi skill `rilascio`).
 - I percorsi nel sito sono relativi (l'app vive sotto `/pdf-tiny-tools/`).

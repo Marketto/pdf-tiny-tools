@@ -69,7 +69,7 @@ Per chiamare un pezzo in modo esplicito: `/traduzioni`, `/rilascio`, oppure «us
 
 ## Tenere aggiornata la documentazione
 
-Ogni requisito o correzione chiesta dal proprietario finisce in `docs/REQUISITI.md` nello stesso commit del codice: è una regola di `CLAUDE.md`, quindi vale per ogni agente. `ARCHITETTURA.md`, README e skill si aggiornano quando il cambiamento li tocca.
+Regola di `CLAUDE.md`, valida per ogni agente: ogni richiesta diventa prima una voce con codice in `docs/REQUISITI.md`, poi codice, poi `ARCHITETTURA.md` riallineata. I documenti sono scritti per essere cercati con `grep`: codici stabili, voci brevi, una sola fonte per informazione.
 
 ## Estendere
 
