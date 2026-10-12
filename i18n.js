@@ -90,6 +90,11 @@ it: {
   scanBadge: "Scansione",
   scanAdded: "Scansione pronta: la trovi qui sotto, da salvare.",
   camFail: "Questa foto non si riesce ad aprire.",
+  preview: "Anteprima",
+  retakePage: "Rifai questa pagina",
+  keep: "Tienila",
+  close: "Chiudi",
+  scanReady: "Ecco la scansione",
   lang: "Lingua"
 },
 en: {
@@ -181,6 +186,11 @@ en: {
   scanBadge: "Scan",
   scanAdded: "Scan ready: you'll find it below, ready to save.",
   camFail: "This photo can't be opened.",
+  preview: "Preview",
+  retakePage: "Retake this page",
+  keep: "Keep it",
+  close: "Close",
+  scanReady: "Here's your scan",
   lang: "Language"
 },
 zh: {
@@ -272,6 +282,11 @@ zh: {
   scanBadge: "扫描件",
   scanAdded: "扫描好了：在下方保存即可。",
   camFail: "这张照片打不开。",
+  preview: "预览",
+  retakePage: "重拍这一页",
+  keep: "就用这张",
+  close: "关闭",
+  scanReady: "扫描结果",
   lang: "语言"
 },
 hi: {
@@ -363,6 +378,11 @@ hi: {
   scanBadge: "स्कैन",
   scanAdded: "स्कैन तैयार है: नीचे से सहेज लें।",
   camFail: "यह फ़ोटो खुल नहीं रही।",
+  preview: "पूर्वावलोकन",
+  retakePage: "यह पन्ना फिर से लें",
+  keep: "यही रखें",
+  close: "बंद करें",
+  scanReady: "यह रहा आपका स्कैन",
   lang: "भाषा"
 },
 es: {
@@ -454,6 +474,11 @@ es: {
   scanBadge: "Escaneo",
   scanAdded: "Escaneo listo: lo tienes abajo para guardarlo.",
   camFail: "Esta foto no se puede abrir.",
+  preview: "Vista previa",
+  retakePage: "Repetir esta página",
+  keep: "Me la quedo",
+  close: "Cerrar",
+  scanReady: "Aquí tienes el escaneo",
   lang: "Idioma"
 },
 fr: {
@@ -545,6 +570,11 @@ fr: {
   scanBadge: "Scan",
   scanAdded: "Scan prêt : il vous attend plus bas pour être enregistré.",
   camFail: "Impossible d'ouvrir cette photo.",
+  preview: "Aperçu",
+  retakePage: "Reprendre cette page",
+  keep: "Je garde",
+  close: "Fermer",
+  scanReady: "Voici votre scan",
   lang: "Langue"
 },
 ar: {
@@ -636,6 +666,11 @@ ar: {
   scanBadge: "مسح ضوئي",
   scanAdded: "المسح جاهز: تجده في الأسفل لحفظه.",
   camFail: "تعذّر فتح هذه الصورة.",
+  preview: "معاينة",
+  retakePage: "أعد التقاط هذه الصفحة",
+  keep: "احتفظ بها",
+  close: "إغلاق",
+  scanReady: "هذا هو المسح",
   lang: "اللغة"
 },
 bn: {
@@ -727,6 +762,11 @@ bn: {
   scanBadge: "স্ক্যান",
   scanAdded: "স্ক্যান তৈরি: নিচে থেকে সেভ করে নিন।",
   camFail: "এই ছবিটা খোলা যাচ্ছে না।",
+  preview: "প্রিভিউ",
+  retakePage: "এই পৃষ্ঠাটা আবার তুলুন",
+  keep: "এটাই রাখুন",
+  close: "বন্ধ করুন",
+  scanReady: "এই যে আপনার স্ক্যান",
   lang: "ভাষা"
 },
 pt: {
@@ -818,6 +858,11 @@ pt: {
   scanBadge: "Digitalização",
   scanAdded: "Digitalização pronta: está logo abaixo para salvar.",
   camFail: "Não foi possível abrir esta foto.",
+  preview: "Pré-visualizar",
+  retakePage: "Refazer esta página",
+  keep: "Ficar com esta",
+  close: "Fechar",
+  scanReady: "Aqui está a digitalização",
   lang: "Idioma"
 },
 ru: {
@@ -909,6 +954,11 @@ ru: {
   scanBadge: "Скан",
   scanAdded: "Скан готов: сохраните его ниже.",
   camFail: "Не удаётся открыть это фото.",
+  preview: "Просмотр",
+  retakePage: "Переснять эту страницу",
+  keep: "Оставить",
+  close: "Закрыть",
+  scanReady: "Вот ваш скан",
   lang: "Язык"
 },
 ur: {
@@ -1000,6 +1050,11 @@ ur: {
   scanBadge: "اسکین",
   scanAdded: "اسکین تیار ہے: نیچے سے محفوظ کر لیں۔",
   camFail: "یہ تصویر کھل نہیں رہی۔",
+  preview: "پیش نظارہ",
+  retakePage: "یہ صفحہ دوبارہ لیں",
+  keep: "یہی رکھیں",
+  close: "بند کریں",
+  scanReady: "یہ رہا آپ کا اسکین",
   lang: "زبان"
 },
 id: {
@@ -1091,6 +1146,11 @@ id: {
   scanBadge: "Pindaian",
   scanAdded: "Pindaian siap: simpan dari bawah.",
   camFail: "Foto ini tidak bisa dibuka.",
+  preview: "Pratinjau",
+  retakePage: "Ulangi halaman ini",
+  keep: "Simpan yang ini",
+  close: "Tutup",
+  scanReady: "Ini hasil pindaiannya",
   lang: "Bahasa"
 },
 de: {
@@ -1182,6 +1242,11 @@ de: {
   scanBadge: "Scan",
   scanAdded: "Scan fertig: Du findest ihn unten zum Speichern.",
   camFail: "Dieses Foto lässt sich nicht öffnen.",
+  preview: "Vorschau",
+  retakePage: "Diese Seite neu aufnehmen",
+  keep: "Behalten",
+  close: "Schließen",
+  scanReady: "Hier ist dein Scan",
   lang: "Sprache"
 }
 };

@@ -50,7 +50,13 @@ Fuori dallo script principale: registrazione del service worker in fondo a `inde
 ## Scansione (SCN)
 1. 📷 apre `<input id="camInput" capture="environment">`: fotocamera di sistema, nessun permesso.
 2. `scanFile` riduce la foto a 3000 px (`work`).
-3. `detectPage(work)` (SCN-09/10): riduce a ~360 px, punteggio per pixel = luminosità − saturazione, soglia di Otsu, apertura/chiusura, componente connessa più grande che non tocca troppo i bordi. Angoli = estremi lungo le diagonali (e lungo gli assi, si tiene il quadrilatero più ampio). Maniglie dei lati = punto del bordo della maschera più vicino al centro di ogni lato, cercato lungo la perpendicolare. Rifiuta aree < 12% o forme troppo irregolari → rettangolo rientrato del 6%.
+3. `detectPage(work)` (SCN-09/10), su una copia da ~360 px:
+   - maschera: punteggio = luminosità − 0,8 × saturazione; soglia di Otsu abbassata verso la media dello sfondo (così le zone del foglio in ombra restano dentro); apertura e chiusura 3×3; componente connessa più grande (≥ 12% dell'immagine, che non tocchi più del 45% del contorno);
+   - quadrilatero iniziale: estremi lungo le diagonali o lungo gli assi, il più ampio;
+   - bordo esterno (riempimento dall'esterno, così le scritte non contano); per ogni lato retta robusta (minimi quadrati totali, scartando i punti oltre 2,5 × la mediana) sui punti tra il 12% e l'88% del lato;
+   - curvatura: un lato è curvo se il centro e le due estremità stanno da parti opposte della retta e le estremità concordano (un'ombra su un solo angolo non conta); lo scarto diventa lo spostamento della maniglia di quel lato;
+   - angoli: intersezione delle rette se i due lati vicini sono dritti, altrimenti l'estremo iniziale;
+   - se qualcosa non torna restituisce `null` e l'editor parte da un rettangolo rientrato del 6%.
 4. `editCorners` (SCN-02/10): SVG sopra la foto; 4 angoli + 4 maniglie a metà lato; reticolato 8×10 calcolato con la stessa funzione di `warp`; la lente è un canvas che ingrandisce 3×. Spostando un angolo, le maniglie dei lati conservano lo scarto dal punto medio del lato.
 5. `makePage` → `warp`: omografia `H` (rettangolo d'uscita → angoli, `homography()`, sistema 8×8). Le maniglie dei lati, riportate nello spazio d'uscita con `H⁻¹`, definiscono quattro curve di Bézier quadratiche; una superficie di Coons dà lo spostamento per ogni punto, poi `H` lo porta sulla foto. Lati dritti = pura prospettiva. Campionamento bilineare a blocchi di righe (l'animazione resta fluida).
 6. `enhance`: Documento = luce del foglio stimata per canale (massimo in riquadri 16×16, allargato e sfumato), divisione, livelli; Bianco e nero = idem + soglia morbida; Foto = livelli per canale.

@@ -1,6 +1,6 @@
 # Schiaccia PDF (pdf-tiny-tools)
 
-Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini che contengono) e le foto JPG (entro un lato lungo e un peso massimi). Le due modalità si scambiano dal rullo nel titolo. Con il pulsante 📷 fa anche da scanner: scatto, angoli, raddrizzamento e pulizia della luce, in PDF o JPG secondo la modalità. Nessun server, nessuna build, nessun framework: quello che c'è nel repository è quello che viene pubblicato su GitHub Pages.
+Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini che contengono) e le foto JPG (entro un lato lungo e un peso massimi). Le due modalità si scambiano dal rullo nel titolo. Con il pulsante della fotocamera fa anche da scanner: scatto, angoli e lati proposti, raddrizzamento e pulizia della luce, anteprima, in PDF o JPG secondo la modalità. Nessun server, nessuna build, nessun framework: quello che c'è nel repository è quello che viene pubblicato su GitHub Pages.
 
 ## Mappa
 

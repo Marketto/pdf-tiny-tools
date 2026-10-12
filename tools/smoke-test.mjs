@@ -119,7 +119,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   const shot = async (trigger) => { const [fc] = await Promise.all([page.waitForEvent("filechooser"), trigger()]); await fc.setFiles({ name: "foto.jpg", mimeType: "image/jpeg", buffer: photo }); };
   await shot(() => page.click("#camBtn"));
   await page.waitForSelector("#scanner:not([hidden])");
-  check(await page.locator("#scanSvg .hit").count() === 4, "Scansione: editor con quattro angoli trascinabili");
+  check(await page.locator("#scanSvg .hit").count() === 8 && await page.locator("#scanSvg .mesh").count() === 1, "Scansione: editor con angoli, maniglie dei lati e reticolato");
   await page.click("#scanOk");
   await page.waitForSelector("#modal:not([hidden])", { timeout: 30000 });
   check((await page.innerText("#modalTitle")).includes("1"), "Scansione: dopo la prima pagina chiede se continuare");
@@ -127,7 +127,8 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.waitForSelector("#scanner:not([hidden])");
   await page.click("#scanOk");
   await page.waitForSelector("#modal:not([hidden])", { timeout: 30000 });
-  await page.click("#modalBtns button >> nth=1");
+  check(await page.locator("#modal .pv").count() === 1, "Scansione: anteprima della pagina nella domanda");
+  await page.click("#modalBtns button >> nth=2");
   await page.waitForFunction(() => document.querySelectorAll("#rows .row").length === 1 && document.getElementById("loader").hidden, null, { timeout: 30000 });
   const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#saveAs")]);
   const { readFile: read } = await import("node:fs/promises");

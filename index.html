@@ -156,7 +156,6 @@ h1 .f-jpg{transform:rotateX(-90deg) translateZ(.5em);color:var(--mint)}
 .preview{font-size:15px;color:var(--muted);overflow-wrap:anywhere;margin:10px 0 0!important}
 .fieldErr{color:#b3170c;font-weight:700;margin:8px 0 0!important}
 /* scanner: fotocamera, angoli trascinabili, stili di pulizia */
-.cam span{display:block;font-size:22px;line-height:24px;width:24px;text-align:center}
 .scanner{position:fixed;inset:0;z-index:19;display:flex;flex-direction:column;gap:12px;align-items:center;
   padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));background:#16151f;color:#fffdf3}
 .scanTitle{margin:0;font-family:var(--display);font-size:22px;text-align:center}
@@ -164,7 +163,9 @@ h1 .f-jpg{transform:rotateX(-90deg) translateZ(.5em);color:var(--mint)}
 .scanBox{position:relative;touch-action:none;box-shadow:0 0 0 3px #fffdf3}
 .scanBox canvas{display:block;width:100%;height:100%}
 .scanBox svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.scanBox .quad{fill:rgba(61,220,151,.16);stroke:#3ddc97;stroke-width:3;vector-effect:non-scaling-stroke}
+.scanBox .quad{fill:rgba(61,220,151,.14);stroke:#3ddc97;stroke-width:3;vector-effect:non-scaling-stroke}
+.scanBox .mesh{fill:none;stroke:rgba(255,253,243,.55);stroke-width:1;vector-effect:non-scaling-stroke}
+.scanBox .side{fill:#3ddc97;stroke:#16151f}
 .scanBox .handle{fill:#fffdf3;stroke:#0f9d7a;stroke-width:4;vector-effect:non-scaling-stroke;cursor:grab}
 .scanBox .hit{fill:transparent;cursor:grab}
 .loupe{position:fixed;z-index:20;width:128px;height:128px;border-radius:50%;border:4px solid #fffdf3;box-shadow:0 4px 18px rgba(0,0,0,.5);pointer-events:none;background:#000}
@@ -179,6 +180,11 @@ h1 .f-jpg{transform:rotateX(-90deg) translateZ(.5em);color:var(--mint)}
 .loader .t1{animation-delay:.35s}.loader .t2{animation-delay:.7s}
 @keyframes straighten{0%{transform:rotate(-9deg) skewX(7deg) scale(.94)}40%,85%{transform:none}100%{transform:rotate(-9deg) skewX(7deg) scale(.94)}}
 @keyframes beam{from{transform:translateY(0)}to{transform:translateY(200px)}}
+/* anteprime delle scansioni */
+.pvOne,.pvList{margin-top:4px}
+.pvList{max-height:62vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:2px}
+.pv{display:block;max-width:100%;max-height:52vh;margin:0 auto;border:var(--line);border-radius:6px;background:#fff}
+.pvList .pv{max-height:none}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:15;margin:0;max-width:calc(100% - 32px);background:var(--ink);color:var(--paper);font-weight:700;border-radius:999px;padding:8px 18px;box-shadow:3px 3px 0 var(--grape)}
 .snd svg{width:24px;height:24px;display:block}
 .snd .off,.snd .on{display:none}
@@ -246,7 +252,9 @@ details p{margin:8px 0 0;max-width:65ch}
       <button class="btn sm alt snd" type="button" id="muteBtn" data-mode="0" aria-label="Suoni e musica" data-i18n-aria="sndAll">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="on" d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/><path class="off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
       </button>
-      <button class="btn sm alt snd cam" type="button" id="camBtn" aria-label="Scansiona con la fotocamera" data-i18n-aria="scan"><span aria-hidden="true">📷</span></button>
+      <button class="btn sm alt snd" type="button" id="camBtn" aria-label="Scansiona con la fotocamera" data-i18n-aria="scan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.2h3.6l1.7-2.6h7.4l1.7 2.6H21v10.6H3z" fill="currentColor"/><circle cx="12" cy="13.3" r="3.6" style="fill:var(--paper)"/><circle cx="12" cy="13.3" r="1.4" fill="currentColor" stroke="none"/></svg>
+      </button>
       <input class="vh" type="file" id="camInput" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
       <button class="btn sm alt snd" type="button" id="shareBtn" aria-label="Condividi" data-i18n-aria="share">
         <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M8.6 10.7l6.8-4M8.6 13.3l6.8 4" fill="none"/><circle cx="18" cy="5.5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="18.5" r="2.6"/></svg>
@@ -613,6 +621,11 @@ function render(){
     if(it.status==="over")side.appendChild(el("span","badge",t("replaced")));
     if(it.status==="done"){
       side.appendChild(it.scan?el("span","badge",t("scanBadge")):el("span","badge","−"+nf(Math.round((1-it.out.size/it.size)*100))+"%"));
+      if(it.scan){
+        var pb=el("button","btn sm alt",t("preview"));pb.type="button";
+        pb.addEventListener("click",function(){showPreview(it)});
+        side.appendChild(pb);
+      }
       done++;inB+=it.size;outB+=it.out.size;
     }
     li.appendChild(side);
@@ -1003,13 +1016,14 @@ $("overBtn").addEventListener("click",async function(){
 });
 
 /* ---------- scansione con la fotocamera ----------
-   Scatto (o foto scelta) → angoli trascinabili → raddrizzamento prospettico → pulizia della luce → pagina.
-   In modalità PDF le pagine si raccolgono in un solo PDF; in modalità JPG ogni scatto è un JPG. */
+   Scatto (o foto scelta) → angoli e lati proposti, trascinabili → raddrizzamento (prospettiva + curvatura dei lati)
+   → pulizia della luce → anteprima. In modalità PDF le pagine si raccolgono in un solo PDF; in JPG ogni scatto è un JPG.
+   Requisiti: R-SCN-01…13. */
 var scanPages=[],scanStyle="doc";
 try{scanStyle=localStorage.getItem("scanStyle")||"doc"}catch(e){}
 
 function dist(a,b){return Math.hypot(a[0]-b[0],a[1]-b[1])}
-/* omografia che porta i quattro angoli del rettangolo d'uscita sui quattro angoli scelti nella foto */
+/* omografia che porta i quattro punti dst sui quattro punti src (sistema lineare 8×8) */
 function homography(dst,src){
   var A=[],B=[];
   for(var i=0;i<4;i++){
@@ -1030,14 +1044,41 @@ function homography(dst,src){
   var hh=[];for(c=0;c<8;c++)hh.push(B[c]/A[c][c]);hh.push(1);
   return hh;
 }
-/* raddrizza: per ogni pixel d'uscita cerca il punto corrispondente nella foto e lo campiona (bilineare).
-   Lavora a blocchi di righe e cede il passo, così l'animazione di attesa resta fluida. */
-async function warp(work,q,W,H){
-  var sctx=work.getContext("2d"),sw=work.width,sh=work.height,sd=sctx.getImageData(0,0,sw,sh).data;
-  var out=new ImageData(W,H),od=out.data,m=homography([[0,0],[W,0],[W,H],[0,H]],q),t0=Date.now();
+function applyH(m,x,y){var d=m[6]*x+m[7]*y+1;return [(m[0]*x+m[1]*y+m[2])/d,(m[3]*x+m[4]*y+m[5])/d]}
+var UNIT=[[0,0],[1,0],[1,1],[0,1]];
+/* punti medi «prospettici» dei lati (dove cadrebbe il centro di un lato dritto): alto, destra, basso, sinistra */
+function projMids(q){var m=homography(UNIT,q);return [applyH(m,.5,0),applyH(m,1,.5),applyH(m,.5,1),applyH(m,0,.5)]}
+/* funzione che porta un punto del foglio raddrizzato (0…W, 0…H) sulla foto.
+   I quattro angoli danno la prospettiva; le maniglie dei lati, riportate nel foglio raddrizzato, danno quattro curve
+   di Bézier e una superficie di Coons che piega il reticolato. Lati dritti = sola prospettiva. */
+function pageMap(q,mids,W,H){
+  var Hm=homography([[0,0],[W,0],[W,H],[0,H]],q),Hi=homography(q,[[0,0],[W,0],[W,H],[0,H]]);
+  var mo=mids.map(function(p){return applyH(Hi,p[0],p[1])});
+  var Ct=[2*mo[0][0]-W/2,2*mo[0][1]],Cr=[2*mo[1][0]-W,2*mo[1][1]-H/2],Cb=[2*mo[2][0]-W/2,2*mo[2][1]-H],Cl=[2*mo[3][0],2*mo[3][1]-H/2];
+  var tol=Math.max(W,H)*.002;
+  var curved=Math.abs(Ct[1])>tol||Math.abs(Cb[1]-H)>tol||Math.abs(Cl[0])>tol||Math.abs(Cr[0]-W)>tol||
+             Math.abs(Ct[0]-W/2)>tol||Math.abs(Cb[0]-W/2)>tol||Math.abs(Cl[1]-H/2)>tol||Math.abs(Cr[1]-H/2)>tol;
+  return function(x,y){
+    if(curved){
+      var u=x/W,v=y/H,su=1-u,sv=1-v;
+      var tx=2*su*u*Ct[0]+u*u*W,ty=2*su*u*Ct[1];
+      var bx=2*su*u*Cb[0]+u*u*W,by=su*su*H+2*su*u*Cb[1]+u*u*H;
+      var lx=2*sv*v*Cl[0],ly=2*sv*v*Cl[1]+v*v*H;
+      var rx=sv*sv*W+2*sv*v*Cr[0]+v*v*W,ry=2*sv*v*Cr[1]+v*v*H;
+      x=sv*tx+v*bx+su*lx+u*rx-u*W;
+      y=sv*ty+v*by+su*ly+u*ry-v*H;
+    }
+    var d=Hm[6]*x+Hm[7]*y+1;
+    return [(Hm[0]*x+Hm[1]*y+Hm[2])/d,(Hm[3]*x+Hm[4]*y+Hm[5])/d];
+  };
+}
+/* raddrizza: per ogni pixel d'uscita prende il punto corrispondente della foto (bilineare), a blocchi di righe */
+async function warp(work,q,mids,W,H){
+  var sw=work.width,sh=work.height,sd=work.getContext("2d").getImageData(0,0,sw,sh).data;
+  var out=new ImageData(W,H),od=out.data,map=pageMap(q,mids,W,H),t0=Date.now();
   for(var y=0;y<H;y++){
     for(var x=0;x<W;x++){
-      var den=m[6]*x+m[7]*y+1,u=(m[0]*x+m[1]*y+m[2])/den,v=(m[3]*x+m[4]*y+m[5])/den;
+      var p=map(x,y),u=p[0],v=p[1];
       if(u<0)u=0;if(v<0)v=0;if(u>sw-1.001)u=sw-1.001;if(v>sh-1.001)v=sh-1.001;
       var x0=u|0,y0=v|0,fx=u-x0,fy=v-y0,i00=(y0*sw+x0)*4,i10=i00+4,i01=i00+sw*4,i11=i01+4,o=(y*W+x)*4;
       for(var ch=0;ch<3;ch++){
@@ -1049,6 +1090,155 @@ async function warp(work,q,W,H){
     if(Date.now()-t0>40){await new Promise(function(r){setTimeout(r,0)});t0=Date.now()}
   }
   return out;
+}
+
+/* trova il foglio nella foto (R-SCN-09/10): maschera dei pixel chiari e poco saturi (soglia di Otsu),
+   pulizia, componente più grande; angoli agli estremi; maniglie dei lati sul bordo della maschera.
+   Restituisce {q, mids} in coordinate della foto, oppure null se non è convincente. */
+function detectPage(work){
+  var W=work.width,H=work.height,k=Math.min(1,360/Math.max(W,H)),w=Math.max(16,Math.round(W*k)),h=Math.max(16,Math.round(H*k));
+  var cv=document.createElement("canvas");cv.width=w;cv.height=h;
+  var g=cv.getContext("2d");g.drawImage(work,0,0,w,h);
+  var d=g.getImageData(0,0,w,h).data,n=w*h,sc=new Uint8Array(n),hist=new Uint32Array(256),i;
+  for(i=0;i<n;i++){
+    var r=d[i*4],gg=d[i*4+1],b=d[i*4+2],mx=Math.max(r,gg,b),mn=Math.min(r,gg,b);
+    var v=r*.3+gg*.59+b*.11-(mx-mn)*.8;v=v<0?0:v>255?255:v;sc[i]=v;hist[v|0]++;
+  }
+  var sum=0,sumB=0,wB=0,best=0,thr=128;
+  for(i=0;i<256;i++)sum+=i*hist[i];
+  for(i=0;i<256;i++){
+    wB+=hist[i];if(!wB)continue;var wF=n-wB;if(!wF)break;
+    sumB+=i*hist[i];var mB=sumB/wB,mF=(sum-sumB)/wF,bt=wB*wF*(mB-mF)*(mB-mF);
+    if(bt>best){best=bt;thr=i}
+  }
+  /* la soglia si abbassa verso lo sfondo: le zone del foglio in ombra o più lontane dalla luce restano dentro */
+  var cB=0,sB=0;for(i=0;i<=thr;i++){cB+=hist[i];sB+=i*hist[i]}
+  var mBg=cB?sB/cB:0;thr=mBg+(thr-mBg)*.55;
+  var m=new Uint8Array(n);for(i=0;i<n;i++)m[i]=sc[i]>thr?1:0;
+  function morph(src,keep){
+    var o=new Uint8Array(n);
+    for(var y=0;y<h;y++)for(var x=0;x<w;x++){
+      var all=1,any=0;
+      for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){
+        var X=x+dx,Y=y+dy,val=(X<0||Y<0||X>=w||Y>=h)?0:src[Y*w+X];
+        if(val)any=1;else all=0;
+      }
+      o[y*w+x]=keep?all:any;
+    }
+    return o;
+  }
+  m=morph(morph(m,1),0);m=morph(morph(m,0),1);
+  var lab=new Int32Array(n),stack=new Int32Array(n),bestId=0,bestArea=0,id=0;
+  for(i=0;i<n;i++){
+    if(!m[i]||lab[i])continue;
+    id++;var sp=0,area=0;stack[sp++]=i;lab[i]=id;
+    while(sp){
+      var p=stack[--sp];area++;
+      var px=p%w,py=(p/w)|0;
+      if(px>0&&m[p-1]&&!lab[p-1]){lab[p-1]=id;stack[sp++]=p-1}
+      if(px<w-1&&m[p+1]&&!lab[p+1]){lab[p+1]=id;stack[sp++]=p+1}
+      if(py>0&&m[p-w]&&!lab[p-w]){lab[p-w]=id;stack[sp++]=p-w}
+      if(py<h-1&&m[p+w]&&!lab[p+w]){lab[p+w]=id;stack[sp++]=p+w}
+    }
+    if(area>bestArea){bestArea=area;bestId=id}
+  }
+  if(!bestId||bestArea<n*.12)return null;
+  var edge=0,perim=2*(w+h);
+  for(var x=0;x<w;x++){if(lab[x]===bestId)edge++;if(lab[(h-1)*w+x]===bestId)edge++}
+  for(var y=0;y<h;y++){if(lab[y*w]===bestId)edge++;if(lab[y*w+w-1]===bestId)edge++}
+  if(edge>perim*.45)return null;
+  var D=[[1e9,0,0],[-1e9,0,0],[-1e9,0,0],[1e9,0,0]],A=[[1e9,0,0],[-1e9,0,0],[-1e9,0,0],[1e9,0,0]];
+  for(y=0;y<h;y++)for(x=0;x<w;x++){
+    if(lab[y*w+x]!==bestId)continue;
+    var s=x+y,t=x-y;
+    if(s<D[0][0])D[0]=[s,x,y];if(t>D[1][0])D[1]=[t,x,y];if(s>D[2][0])D[2]=[s,x,y];if(t<D[3][0])D[3]=[t,x,y];
+    if(y<A[0][0])A[0]=[y,x,y];if(x>A[1][0])A[1]=[x,x,y];if(y>A[2][0])A[2]=[y,x,y];if(x<A[3][0])A[3]=[x,x,y];
+  }
+  function quadArea(P){var a=0;for(var j=0;j<4;j++){var p=P[j],q2=P[(j+1)%4];a+=p[0]*q2[1]-q2[0]*p[1]}return Math.abs(a)/2}
+  function order(P){
+    var cx=(P[0][0]+P[1][0]+P[2][0]+P[3][0])/4,cy=(P[0][1]+P[1][1]+P[2][1]+P[3][1])/4;
+    P=P.slice().sort(function(a,b){return Math.atan2(a[1]-cy,a[0]-cx)-Math.atan2(b[1]-cy,b[0]-cx)});
+    var st=0;for(var j=1;j<4;j++)if(P[j][0]+P[j][1]<P[st][0]+P[st][1])st=j;
+    return [P[st],P[(st+1)%4],P[(st+2)%4],P[(st+3)%4]];
+  }
+  var qa=order(D.map(function(e){return [e[1]+.5,e[2]+.5]})),qb=order(A.map(function(e){return [e[1]+.5,e[2]+.5]}));
+  var q=quadArea(qb)>quadArea(qa)*1.08?qb:qa,qa2=quadArea(q);
+  if(qa2<bestArea*.75||qa2>bestArea*1.3)return null;
+  /* bordo esterno del foglio: si riempie dall'esterno tutto ciò che non è foglio; i buchi interni (le scritte) restano fuori */
+  var outside=new Uint8Array(n),sp2=0;
+  function seed(j){if(!outside[j]&&lab[j]!==bestId){outside[j]=1;stack[sp2++]=j}}
+  for(x=0;x<w;x++){seed(x);seed((h-1)*w+x)}
+  for(y=0;y<h;y++){seed(y*w);seed(y*w+w-1)}
+  while(sp2){
+    var pp=stack[--sp2],qx=pp%w,qy=(pp/w)|0;
+    if(qx>0)seed(pp-1);if(qx<w-1)seed(pp+1);if(qy>0)seed(pp-w);if(qy<h-1)seed(pp+w);
+  }
+  var bd=[];
+  for(y=1;y<h-1;y++)for(x=1;x<w-1;x++){
+    var p0=y*w+x;
+    if(!outside[p0]&&(outside[p0-1]||outside[p0+1]||outside[p0-w]||outside[p0+w]))bd.push([x+.5,y+.5]);
+  }
+  /* ogni lato: punti del bordo vicini al lato, lontani dagli angoli; retta per minimi quadrati totali, scartando i punti
+     lontani (un'ombra o un dito su un angolo non spostano la retta). Gli angoli diventano le intersezioni delle rette. */
+  var sides=[[q[0],q[1]],[q[1],q[2]],[q[3],q[2]],[q[0],q[3]]];
+  function near(a,b,lo,hi){
+    var L=dist(a,b),ux=(b[0]-a[0])/L,uy=(b[1]-a[1])/L,out=[];
+    bd.forEach(function(p){
+      var t=((p[0]-a[0])*ux+(p[1]-a[1])*uy)/L,dn=Math.abs((p[0]-a[0])*uy-(p[1]-a[1])*ux);
+      if(t>lo&&t<hi&&dn<L*.09)out.push(p);
+    });
+    return out;
+  }
+  function fitLine(P){
+    for(var round=0;round<3;round++){
+      if(P.length<8)return null;
+      var mx=0,my=0;P.forEach(function(p){mx+=p[0];my+=p[1]});mx/=P.length;my/=P.length;
+      var sxx=0,syy=0,sxy=0;P.forEach(function(p){var dx=p[0]-mx,dy=p[1]-my;sxx+=dx*dx;syy+=dy*dy;sxy+=dx*dy});
+      var ang=.5*Math.atan2(2*sxy,sxx-syy),dx=Math.cos(ang),dy=Math.sin(ang);
+      var res=P.map(function(p){return Math.abs((p[0]-mx)*dy-(p[1]-my)*dx)}),srt=res.slice().sort(function(a,b){return a-b});
+      var lim=Math.max(1.2,2.5*srt[srt.length>>1]),keep=P.filter(function(p,j){return res[j]<=lim});
+      if(round===2||keep.length===P.length)return {x:mx,y:my,dx:dx,dy:dy,n:keep.length,of:P.length};
+      P=keep;
+    }
+  }
+  function cross(l1,l2){
+    var det=l1.dx*l2.dy-l1.dy*l2.dx;if(Math.abs(det)<1e-6)return null;
+    var tt=((l2.x-l1.x)*l2.dy-(l2.y-l1.y)*l2.dx)/det;return [l1.x+l1.dx*tt,l1.y+l1.dy*tt];
+  }
+  var lines=sides.map(function(s){return fitLine(near(s[0],s[1],.12,.88))});
+  var cxm=(q[0][0]+q[1][0]+q[2][0]+q[3][0])/4,cym=(q[0][1]+q[1][1]+q[2][1]+q[3][1])/4;
+  /* un lato è curvo se il centro e le due estremità stanno da parti opposte della retta, con le estremità concordi
+     (un'ombra o un dito su un solo angolo spostano una sola estremità e non contano come curvatura) */
+  var sag=sides.map(function(s,j){
+    var l=lines[j];if(!l)return 0;
+    var nx=-l.dy,ny=l.dx;if(nx*(l.x-cxm)+ny*(l.y-cym)<0){nx=-nx;ny=-ny}
+    function med(lo,hi){var v=near(s[0],s[1],lo,hi).map(function(p){return (p[0]-l.x)*nx+(p[1]-l.y)*ny}).sort(function(x,y){return x-y});return v.length>3?v[v.length>>1]:null}
+    var c=med(.4,.6),e1=med(.1,.24),e2=med(.76,.9),L=dist(s[0],s[1]);
+    if(c===null||e1===null||e2===null)return 0;
+    var ends=(e1+e2)/2,ratio=Math.abs(e1)/Math.max(.01,Math.abs(e2));
+    if(e1*e2>0&&ratio>.4&&ratio<2.5&&Math.abs(e1)>L*.004&&(c-ends)*e1<0&&Math.abs(c-ends)>L*.015)return c-ends;
+    return 0;
+  });
+  /* angoli: intersezione delle rette dove i due lati sono dritti, altrimenti l'estremo trovato prima */
+  var adj=[[0,3],[0,1],[2,1],[2,3]];
+  q=q.map(function(p0,i){
+    var A=lines[adj[i][0]],B=lines[adj[i][1]];
+    if(!A||!B||sag[adj[i][0]]||sag[adj[i][1]]||A.n<10||B.n<10)return p0;
+    var c=cross(A,B);
+    if(!c||c[0]<-w*.05||c[1]<-h*.05||c[0]>w*1.05||c[1]>h*1.05)return p0;
+    return [Math.max(0,Math.min(w,c[0])),Math.max(0,Math.min(h,c[1]))];
+  });
+  var a3=quadArea(q);if(a3<bestArea*.8||a3>bestArea*1.5)return null;
+  /* maniglie dei lati: punto medio prospettico, spostato della curvatura trovata */
+  var pm=projMids(q);
+  var mids=pm.map(function(M,j){
+    if(!sag[j])return M;
+    var s=[[q[0],q[1]],[q[1],q[2]],[q[3],q[2]],[q[0],q[3]]][j],L=dist(s[0],s[1]),nx=-(s[1][1]-s[0][1])/L,ny=(s[1][0]-s[0][0])/L;
+    if(nx*(M[0]-cxm)+ny*(M[1]-cym)<0){nx=-nx;ny=-ny}
+    return [M[0]+nx*sag[j],M[1]+ny*sag[j]];
+  });
+  var inv=1/k;
+  return {q:q.map(function(p){return [p[0]*inv,p[1]*inv]}),mids:mids.map(function(p){return [p[0]*inv,p[1]*inv]})};
 }
 function percentile(hist,total,p){var acc=0,lim=total*p;for(var i=0;i<256;i++){acc+=hist[i];if(acc>=lim)return i}return 255}
 /* pulizia: «doc» stima la luce sul foglio e la toglie (fondo bianco uniforme), poi tende il contrasto;
@@ -1116,11 +1306,11 @@ async function enhance(img,style){
   return img;
 }
 
-/* editor degli angoli: risolve con {work, q, style}, oppure null se annullato */
-function editCorners(work){
+/* editor (R-SCN-02/09/10): 4 angoli + 4 maniglie dei lati + reticolato. Risolve con {work,q,mids,style}, "retake" o null */
+function editCorners(work,start){
   return new Promise(function(res){
     var sc=$("scanner"),box=$("scanBox"),svg=$("scanSvg"),loupe=$("loupe"),lctx=loupe.getContext("2d");
-    var W,H,q,scale=1,drag=-1;
+    var W,H,q,mids,scale=1,drag=-1;
     function fit(){
       var st=$("scanStage"),aw=st.clientWidth,ah=st.clientHeight;
       scale=Math.min(aw/W,ah/H);
@@ -1131,14 +1321,23 @@ function editCorners(work){
       work=c;W=c.width;H=c.height;box.insertBefore(c,svg);
       svg.setAttribute("viewBox","0 0 "+W+" "+H);
     }
+    function grid(){
+      var map=pageMap(q,mids,1,1),path="",j,s;
+      for(j=1;j<8;j++){path+="M";for(s=0;s<=12;s++){var p=map(j/8,s/12);path+=(s?" L":"")+p[0].toFixed(1)+" "+p[1].toFixed(1)}}
+      for(j=1;j<10;j++){path+="M";for(s=0;s<=12;s++){p=map(s/12,j/10);path+=(s?" L":"")+p[0].toFixed(1)+" "+p[1].toFixed(1)}}
+      var edgeP="M";for(s=0;s<=48;s++){var e=s<=12?map(s/12,0):s<=24?map(1,(s-12)/12):s<=36?map(1-(s-24)/12,1):map(0,1-(s-36)/12);edgeP+=(s?" L":"")+e[0].toFixed(1)+" "+e[1].toFixed(1)}
+      return '<path class="mesh" d="'+path+'"/><path class="quad" d="'+edgeP+' Z"/>';
+    }
     function draw(){
-      var r=14/scale,R=30/scale;
-      svg.innerHTML='<polygon class="quad" points="'+q.map(function(p){return p.join(",")}).join(" ")+'"/>'+
-        q.map(function(p,i){return '<circle class="handle" cx="'+p[0]+'" cy="'+p[1]+'" r="'+r+'"/><circle class="hit" data-i="'+i+'" cx="'+p[0]+'" cy="'+p[1]+'" r="'+R+'"/>'}).join("");
+      var r=14/scale,rm=10/scale,R=30/scale,html=grid();
+      q.forEach(function(p,i){html+='<circle class="handle" cx="'+p[0]+'" cy="'+p[1]+'" r="'+r+'"/>'});
+      mids.forEach(function(p){html+='<rect class="handle side" x="'+(p[0]-rm)+'" y="'+(p[1]-rm)+'" width="'+2*rm+'" height="'+2*rm+'" rx="'+rm*.35+'"/>'});
+      q.concat(mids).forEach(function(p,i){html+='<circle class="hit" data-i="'+i+'" cx="'+p[0]+'" cy="'+p[1]+'" r="'+R+'"/>'});
+      svg.innerHTML=html;
     }
     function toWork(e){var b=svg.getBoundingClientRect();return [(e.clientX-b.left)/b.width*W,(e.clientY-b.top)/b.height*H]}
     function showLoupe(e){
-      var p=q[drag],r=64/(scale*3);
+      var p=drag<4?q[drag]:mids[drag-4],r=64/(scale*3);
       loupe.hidden=false;
       loupe.style.left=Math.min(innerWidth-136,Math.max(8,e.clientX-64))+"px";
       loupe.style.top=(e.clientY>170?e.clientY-170:e.clientY+50)+"px";
@@ -1152,7 +1351,14 @@ function editCorners(work){
     }
     function move(e){
       if(drag<0)return;
-      var p=toWork(e);q[drag]=[Math.max(0,Math.min(W,p[0])),Math.max(0,Math.min(H,p[1]))];draw();showLoupe(e);
+      var p=toWork(e);p=[Math.max(0,Math.min(W,p[0])),Math.max(0,Math.min(H,p[1]))];
+      if(drag<4){
+        /* le maniglie dei lati seguono l'angolo, conservando la curvatura data */
+        var pm=projMids(q),off=mids.map(function(m,j){return [m[0]-pm[j][0],m[1]-pm[j][1]]});
+        q[drag]=p;pm=projMids(q);
+        mids=pm.map(function(m,j){return [m[0]+off[j][0],m[1]+off[j][1]]});
+      }else mids[drag-4]=p;
+      draw();showLoupe(e);
     }
     function up(){drag=-1;loupe.hidden=true}
     function pick(s){
@@ -1162,8 +1368,9 @@ function editCorners(work){
     function rotate(){
       var c=document.createElement("canvas");c.width=H;c.height=W;
       var g=c.getContext("2d");g.translate(H,0);g.rotate(Math.PI/2);g.drawImage(work,0,0);
-      var oldH=H;q=q.map(function(p){return [oldH-p[1],p[0]]});
-      q=[q[3],q[0],q[1],q[2]];
+      var oldH=H,rot=function(p){return [oldH-p[1],p[0]]};
+      var nq=q.map(rot),nm=mids.map(rot);
+      q=[nq[3],nq[0],nq[1],nq[2]];mids=[nm[3],nm[0],nm[1],nm[2]];
       setWork(c);fit();
     }
     function close(v){
@@ -1176,7 +1383,8 @@ function editCorners(work){
     }
     function key(e){if(e.key==="Escape"){e.preventDefault();close(null)}}
     setWork(work);
-    var m=.06;q=[[W*m,H*m],[W*(1-m),H*m],[W*(1-m),H*(1-m)],[W*m,H*(1-m)]];
+    if(start){q=start.q;mids=start.mids}
+    else{var mg=.06;q=[[W*mg,H*mg],[W*(1-mg),H*mg],[W*(1-mg),H*(1-mg)],[W*mg,H*(1-mg)]];mids=projMids(q)}
     pick(scanStyle);
     each("#scanStyle button",function(b){b.onclick=function(){pick(b.getAttribute("data-style"))}});
     svg.addEventListener("pointerdown",down);svg.addEventListener("pointermove",move);
@@ -1185,7 +1393,7 @@ function editCorners(work){
     $("scanRotate").onclick=rotate;
     $("scanCancel").onclick=function(){close(null)};
     $("scanRetake").onclick=function(){close("retake");$("camInput").click()};
-    $("scanOk").onclick=function(){close({work:work,q:q.slice(),style:scanStyle})};
+    $("scanOk").onclick=function(){close({work:work,q:q.slice(),mids:mids.slice(),style:scanStyle})};
     sc.hidden=false;$("app").inert=true;
     requestAnimationFrame(fit);
   });
@@ -1194,11 +1402,11 @@ function editCorners(work){
 /* dagli angoli alla pagina finita, in JPG */
 async function makePage(r){
   var q=r.q,W=Math.max(dist(q[0],q[1]),dist(q[3],q[2])),H=Math.max(dist(q[0],q[3]),dist(q[1],q[2]));
-  /* se le proporzioni sono vicine a un A4 (un foglio fotografato di sbieco si accorcia), le riporta a A4 */
+  /* proporzioni vicine ad A4 (un foglio fotografato di sbieco si accorcia): riportate ad A4 */
   var ratio=Math.max(W,H)/Math.min(W,H);
   if(ratio>1.25&&ratio<1.6){if(H>=W)H=W*Math.SQRT2;else W=H*Math.SQRT2}
   var k=Math.min(1,2400/Math.max(W,H));W=Math.max(1,Math.round(W*k));H=Math.max(1,Math.round(H*k));
-  var img=await warp(r.work,q,W,H);
+  var img=await warp(r.work,q,r.mids,W,H);
   img=await enhance(img,r.style);
   var cv=document.createElement("canvas");cv.width=W;cv.height=H;cv.getContext("2d").putImageData(img,0,0);
   var blob=await toJpeg(cv,r.style==="bw"?.8:.85);cv.width=cv.height=0;
@@ -1208,10 +1416,25 @@ function scanFileName(ext){
   var d=new Date(),p=function(x){return (x<10?"0":"")+x};
   return t("scanName")+"-"+d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"-"+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+ext;
 }
-function addScanItem(name,blob,pages){
+function addScanItem(name,blob,pageBlobs){
   if(items.some(function(x){return !x.scan}))reset();
-  items.push({id:nextId++,name:name,rel:name,file:null,size:blob.size,status:"done",pct:100,out:blob,note:"",handle:null,dir:null,scan:true,pages:pages||0});
+  items.push({id:nextId++,name:name,rel:name,file:null,size:blob.size,status:"done",pct:100,out:blob,note:"",handle:null,dir:null,
+              scan:true,pages:/\.pdf$/i.test(name)?pageBlobs.length:0,pageBlobs:pageBlobs});
   render();say(t("scanAdded"));sfx(playDone);
+}
+/* anteprime (R-SCN-12/13): immagini delle pagine dentro una finestra */
+function previewBody(blobs){
+  var box=el("div",blobs.length>1?"pvList":"pvOne");
+  blobs.forEach(function(b,i){
+    var img=document.createElement("img"),u=URL.createObjectURL(b);
+    img.src=u;img.alt=t("pageDone",{n:nf(i+1)});img.className="pv";
+    setTimeout(function(){URL.revokeObjectURL(u)},120000);
+    box.appendChild(img);
+  });
+  return box;
+}
+function showPreview(it){
+  ask({title:it.name,body:previewBody(it.pageBlobs||[it.out]),noCancel:true,buttons:[{label:t("close"),cls:"ok",value:1}]});
 }
 async function finishPdf(){
   if(!scanPages.length)return;
@@ -1225,13 +1448,15 @@ async function finishPdf(){
     }
     var blob=new Blob([await doc.save({useObjectStreams:true})],{type:"application/pdf"});
     await loaderOff();
-    addScanItem(scanFileName(".pdf"),blob,pages.length);
+    addScanItem(scanFileName(".pdf"),blob,pages);
   }catch(e){await loaderOff();say(t("failed"),true)}
 }
-/* in modalità PDF, dopo ogni pagina: un'altra o basta? (la fotocamera si riapre dentro il tocco) */
+/* modalità PDF, dopo ogni pagina: anteprima e domanda (la fotocamera si riapre dentro il tocco) */
 async function morePages(){
-  var a=await ask({title:t("pageDone",{n:nf(scanPages.length)}),text:t("pageMore"),noCancel:true,
-    buttons:[{label:"📷 "+t("addPage"),cls:"ok",value:"more",now:function(){$("camInput").click()}},{label:t("finishScan"),value:"end"}]});
+  var a=await ask({title:t("pageDone",{n:nf(scanPages.length)}),text:t("pageMore"),body:previewBody([scanPages[scanPages.length-1]]),noCancel:true,
+    buttons:[{label:t("addPage"),cls:"ok",value:"more",now:function(){$("camInput").click()}},
+             {label:t("retakePage"),value:"redo",now:function(){scanPages.pop();$("camInput").click()}},
+             {label:t("finishScan"),value:"end"}]});
   if(a==="end")finishPdf();
 }
 async function scanFile(file){
@@ -1241,7 +1466,8 @@ async function scanFile(file){
   var k=Math.min(1,3000/Math.max(bmp.width,bmp.height)),work=document.createElement("canvas");
   work.width=Math.round(bmp.width*k);work.height=Math.round(bmp.height*k);
   work.getContext("2d").drawImage(bmp,0,0,work.width,work.height);if(bmp.close)bmp.close();
-  var r=await editCorners(work);
+  var found=null;try{found=detectPage(work)}catch(e){}
+  var r=await editCorners(work,found);
   if(r==="retake")return;
   if(!r){if(mode==="pdf"&&scanPages.length)morePages();return}
   loaderOn("scan",t("scanning"));
@@ -1249,7 +1475,12 @@ async function scanFile(file){
   try{blob=await makePage(r)}catch(e){blob=null}
   await loaderOff();
   if(!blob){say(t("failed"),true);return}
-  if(mode==="jpg"){addScanItem(scanFileName(".jpg"),blob,0);return}
+  if(mode==="jpg"){
+    var a=await ask({title:t("scanReady"),body:previewBody([blob]),noCancel:true,
+      buttons:[{label:t("keep"),cls:"ok",value:"keep"},{label:t("retake"),value:"redo",now:function(){$("camInput").click()}}]});
+    if(a==="keep")addScanItem(scanFileName(".jpg"),blob,[blob]);
+    return;
+  }
   scanPages.push(blob);morePages();
 }
 $("camBtn").addEventListener("click",function(){if(!busy&&!loading)$("camInput").click()});
