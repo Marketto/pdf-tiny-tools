@@ -798,7 +798,8 @@ async function loaded(n){
   var ig=ignored?" · "+t("ignoredA",{n:nf(ignored)}):"";
   if(mode==="video"||mode==="all")tmpClean();
   if(!n){render();say(t("noPdf")+ig,true);return}
-  if(!srcName)srcName=items[0].rel.indexOf("/")>0?items[0].rel.split("/")[0]:items[0].name;
+  /* nome del lavoro (R-APP-13): la cartella quando il browser la dice; per file scelti uno a uno non la conosce */
+  if(!srcName)srcName=items[0].rel.indexOf("/")>0?items[0].rel.split("/")[0]:n>1?t("jobFiles",{name:items[0].name,n:nf(n-1)}):items[0].name;
   /* in TUTTO prima PDF e foto, poi i video (R-TUT-04); l'ordine dentro ogni gruppo resta quello delle cartelle */
   if(mode==="all")items=items.filter(function(x){return x.kind!=="video"}).concat(items.filter(function(x){return x.kind==="video"}));
   say(t("ready",{n:nf(n)})+ig);
