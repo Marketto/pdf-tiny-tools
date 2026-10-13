@@ -87,8 +87,9 @@ const sum = (page, l) => page.evaluate((l) => window.__perf.filter((x) => x[0] =
   await page.click("#camBtn");
   await page.setInputFiles("#galInput", [1, 2, 3].map((i) => ({ name: `f${i}.jpg`, mimeType: "image/jpeg", buffer: photo })));
   await page.waitForFunction(() => document.querySelectorAll("#capture .thumb").length === 3 && document.getElementById("loader").hidden, null, { timeout: 300000 });
-  out["Scansione: raddrizzamento, 3 pagine (s)"] = (await sum(page, "warp")) / 1000;
-  out["Scansione: pulizia, 3 pagine (s)"] = (await sum(page, "enhance")) / 1000;
+  const gl = await sum(page, "gl");
+  if (gl) out["Scansione: raddrizzamento + pulizia su WebGL, 3 pagine (s)"] = gl / 1000;
+  else out["Scansione: raddrizzamento + pulizia in JavaScript, 3 pagine (s)"] = ((await sum(page, "warp")) + (await sum(page, "enhance"))) / 1000;
   await ctx.close();
 }
 // --- Video: analisi di un video VP9 640×360 di 4 s (codifica di prova con VP9 software)

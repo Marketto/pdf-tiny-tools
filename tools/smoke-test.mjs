@@ -347,6 +347,42 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Cattura: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- scansione sulla scheda grafica (WebGL2) e nel calcolo in JavaScript (?gl=0): stesso risultato (R-APP-09)
+{
+  const outs = [];
+  for (const q of ["?perf=1&gl=1", "?perf=1&gl=0"]) {
+    const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 } });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+    await page.goto(url + q);
+    const photo = Buffer.from(await page.evaluate(async () => {
+      const c = document.createElement("canvas"); c.width = 1200; c.height = 1600; const g = c.getContext("2d");
+      g.fillStyle = "#4b3a2a"; g.fillRect(0, 0, 1200, 1600); g.fillStyle = "#e9e2d2"; g.beginPath(); g.moveTo(180, 200); g.lineTo(1020, 240); g.lineTo(1050, 1420); g.lineTo(140, 1380); g.fill();
+      const gr = g.createLinearGradient(0, 0, 1200, 0); gr.addColorStop(0, "rgba(0,0,0,.25)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 1200, 1600);
+      g.fillStyle = "#222"; g.font = "30px serif"; for (let i = 0; i < 24; i++) g.fillText("Riga di prova " + i, 240, 320 + i * 42);
+      return [...new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/jpeg", .92))).arrayBuffer())];
+    }));
+    await page.click("#camBtn");
+    await page.setInputFiles("#galInput", { name: "f.jpg", mimeType: "image/jpeg", buffer: photo });
+    await page.waitForFunction(() => document.querySelectorAll("#capture .thumb").length === 1 && document.getElementById("loader").hidden, null, { timeout: 120000 });
+    outs.push(await page.evaluate(async () => {
+      const im = document.querySelector("#capture .thumb img"); await new Promise((r) => (im.complete && im.naturalWidth ? r() : (im.onload = r)));
+      const bmp = await createImageBitmap(await (await fetch(im.src)).blob()), c = document.createElement("canvas"); c.width = 200; c.height = Math.round(200 * bmp.height / bmp.width);
+      c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+      return { px: [...c.getContext("2d").getImageData(0, 0, c.width, c.height).data], gl: window.__perf.some((x) => x[0] === "gl"), err: [] };
+    }));
+    outs[outs.length - 1].err = errors;
+    await ctx.close();
+  }
+  let diff = 0; const n = Math.min(outs[0].px.length, outs[1].px.length);
+  for (let i = 0; i < n; i += 4) diff += Math.abs(outs[0].px[i] - outs[1].px[i]);
+  diff /= n / 4;
+  check(outs[0].gl && !outs[1].gl, "Scansione: con ?gl=1 usa la scheda grafica, con ?gl=0 il calcolo in JavaScript");
+  check(outs[0].px.length === outs[1].px.length && diff < 6, `Scansione: stesso risultato sulla scheda grafica e in JavaScript (differenza media ${diff.toFixed(1)} su 255)`);
+  check(!outs[0].err.length && !outs[1].err.length, "Scansione su scheda grafica: nessun errore JavaScript");
+}
 // --- Cattura: orientamento (Tesseract), raddrizzamento del testo, calamita e controllo dei bordi (R-SCN-20…24)
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 500, height: 900 }, acceptDownloads: true });

@@ -8,6 +8,7 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 |---|---|
 | `index.html` | Tutta l'app: markup, CSS e JavaScript in un file solo |
 | `i18n.js` | Tutti i testi, 13 lingue (`window.I18N`) |
+| `engine.js` | Motore delle immagini di PDF e JPG, eseguito nei worker in parallelo (o nella pagina) |
 | `sw.js` | Cache offline (service worker) |
 | `manifest.webmanifest`, `icons/`, `favicon.ico` | Installazione come app |
 | `vendor/` | pdf-lib, JSZip, Mediabunny (video) e Tesseract (orientamento delle scansioni), copiati così come sono: non modificarli |
@@ -60,6 +61,7 @@ node tools/check-i18n.mjs      # controllo traduzioni, nessuna dipendenza
 cd tools && npm install        # una volta sola, per i due comandi sotto
 node tools/smoke-test.mjs      # prova nel browser: lingue, layout, compressione reale
 node tools/build-icons.mjs     # rigenera icone e disegni della mascotte
+node tools/bench.mjs [nome]    # misura i tempi delle operazioni pesanti (prima/dopo)
 python3 -m http.server 8000    # per provare l'app a mano
 ```
 
