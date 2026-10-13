@@ -5,7 +5,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { iconSvg, pageSvg, loaderSvg, scanSvg } from "./mascot.mjs";
+import { iconSvg, pageSvg, loaderSvg, scanSvg, badgeSvg } from "./mascot.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const at = (p) => join(root, p);
@@ -41,6 +41,9 @@ const full = iconSvg(0.98);
 writeFileSync(at("icons/icon-192.png"), await png(full, 192));
 writeFileSync(at("icons/icon-512.png"), await png(full, 512));
 writeFileSync(at("icons/apple-touch-icon.png"), await png(iconSvg(1.3), 180));
+
+// badge delle notifiche: sagoma bianca su trasparente (Android usa solo l'opacità)
+writeFileSync(at("icons/badge-96.png"), await png(badgeSvg(), 96, true));
 
 // favicon.ico con dentro due PNG (32 e 48 px)
 const fav = [32, 48], imgs = [];

@@ -129,3 +129,10 @@ export function scanSvg() {
 export const iconSvg = (scale, rounded = false) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="${rounded ? 104 : 0}" fill="#ffd23f"/>` +
   `<g transform="translate(256 256) scale(${scale}) translate(-256 -277)">${mascot({ icon: true })}</g></svg>`;
+
+// Sagoma per la barra di stato di Android (badge delle notifiche, R-APP-07): bianca su trasparente; il filtro rende
+// trasparenti i tratti scuri (contorni, occhi, bocca), così si riconoscono testa, occhi e pressa.
+export const badgeSvg = () =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="60 50 392 410"><defs><filter id="w" color-interpolation-filters="sRGB">` +
+  `<feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1 2 .4 0 -1.6"/></filter></defs>` +
+  `<g filter="url(#w)">${mascot({ icon: true })}</g></svg>`;

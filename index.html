@@ -441,6 +441,7 @@ details p{margin:8px 0 0;max-width:65ch}
       <label class="lvl"><input type="radio" name="vlvl" id="vlvlMid" value="0.97" checked><span><b data-i18n="mid">Stretta</b><small data-i18n="vMidD">Qualità ≥ 97%</small></span></label>
       <label class="lvl"><input type="radio" name="vlvl" id="vlvlMin" value="0.95"><span><b data-i18n="hard">Martellata</b><small data-i18n="vMinD">Qualità ≥ 95%</small></span></label>
     </div>
+    <label class="check" for="saveNow"><input type="checkbox" id="saveNow"><span data-i18n="saveNow">Salva ogni video appena è pronto</span></label>
     <p class="hint vMemRow"><span id="vMem"></span> <button type="button" class="linkish" id="vForget" hidden data-i18n="vForget">Dimentica le analisi salvate</button></p>
     <p class="hint" id="vidOff" hidden data-i18n="vidOff">Questo browser non sa codificare video in HEVC o H.264: prova con Chrome, Edge o Safari aggiornati.</p>
     </div>
@@ -474,6 +475,7 @@ details p{margin:8px 0 0;max-width:65ch}
       <summary data-i18n="what">Cosa fa di preciso</summary>
       <p data-i18n="whatBody">Riduce e ricomprime in JPEG le immagini dentro il PDF.</p>
     </details>
+    <p class="hint bgRow" id="bgRow" hidden><span id="bgState"></span> <button type="button" class="linkish" id="bgChange" data-i18n="bgChange">Cambia</button></p>
   </section>
   <div id="capture" class="capture"></div>
   <p id="capMsg" class="capMsg" role="status" aria-live="polite"></p>
@@ -569,6 +571,7 @@ function applyLang(){
   each("[data-i18n-html]",function(n){n.innerHTML=t(n.getAttribute("data-i18n-html"))});
   showTitle();
   each("[data-i18n-aria]",function(n){n.setAttribute("aria-label",t(n.getAttribute("data-i18n-aria")))});
+  if(typeof bgShowState==="function"&&$("bgChange"))bgShowState();
   if($("demoMeta")){$("demoMeta").textContent=fmt(19293798)+" → "+fmt(3250586);$("demoPct").textContent="−"+nf(83)+"%"}
   render();capRender();
 }
@@ -870,7 +873,7 @@ function el(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=c
 function render(){
   if(items.length){var d=$("demo");if(d)d.remove()}
   Array.from(rowsEl.querySelectorAll(".row:not(.demo)")).forEach(function(n){n.remove()});
-  var done=0,inB=0,outB=0;
+  var done=0,kept=0,inB=0,outB=0;
   items.forEach(function(it){
     var li=el("li","row");
     var nm=el("div","name",it.rel);
@@ -895,6 +898,11 @@ function render(){
       side.appendChild(el("span","badge","−"+nf(Math.round((1-it.out.size/it.size)*100))+"%"));
       done++;inB+=it.size;outB+=it.out.size;
     }
+    if(it.status==="kept"){
+      side.appendChild(el("span","badge","−"+nf(Math.round((1-it.outSize/it.size)*100))+"%"));
+      side.appendChild(el("span","badge",t("keptBadge")));
+      kept++;inB+=it.size;outB+=it.outSize;
+    }
     li.appendChild(side);
     if((it.status==="work"||it.status==="probe")&&!rowsEl.querySelector(".row.cur")){li.classList.add("cur");if(performance.now()<hotUntil)li.classList.add("hot")}
     if(it.status==="work"||it.status==="probe"){var bar=el("div","bar");bar.style.width=it.pct+"%";li.appendChild(bar)}
@@ -905,7 +913,9 @@ function render(){
   var vReady=items.some(function(x){return x.kind==="video"&&x.status==="wait"&&x.plan});
   goBtn.disabled=busy||(mode==="video"?vidOk===false||!vReady:mode==="all"?!vReady&&!items.some(function(x){return x.kind!=="video"&&!x.scan}):!items.some(function(x){return !x.scan}));
   goBtn.textContent=busy?t("going"):t("go");
-  $("total").hidden=!done||busy;
+  $("total").hidden=!(done||kept)||busy;
+  if(kept)$("saved").textContent=inB>outB?t("total",{size:fmt(inB-outB),pct:nf(Math.round((1-outB/inB)*100))}):"";
+  document.querySelector("#total .saveBtns").hidden=!done;
   if(done){
     $("saved").textContent=inB>outB?t("total",{size:fmt(inB-outB),pct:nf(Math.round((1-outB/inB)*100))}):"";
     /* un file solo: salva con nome o sovrascrivi. Più file: altra cartella (o ZIP), accanto agli originali, sovrascrivi. */
@@ -1091,7 +1101,7 @@ async function squashList(list,jpg){
 }
 function workEnd(){
   busy=false;press.classList.remove("busy");render();music.setMood("calm");bgEnd();
-  var ok=items.filter(function(x){return x.status==="done"}).length;
+  var ok=items.filter(function(x){return x.status==="done"||x.status==="kept"}).length;
   say(ok?t("done",{ok:nf(ok),n:nf(items.length)}):t("none"),!ok);
   bgNotify(ok?t("done",{ok:nf(ok),n:nf(items.length)}):t("none"));
   if(ok)sfx(playDone);
@@ -1321,7 +1331,7 @@ function vThr(){var r=document.querySelector('input[name="vlvl"]:checked');retur
 function planAll(){
   var thr=vThr();
   items.forEach(function(it){
-    if(!it.vp||it.status==="done"||it.status==="over"||it.status==="work"||it.status==="err")return;
+    if(!it.vp||it.status==="done"||it.status==="kept"||it.status==="over"||it.status==="work"||it.status==="err")return;
     if(!vCovered(it.vp,thr)){it.status="probe";it.pct=0;it.plan=null;return}
     var pl=planVideo(it.vp,thr);
     it.plan=pl&&pl.bytes<it.size*.9?pl:null;
@@ -1350,6 +1360,7 @@ async function probeLoop(gen){
     /* già analizzato in passato? (R-VID-19) */
     if(!it.vp){
       var rec=await vRecall(it);if(gen!==probeGen)return;
+      if(rec&&rec.done){it.status="same";it.note="doneBefore";render();continue}
       if(rec&&(rec.hdr||rec.light)){it.status="same";it.note=rec.hdr?"hdr":"noGainV";render();continue}
       if(rec&&rec.v)it.vp=rec.v;
     }
@@ -1427,10 +1438,31 @@ async function videoLoop(){
       if(blob.size<it.size*.9){
         it.out=blob;it.status="done";
         var nn=vidExt(it.name);if(nn!==it.name){it.rel=it.rel.slice(0,it.rel.length-it.name.length)+nn;it.name=nn;it.handle=null}
+        if($("saveNow").checked){render();await keepNow(it)}
       }else{it.status="same";it.note="noGainV";await dropTmp(it)}
     }catch(e){it.status="err";it.note="unreadable";await dropTmp(it)}
     render();
   }
+}
+
+/* salva man mano (R-VID-22): il video appena finito va subito accanto all'originale o, senza cartella scrivibile, nei download */
+var saveNowBox=$("saveNow");
+try{saveNowBox.checked=localStorage.getItem("saveNow")==="1"}catch(e){}
+saveNowBox.addEventListener("change",function(){try{localStorage.setItem("saveNow",saveNowBox.checked?"1":"0")}catch(e){}});
+async function keepNow(it){
+  var blob=it.out,big=!!it.tmpName;
+  try{
+    if(it.dir){
+      var fh=await it.dir.getFileHandle(besideName(it.name),{create:true}),w=await fh.createWritable();
+      try{await w.write(blob);await w.close()}catch(e){try{await w.abort()}catch(x){}throw e}
+      if(big)await dropTmp(it);
+    }else{
+      saveDownload(outName(it),blob);
+      if(big){var keep=it;setTimeout(function(){dropTmp(keep)},90000)}
+    }
+  }catch(e){return}
+  it.outSize=blob.size;it.out=null;it.status="kept";
+  await vRemember(it,{v:it.vp,done:true});
 }
 
 /* ---------- salvataggio ---------- */
@@ -1439,6 +1471,12 @@ function doneItems(){return items.filter(function(x){return x.status==="done"})}
 function plainItems(){return items.filter(function(x){return x.status==="same"||x.status==="err"})}
 function splitName(name){var m=/^(.*?)(\.[^.]+)?$/.exec(name);return [m[1],m[2]||""]}
 function outName(it){if(it.scan)return it.name;var n=splitName(it.name);return n[0]+t("suffix")+n[1]}
+/* nome accanto all'originale con il prefisso o suffisso scelto l'ultima volta in «Salva accanto» (predefinito: suffisso) */
+function besideName(name){
+  var m="suffix",x=t("suffix");
+  try{var k=JSON.parse(localStorage.getItem("beside")||"null");if(k&&k.text){m=k.mode==="prefix"?"prefix":"suffix";x=k.text}}catch(e){}
+  var n=splitName(name);return m==="prefix"?x+name:n[0]+x+n[1];
+}
 
 /* un file verso il sistema: finestra «salva con nome» dove c'è, altrimenti download */
 async function saveBlob(filename,blob){
@@ -2974,7 +3012,8 @@ var bgN=0,bgEl=null,bgLast=0,bgIosSaid=false;
 function bgPref(){try{return localStorage.getItem("bg")}catch(e){return null}}
 function bgOn(){return !isIOS&&bgPref()==="1"}
 function humWav(){
-  var sr=8000,n=sr*2,b=new ArrayBuffer(44+n*2),v=new DataView(b);
+  /* 12 s (720 periodi esatti): Chrome per Android mostra il riquadro del lettore solo per audio di almeno 5 s */
+  var sr=8000,n=sr*12,b=new ArrayBuffer(44+n*2),v=new DataView(b);
   function w(o,x){for(var i=0;i<x.length;i++)v.setUint8(o+i,x.charCodeAt(i))}
   w(0,"RIFF");v.setUint32(4,36+n*2,true);w(8,"WAVEfmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
   v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,"data");v.setUint32(40,n*2,true);
@@ -2989,7 +3028,20 @@ async function bgAsk(){
     {label:t("bgYes"),cls:"ok",value:"1",now:function(){try{if(window.Notification&&Notification.permission==="default")Notification.requestPermission().catch(function(){})}catch(e){}}},
     {label:t("bgNo"),cls:"alt",value:"0"}]});
   try{localStorage.setItem("bg",a==="1"?"1":"0")}catch(e){}
+  bgShowState();
 }
+/* cosa succede fuori dall'app, con «Cambia» per rispondere di nuovo (R-APP-06) */
+function bgShowState(){
+  var p=bgPref(),row=$("bgRow");if(!row)return;
+  row.hidden=isIOS||p===null;if(row.hidden)return;
+  var denied=window.Notification&&Notification.permission==="denied";
+  $("bgState").textContent=t(p!=="1"?"bgStateOff":denied?"bgStateNoNote":"bgStateOn");
+}
+$("bgChange").addEventListener("click",async function(){
+  try{localStorage.removeItem("bg")}catch(e){}
+  await bgAsk();
+  setTimeout(bgShowState,1500);
+});
 function bgBegin(text){
   bgN++;
   if(bgN===1&&bgOn()){
@@ -3007,6 +3059,7 @@ function bgBegin(text){
 }
 function bgEnd(){
   bgN=Math.max(0,bgN-1);if(bgN)return;
+  bgProgClear();
   try{if(bgEl){bgEl.pause();bgEl.currentTime=0}}catch(e){}
   try{if(navigator.mediaSession){navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState="none"}}catch(e){}
 }
@@ -3015,12 +3068,30 @@ function bgUpdate(text,now){
   if(!bgN||!bgOn()||!text||!navigator.mediaSession||!window.MediaMetadata)return;
   var tm=Date.now();if(!now&&tm-bgLast<800)return;bgLast=tm;
   try{navigator.mediaSession.metadata=new MediaMetadata({title:text,artist:t("title"),artwork:[{src:"icons/icon-192.png",sizes:"192x192",type:"image/png"},{src:"icons/icon-512.png",sizes:"512x512",type:"image/png"}]})}catch(e){}
+  bgProgNote(text);
 }
+/* notifica silenziosa di avanzamento con l'app nascosta: porta l'icona nella barra di stato (R-APP-07) */
+var bgNoteAt=0,bgNoteOn=false;
+function bgCanNote(){return bgOn()&&window.Notification&&Notification.permission==="granted"&&navigator.serviceWorker&&navigator.serviceWorker.controller}
+function bgProgNote(text){
+  if(!document.hidden||!bgN||!bgCanNote())return;
+  var tm=Date.now();if(bgNoteOn&&tm-bgNoteAt<10000)return;bgNoteAt=tm;bgNoteOn=true;
+  try{navigator.serviceWorker.ready.then(function(r){r.showNotification(t("title"),{body:text,tag:"schiaccia-prog",silent:true,renotify:false,icon:"icons/icon-192.png",badge:"icons/badge-96.png"})}).catch(function(){})}catch(e){}
+}
+function bgProgClear(){
+  if(!bgNoteOn)return;bgNoteOn=false;bgNoteAt=0;
+  try{navigator.serviceWorker.ready.then(function(r){return r.getNotifications({tag:"schiaccia-prog"})}).then(function(l){l.forEach(function(n){n.close()})}).catch(function(){})}catch(e){}
+}
+document.addEventListener("visibilitychange",function(){
+  if(!document.hidden)bgProgClear();
+  else if(bgN)bgProgNote(bgText()||t("reading"));
+});
 function bgStop(){cancelLoad=true;abortWork=true;if(curConv)try{curConv.cancel()}catch(e){}}
 /* notifica a lavoro finito, solo se l'app è in secondo piano (R-APP-08) */
 function bgNotify(body){
   if(!document.hidden||!bgOn()||!window.Notification||Notification.permission!=="granted")return;
-  var o={body:body,icon:"icons/icon-192.png",badge:"icons/icon-192.png",tag:"schiaccia"};
+  bgProgClear();
+  var o={body:body,icon:"icons/icon-192.png",badge:"icons/badge-96.png",tag:"schiaccia"};
   try{
     if(navigator.serviceWorker&&navigator.serviceWorker.controller)navigator.serviceWorker.ready.then(function(r){r.showNotification(t("title"),o)});
     else new Notification(t("title"),o);

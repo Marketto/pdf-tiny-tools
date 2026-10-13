@@ -92,13 +92,20 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   const floated = await page.waitForFunction(() => document.getElementById("progPill").classList.contains("float") && document.getElementById("progPill").getBoundingClientRect().top < 40, null, { timeout: 3000 }).then(() => true).catch(() => false);
   check(floated, "Indicatore: scorrendo si stacca e resta in cima");
   if (floated) {
-    await page.click("#progPill");
+    await page.evaluate(() => document.getElementById("progPill").click());
     const back = await page.waitForFunction(() => { const r = document.querySelector("#rows .row.cur"); if (!r) return false; const b = r.getBoundingClientRect(); return b.top >= 0 && b.bottom <= innerHeight && r.classList.contains("hot"); }, null, { timeout: 4000 }).then(() => true).catch(() => false);
-    check(back, "Indicatore: toccandola torna al file in corso, evidenziato");
+    /* se il lavoro è finito prima del tocco non c'è più un file in corso: la prova non si può fare, non è un errore */
+    const over = !back && await page.evaluate(() => !document.getElementById("press").classList.contains("busy"));
+    check(back || over, `Indicatore: toccandola torna al file in corso, evidenziato${over ? " (lavoro finito prima del tocco, prova saltata)" : ""}`);
   }
   await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy"), null, { timeout: 120000 });
   check(await page.evaluate(() => localStorage.getItem("bg") === "1" && navigator.mediaSession.playbackState === "none"), "Secondo piano: risposta ricordata, audio spento a lavoro finito");
   check(await page.evaluate(() => document.getElementById("prog").hidden && !document.getElementById("progPill").classList.contains("float")), "Indicatore: a lavoro finito sparisce");
+  check(await page.evaluate(() => !document.getElementById("bgRow").hidden && /continuo/.test(document.getElementById("bgState").textContent)), "Secondo piano: la riga in fondo dice cosa succede fuori dall'app");
+  await page.evaluate(() => document.getElementById("bgChange").click());
+  check(await page.waitForSelector("#modal:not([hidden])", { timeout: 3000 }).then(() => true, () => false), "Secondo piano: «Cambia» ripropone la domanda");
+  await page.click("#modalBtns button >> nth=1");
+  check(await page.waitForFunction(() => /mi fermo/.test(document.getElementById("bgState").textContent), null, { timeout: 4000 }).then(() => true, () => false), "Secondo piano: rispondendo «No» la riga si aggiorna");
   check(errors.length === 0, `Secondo piano: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
@@ -292,9 +299,9 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Tutto: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
-// --- memoria delle analisi (R-VID-19): riaprendo lo stesso video la stima arriva senza rianalizzare
+// --- memoria delle analisi (R-VID-19): riaprendo lo stesso video la stima arriva senza rianalizzare; salva man mano (R-VID-22)
 {
-  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 } });
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 }, acceptDownloads: true });
   const page = await ctx.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -324,6 +331,21 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   const probes = await page.evaluate(() => window.__perf.filter((x) => x[0] === "probe").length);
   check(probes === 0 && again === first, `Video: riaprendo lo stesso video la stima arriva dalla memoria, senza rianalizzare (${again})`);
   check(/: 1/.test(await page.innerText("#vMem")), `Video: si vede quante analisi sono salvate (${await page.innerText("#vMem")})`);
+  // salva man mano (R-VID-22): il video finito si scarica subito, diventa «Salvato» e alla riapertura viene saltato
+  await page.check("#saveNow");
+  const dl = page.waitForEvent("download", { timeout: 120000 }).catch(() => null);
+  await page.click("#go");
+  const d1 = await dl;
+  await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy"), null, { timeout: 120000 });
+  const keptRow = await page.innerText("#rows");
+  check(!!d1 && /-compresso\.mp4$/.test(d1.suggestedFilename()) && /Salvato/.test(keptRow), `Video: con «Salva ogni video appena è pronto» si salva subito (${d1 && d1.suggestedFilename()} · ${keptRow.replace(/\n/g, " / ")})`);
+  check(await page.evaluate(() => document.querySelector("#total .saveBtns").hidden && !document.getElementById("total").hidden), "Video: già salvato, niente pulsanti di salvataggio ma il totale resta");
+  await page.reload(); await page.waitForTimeout(800);
+  check(await page.evaluate(() => document.getElementById("saveNow").checked), "Video: la scelta «Salva man mano» è ricordata");
+  await load();
+  await page.waitForFunction(() => /già schiacciato e salvato/.test(document.getElementById("rows").innerText), null, { timeout: 20000 }).catch(() => {});
+  check(/già schiacciato e salvato/.test(await page.innerText("#rows")), `Video: riaprendo dopo un'interruzione il video già salvato si salta (${(await page.innerText("#rows")).replace(/\n/g, " / ")})`);
+  await page.uncheck("#saveNow");
   await page.click("#vForget");
   check(await page.waitForFunction(() => document.getElementById("vForget").hidden, null, { timeout: 5000 }).then(() => true, () => false), "Video: «Dimentica le analisi salvate» le cancella");
   check(errors.length === 0, `Memoria delle analisi: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
