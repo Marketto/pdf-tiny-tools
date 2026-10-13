@@ -37,6 +37,19 @@ const camera = () =>
 const flash = () =>
   `<g class="m-flash"><path transform="translate(432 104) scale(1.1)" d="M0 -30l9 20l22 -6l-14 18l16 16l-22 -2l-4 22l-9 -20l-20 10l8 -21l-20 -12l23 -2z" fill="#fff36b" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/></g>`;
 
+// Oggetto sotto la pressa, uno per modalità (R-UI-09): foglio (PDF), Polaroid (JPG), ciak (video). La pagina mostra
+// quello giusto con le classi s-pdf / s-jpg / s-vid; nelle icone c'è solo il foglio.
+const UNDER = {
+  pdf: `<rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/>`,
+  jpg: `<rect x="176" y="326" width="160" height="74" rx="8" fill="#fff"/><rect x="190" y="336" width="132" height="54" rx="3" fill="#9ad7ff" stroke="none"/>` +
+    `<circle cx="300" cy="352" r="9" fill="#ffd23f" stroke="none"/><path d="M190 390l36-30l22 18l18-14l56 26z" fill="#3ddc97" stroke="none"/>` +
+    `<rect x="190" y="336" width="132" height="54" rx="3" fill="none" stroke-width="5"/>`,
+  vid: `<rect x="180" y="348" width="152" height="52" rx="8" fill="${INK}"/><path d="M176 330l150 -14l4 22l-150 14z" fill="#fff"/>` +
+    `<path d="M204 328l12 18M236 325l12 18M268 322l12 18M300 319l12 18" fill="none"/>` +
+    `<path d="M200 366h90M200 382h56" stroke="#fff" stroke-width="7" fill="none"/><circle cx="312" cy="386" r="7" fill="#ff5a4e" stroke="none"/>`,
+};
+const under = (icon) => icon ? UNDER.pdf : Object.entries(UNDER).map(([k, v]) => `<g class="s-${k}">${v}</g>`).join("");
+
 // icon: base più stretta e niente scintilla, per stare nel ritaglio tondo di Android.
 // hand: manina che si allunga verso l'archivio (solo nel loader).
 // gear: accessori di Cattura (solo nella testata della pagina).
@@ -47,7 +60,7 @@ export function mascot({ icon = false, hand = false, gear = false } = {}) {
   const paw = hand ? `<circle class="p-hand m-skin" cx="112" cy="250" r="24" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>` : "";
   return `<g stroke="${INK}" stroke-width="10" stroke-linejoin="round" stroke-linecap="round">` +
     `<rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/>` +
-    `<g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g>` +
+    `<g class="p-sheets">${under(icon)}</g>` +
     `<rect x="${bx}" y="392" width="${bw}" height="50" rx="25" fill="#a48cf0"/></g>` +
     `<g class="p-head"><rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>${face(!icon)}${gear ? glasses() : ""}</g>` +
     `${gear ? camera() : ""}${paw}${spark}${gear ? flash() : ""}`;

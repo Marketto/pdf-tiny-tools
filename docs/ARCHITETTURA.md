@@ -31,7 +31,7 @@ Fuori dallo script principale: registrazione del service worker in fondo a `inde
 |---|---|
 | `i18n.js` | `window.I18N`: un oggetto per lingua, stesse chiavi. Regole nella skill `traduzioni`. |
 | `sw.js` | Cache offline: rete prima per pagina e testi, cache prima per `vendor/`, `icons/`, font. |
-| `tools/mascot.mjs` | Unica fonte dei disegni della mascotte; `build-icons.mjs` li inietta in `index.html` tra `<!-- mascot:page|loader|scan -->`. La testata ha anche gli accessori di Cattura (`gear`: occhiali, fotocamera, flash), nascosti fuori da Cattura (UI-07). |
+| `tools/mascot.mjs` | Unica fonte dei disegni della mascotte; `build-icons.mjs` li inietta in `index.html` tra `<!-- mascot:page|loader|scan -->`. L'oggetto sotto la pressa (`p-sheets`) ha tre versioni, `s-pdf`, `s-jpg`, `s-vid`, mostrate dal CSS secondo la modalità (UI-09). La testata ha anche gli accessori di Cattura (`gear`: occhiali, fotocamera, flash), nascosti fuori da Cattura (UI-07). |
 | `.github/workflows/pages.yml` | Controlla le traduzioni, copia in `_site/` i soli file dell'app, scrive versione e nome cache, pubblica. |
 | `.github/workflows/tag.yml` | Crea `v<VERSION>` quando cambia `VERSION`. |
 
