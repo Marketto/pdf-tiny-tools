@@ -116,7 +116,7 @@ Tre ingressi: `showDirectoryPicker` (lettura e scrittura: unico che consente «a
 | Sovrascrivi | `handle` su ogni file | `createWritable` sull'originale |
 
 ## Schermata a tutto schermo
-`loaderOn(mode, titolo)` / `loaderOff()`; rende inerte `#app`, resta almeno 0,9 s. Classi su `#loader`: nessuna = lettura cartella (schedario), `back` = scrittura (fogli che tornano), `scan` = scansione (scena `mascot:scan`, senza «Annulla»). Ogni classe sceglie anche l'umore della musica.
+`loaderOn(mode, titolo)` / `loaderOff()`; gli oggetti che volano (`.fly`) ci sono in tre versioni (`k-pdf`, `k-jpg`, `k-vid`) e il CSS mostra quella della modalità (UI-08); rende inerte `#app`, resta almeno 0,9 s. Classi su `#loader`: nessuna = lettura cartella (schedario), `back` = scrittura (fogli che tornano), `scan` = scansione (scena `mascot:scan`, senza «Annulla»). Ogni classe sceglie anche l'umore della musica.
 
 ## Suoni e musica (AUD)
 Tutto Web Audio, niente file. `music` mette in coda le note ~0,35 s prima; umori in `MOOD` (bpm, filtro, giro, melodia) e stili in `playStep`: `calm`, `mystery` (giro con re maggiore, staccato), `drive`, `joy`, `scan`, `jump` (fanfara, `festa()`). Volume del sottofondo in `VOL`. L'audio parte al primo tocco e si sospende con la pagina nascosta.

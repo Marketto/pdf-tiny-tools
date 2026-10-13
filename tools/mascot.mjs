@@ -58,8 +58,15 @@ export const pageSvg = () =>
 
 // Scena del loader: la mascotte prende i fogli da uno schedario.
 export function loaderSvg() {
-  const sheet = (cls) =>
-    `<g class="fly ${cls}"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="${INK}" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g>`;
+  /* oggetti che volano, uno per modalità (R-UI-08): foglio (PDF), Polaroid (JPG), ciak (video). La pagina mostra quello giusto. */
+  const items = {
+    pdf: `<rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="${INK}" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/>`,
+    jpg: `<rect x="86" y="72" width="48" height="60" rx="5" fill="#fff" stroke="${INK}" stroke-width="5"/><rect x="92" y="78" width="36" height="36" rx="2" fill="#9ad7ff"/>` +
+      `<circle cx="119" cy="87" r="5" fill="#ffd23f"/><path d="M92 114l11-14l8 8l6-6l11 12z" fill="#3ddc97"/><path d="M92 78h36v36h-36z" fill="none" stroke="${INK}" stroke-width="3"/>`,
+    vid: `<g stroke="${INK}" stroke-width="5" stroke-linejoin="round"><rect x="82" y="92" width="56" height="40" rx="5" fill="${INK}"/><path d="M80 78l54-10l4 14l-54 10z" fill="#fff"/></g>` +
+      `<path d="M92 76l8 12M106 73l8 12M120 71l8 12" stroke="${INK}" stroke-width="6"/><path d="M92 104h36M92 114h24" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="128" cy="122" r="4" fill="#ff5a4e"/>`,
+  };
+  const sheet = (cls) => Object.entries(items).map(([k, v]) => `<g class="fly ${cls} k-${k}">${v}</g>`).join("");
   const drawer = (y) =>
     `<rect x="42" y="${y}" width="136" height="52" rx="8" fill="#e3d6ff"/><rect x="92" y="${y + 18}" width="36" height="14" rx="7" fill="#fff"/>`;
   return `<svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">` +

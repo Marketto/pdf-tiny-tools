@@ -130,6 +130,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.click("#modeBtn"); await page.waitForTimeout(300); await page.click("#modeBtn");
   check(await page.evaluate(() => document.body.classList.contains("mode-video") && !document.getElementById("optsVid").hidden && location.hash === "#video"), "Video: il rullo arriva alla terza modalità");
   check(await page.evaluate(() => getComputedStyle(document.getElementById("camBtn")).display === "none"), "Video: pulsante della fotocamera nascosto");
+  check(await page.evaluate(() => [...document.querySelectorAll("#loader .fileScene .fly")].filter((g) => getComputedStyle(g).display !== "none").every((g) => g.classList.contains("k-vid"))), "Video: nella lettura delle cartelle volano ciak");
   check(await page.evaluate(() => document.documentElement.scrollWidth <= 400), "Video: nessuno scorrimento orizzontale a 400 px");
   const made = await page.evaluate(async () => {
     const M = await import("./vendor/mediabunny.min.mjs");
