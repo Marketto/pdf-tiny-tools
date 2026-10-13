@@ -3075,7 +3075,8 @@ var bgNoteAt=0,bgNoteOn=false;
 function bgCanNote(){return bgOn()&&window.Notification&&Notification.permission==="granted"&&navigator.serviceWorker&&navigator.serviceWorker.controller}
 function bgProgNote(text){
   if(!document.hidden||!bgN||!bgCanNote())return;
-  var tm=Date.now();if(bgNoteOn&&tm-bgNoteAt<10000)return;bgNoteAt=tm;bgNoteOn=true;
+  /* una volta sola: su Android ogni nuova notifica, anche silenziosa e con lo stesso tag, può far vibrare */
+  if(bgNoteOn)return;bgNoteAt=Date.now();bgNoteOn=true;
   try{navigator.serviceWorker.ready.then(function(r){r.showNotification(t("title"),{body:text,tag:"schiaccia-prog",silent:true,renotify:false,icon:"icons/icon-192.png",badge:"icons/badge-96.png"})}).catch(function(){})}catch(e){}
 }
 function bgProgClear(){
@@ -3091,7 +3092,7 @@ function bgStop(){cancelLoad=true;abortWork=true;if(curConv)try{curConv.cancel()
 function bgNotify(body){
   if(!document.hidden||!bgOn()||!window.Notification||Notification.permission!=="granted")return;
   bgProgClear();
-  var o={body:body,icon:"icons/icon-192.png",badge:"icons/badge-96.png",tag:"schiaccia"};
+  var o={body:body,icon:"icons/icon-192.png",badge:"icons/badge-96.png",tag:"schiaccia",vibrate:[180,80,180]};
   try{
     if(navigator.serviceWorker&&navigator.serviceWorker.controller)navigator.serviceWorker.ready.then(function(r){r.showNotification(t("title"),o)});
     else new Notification(t("title"),o);
