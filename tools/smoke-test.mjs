@@ -186,6 +186,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   const est = await page.innerText("#rows .meta");
   check(/≈/.test(est) && /qualità 97/.test(est), `Video: analisi con stima e qualità (${est})`);
   await page.click("#vlvlMin");
+  await page.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 240000 });
   const est95 = await page.innerText("#rows .meta");
   check(/qualità 95/.test(est95) && est95 !== est, `Video: cambiando livello la stima si aggiorna (${est95})`);
   await page.click("#vlvlMid");

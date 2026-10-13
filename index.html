@@ -1034,7 +1034,7 @@ goBtn.addEventListener("click",async function(){
 /* ---------- video: analisi a spezzoni (primo passaggio) e ricodifica (secondo), R-VID ----------
    Mediabunny si carica solo qui, la prima volta. Qualità = SSIM sulla luminosità; vedi docs/ARCHITETTURA.md. */
 var MB=null,vidOk=null,probeGen=0,probing=false;
-var LADDER=[.85,.65,.5,.38,.28,.2,.14,.1,.07,.05,.035],QMIN=.95,AAC=160000;
+var AAC=160000;
 /* oltre questa stima il risultato va su disco, nella cartella privata del browser (R-VID-14) */
 var SAFE=navigator.deviceMemory?Math.min(1024,navigator.deviceMemory*128)*1048576:300*1048576,TMP="schiaccia-tmp";
 try{var sv=+new URLSearchParams(location.search).get("safe");if(sv>0)SAFE=sv}catch(e){}
@@ -1124,35 +1124,61 @@ async function probeVideo0(it,onPct,stale){
     var big=/^pcm/.test(at.codec||"")||as.averageBitrate>256000,gain=(as.averageBitrate-AAC)*dur/8;
     if(big&&gain>=it.size*.05)aac=await M.canEncodeAudio("aac",{numberOfChannels:at.numberOfChannels,sampleRate:at.sampleRate,bitrate:AAC}).catch(function(){return false});
   }
-  var size=fitSize(vt.displayWidth,vt.displayHeight),t0=await vt.getFirstTimestamp(),clips=[],CL=1.5;
+  var t0=await vt.getFirstTimestamp(),clips=[],CL=1.5;
   if(dur<6)clips.push([t0,t0+dur]);
   else{var n=dur<20?2:3;for(var i=0;i<n;i++){var st=t0+(i+.5)*dur/n-CL/2;clips.push([st,st+CL])}}
-  var ref=[];
-  for(var c=0;c<clips.length;c++){
-    var ts=[];for(var k=1;k<=3;k++)ts.push(clips[c][0]+(clips[c][1]-clips[c][0])*k/4);
+  var v={dur:dur,codec:codec,abr:as?as.averageBitrate:0,aac:aac,src:vs.averageBitrate,clips:clips,curve:[]};
+  await refineCurve(it,v,vThr(),onPct,stale);
+  return v;
+}
+/* Primo passaggio a bisezione (R-APP-09): si cerca solo la soglia richiesta, finché due punti vicini (rapporto di bitrate
+   ≤ 1,45) la racchiudono. Ogni punto = gli spezzoni codificati in parallelo, qualità SSIM media e bit al secondo reali. */
+var FMIN=.035,FMAX=.85,FSTEP=1.45;
+function sortCurve(v){v.curve.sort(function(a,b){return b.f-a.f})}
+function nextFrac(v,thr){
+  var c=v.curve;if(!c.length)return FMAX;
+  if(c[0].q<thr)return 0;
+  var A=null,B=null;
+  for(var i=0;i<c.length;i++){if(c[i].q>=thr)A=c[i];else{B=c[i];break}}
+  if(!B)return A.f<=FMIN*1.01?0:Math.max(FMIN,A.f/3.2);
+  return A.f/B.f<=FSTEP?0:Math.sqrt(A.f*B.f);
+}
+async function vRefs(it,v,M){
+  if(it.vctx)return it.vctx;
+  var input=vInput(M,it.file),vt=await input.getPrimaryVideoTrack(),size=fitSize(vt.displayWidth,vt.displayHeight),ref=[];
+  for(var c=0;c<v.clips.length;c++){
+    var ts=[];for(var k=1;k<=3;k++)ts.push(v.clips[c][0]+(v.clips[c][1]-v.clips[c][0])*k/4);
     ref.push({ts:ts,y:await frames(M,vt,ts,size)});
   }
-  var curve=[],steps=LADDER.length*clips.length,done=0;
-  for(var li=0;li<LADDER.length;li++){
-    var b=Math.round(vs.averageBitrate*LADDER[li]),qs=0,qn=0,bytes=0,secs=0;
-    for(var c2=0;c2<clips.length;c2++){
-      if(stale())throw new Error("stale");
-      var tgt=new M.BufferTarget(),out=new M.Output({format:new M.Mp4OutputFormat(),target:tgt});
-      var conv=await M.Conversion.init({input:input,output:out,trim:{start:clips[c2][0],end:clips[c2][1]},audio:{discard:true},
-        video:{codec:codec,quality:new M.Quality({bitrate:b,bitrateMode:"variable"}),forceTranscode:true},showWarnings:false});
-      await conv.execute();
-      bytes+=tgt.buffer.byteLength;secs+=clips[c2][1]-clips[c2][0];
-      var t2=await vInput(M,tgt.buffer).getPrimaryVideoTrack(),off=clips[c2][0];
-      var got=await frames(M,t2,ref[c2].ts.map(function(x){return x-off}),size);
-      for(var f=0;f<got.length;f++)if(got[f]&&ref[c2].y[f]){qs+=ssim(ref[c2].y[f],got[f]);qn++}
-      onPct(Math.round(++done/steps*100));
-    }
-    curve.push({b:b,q:qn?qs/qn:0,rate:bytes*8/secs});
-    if(!qn||qs/qn<QMIN)break;
+  return (it.vctx={input:input,size:size,ref:ref});
+}
+async function clipScore(M,cx,codec,clip,ref,b){
+  var tgt=new M.BufferTarget(),out=new M.Output({format:new M.Mp4OutputFormat(),target:tgt});
+  var conv=await M.Conversion.init({input:cx.input,output:out,trim:{start:clip[0],end:clip[1]},audio:{discard:true},
+    video:{codec:codec,quality:new M.Quality({bitrate:b,bitrateMode:"variable"}),forceTranscode:true},showWarnings:false});
+  await conv.execute();
+  var t2=await vInput(M,tgt.buffer).getPrimaryVideoTrack(),off=clip[0];
+  var got=await frames(M,t2,ref.ts.map(function(x){return x-off}),cx.size),qs=0,qn=0;
+  for(var f=0;f<got.length;f++)if(got[f]&&ref.y[f]){qs+=ssim(ref.y[f],got[f]);qn++}
+  return {qs:qs,qn:qn,bytes:tgt.buffer.byteLength,secs:clip[1]-clip[0]};
+}
+async function refineCurve(it,v,thr,onPct,stale){
+  var M=await loadMB(),steps=0,f;
+  while((f=nextFrac(v,thr))){
+    if(stale())throw new Error("stale");
+    var cx=await vRefs(it,v,M),b=Math.round(v.src*f),parts;
+    /* gli spezzoni in parallelo; se il codificatore non regge più sessioni, uno alla volta */
+    try{parts=await Promise.all(v.clips.map(function(cl,j){return clipScore(M,cx,v.codec,cl,cx.ref[j],b)}))}
+    catch(e){parts=[];for(var j=0;j<v.clips.length;j++)parts.push(await clipScore(M,cx,v.codec,v.clips[j],cx.ref[j],b))}
+    var qs=0,qn=0,bytes=0,secs=0;parts.forEach(function(p){qs+=p.qs;qn+=p.qn;bytes+=p.bytes;secs+=p.secs});
+    v.curve.push({f:f,b:b,q:qn?qs/qn:0,rate:bytes*8/secs});sortCurve(v);
+    onPct(Math.min(95,Math.round(++steps/6*100)));
   }
-  return {dur:dur,codec:codec,abr:as?as.averageBitrate:0,aac:aac,curve:curve};
+  it.vctx=null;
+  onPct(100);
 }
 /* bitrate minimo che rispetta la soglia: interpolazione sul logaritmo del bitrate, +5% di margine; peso dai byte reali */
+function vCovered(v,thr){return !nextFrac(v,thr)}
 function planVideo(v,thr){
   var c=v.curve;if(!c.length||c[0].q<thr)return null;
   var i=1;while(i<c.length&&c[i].q>=thr)i++;
@@ -1167,6 +1193,7 @@ function planAll(){
   var thr=vThr();
   items.forEach(function(it){
     if(!it.vp||it.status==="done"||it.status==="over"||it.status==="work"||it.status==="err")return;
+    if(!vCovered(it.vp,thr)){it.status="probe";it.pct=0;it.plan=null;return}
     var pl=planVideo(it.vp,thr);
     it.plan=pl&&pl.bytes<it.size*.9?pl:null;
     it.status=it.plan?"wait":"same";it.note=it.plan?"":"noGainV";
@@ -1174,7 +1201,7 @@ function planAll(){
 }
 async function probeAll(){
   var gen=++probeGen;probing=true;
-  items.forEach(function(it){if(!it.vp){it.status="probe";it.pct=0}});
+  items.forEach(function(it){if(!it.vp&&it.status!=="err"&&it.status!=="same"){it.status="probe";it.pct=0}});
   render();
   await bgAsk();if(gen!==probeGen)return;
   bgBegin();
@@ -1183,8 +1210,13 @@ async function probeAll(){
 }
 async function probeLoop(gen){
   for(var i=0;i<items.length;i++){
-    var it=items[i];if(it.vp||it.status!=="probe")continue;
+    var it=items[i];if(it.status!=="probe")continue;
     var last=-1;
+    if(it.vp){
+      try{await refineCurve(it,it.vp,vThr(),function(p){if(gen===probeGen&&p-last>=5){last=p;it.pct=p;render()}},function(){return gen!==probeGen})}
+      catch(e){if(gen!==probeGen)return}
+      it.status="wait";planAll();render();continue;
+    }
     try{
       var v=await probeVideo(it,function(p){if(gen===probeGen&&p-last>=5){last=p;it.pct=p;render()}},function(){return gen!==probeGen});
       if(gen!==probeGen)return;
@@ -1198,7 +1230,11 @@ async function probeLoop(gen){
   }
   if(gen===probeGen){probing=false;render()}
 }
-document.querySelectorAll('input[name="vlvl"]').forEach(function(r){r.addEventListener("change",function(){if(!busy){planAll();render()}})});
+document.querySelectorAll('input[name="vlvl"]').forEach(function(r){r.addEventListener("change",function(){
+  if(busy)return;planAll();render();
+  /* livello nuovo: si completa la curva solo dove non basta */
+  if(items.some(function(x){return x.status==="probe"}))probeAll();
+})});
 /* WebM e MKV diventano MP4; MP4, M4V e MOV tengono l'estensione (R-VID-10) */
 function vidExt(name){return /\.(webm|mkv)$/i.test(name)?name.replace(/\.[^.]+$/,".mp4"):name}
 async function squeezeVideo(it,onPct){
