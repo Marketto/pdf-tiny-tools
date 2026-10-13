@@ -186,6 +186,36 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Pulizia: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- niente da risparmiare (R-LST-05): con «Carezza» un PDF già leggero non cambia, l'app propone «Stretta» e la rifà
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url); await page.waitForTimeout(800);
+  await page.evaluate(() => document.getElementById("lvlSoft").click());
+  await page.evaluate(async () => {
+    const c = document.createElement("canvas"); c.width = 1600; c.height = 1200; const g = c.getContext("2d");
+    for (let y = 0; y < 1200; y += 40) for (let x = 0; x < 1600; x += 40) { g.fillStyle = `hsl(${(x + y) % 360},60%,${40 + (x * y) % 30}%)`; g.fillRect(x, y, 40, 40); }
+    const jb = await new Promise((r) => c.toBlob(r, "image/jpeg", .55));
+    const doc = await PDFLib.PDFDocument.create(); const img = await doc.embedJpg(new Uint8Array(await jb.arrayBuffer())); doc.addPage([800, 600]).drawImage(img, { x: 0, y: 0, width: 800, height: 600 });
+    const dt = new DataTransfer(); dt.items.add(new File([await doc.save()], "leggero.pdf", { type: "application/pdf" }));
+    const input = document.getElementById("pickFiles"); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.waitForTimeout(300);
+  await page.click("#go");
+  const shown = await page.waitForFunction(() => !document.getElementById("modal").hidden && /non si risparmia/.test(document.getElementById("modalTitle").textContent), null, { timeout: 60000 }).then(() => true, () => false);
+  const txt = shown ? await page.innerText("#modalBody") : "";
+  check(shown && /Stretta/.test(txt), `Suggerimento: niente da risparmiare con «Carezza», propone «Stretta» (${txt || (await page.innerText("#rows")).replace(/\n/g, " / ")})`);
+  if (shown) {
+    await page.click("#modalBtns .ok");
+    await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && document.querySelector('input[name="lvl"]:checked').value === "mid" && document.querySelector("#rows .badge:not(.wait):not(.work)"), null, { timeout: 60000 }).catch(() => {});
+    check(await page.evaluate(() => document.querySelector('input[name="lvl"]:checked').value === "mid"), `Suggerimento: «Passa a» cambia livello e rifà la compressione (${(await page.innerText("#rows")).replace(/\n/g, " / ")})`);
+  }
+  check(errors.length === 0, `Suggerimento: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
 // --- titolo: stessa grandezza nelle tre modalità, versione sulla stessa riga anche a 360 px (R-UI-04/06)
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 360, height: 760 } });

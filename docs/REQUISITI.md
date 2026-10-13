@@ -102,6 +102,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video--tutto) · [C
 - R-LST-02 Telefono e tablet in verticale: questi elementi uno sotto l'altro, in quest'ordine.
 - R-LST-03 Niente pulsanti di salvataggio nelle schede (l'anteprima delle scansioni sì, R-SCN-13).
 - R-LST-04 Riepilogo in cima all'elenco del passo 3, finché non c'è niente di schiacciato: quanti file verranno schiacciati su quanti, il risparmio stimato (somma delle stime dei video analizzati; per PDF e foto la stima arriva solo dopo), quanti sono già al minimo, quanti non leggibili e quanti ancora da analizzare. A fine analisi la pagina scorre fino al riepilogo.
+- R-LST-05 Se a fine analisi (video) o a fine compressione (PDF, foto) nessun file si alleggerisce e la forza non è già la massima, una finestra propone di passare al livello più forte che serve, dicendo quanto si risparmierebbe quando si può stimare (video già analizzati con dati sufficienti); «Passa a …» cambia livello e rifà l'analisi o la compressione, «Lascia così» chiude. In JPG il livello massimo è 1280 px e 200 KB.
 
 ## SAV · Salvataggio
 - R-SAV-01 Un file: «Salva con nome» o «Sovrascrivi l'originale».

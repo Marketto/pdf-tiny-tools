@@ -1169,6 +1169,7 @@ async function squashList(list,jpg){
 function workEnd(){
   busy=false;press.classList.remove("busy");render();music.setMood("calm");bgEnd();
   if(abortWork)return;
+  setTimeout(suggestStill,400);
   var ok=items.filter(function(x){return x.status==="done"||x.status==="kept"}).length;
   say(ok?t("done",{ok:nf(ok),n:nf(items.length)}):t("none"),!ok);
   bgNotify(ok?t("done",{ok:nf(ok),n:nf(items.length)}):t("none"));
@@ -1420,7 +1421,7 @@ async function probeAll(){
   await bgAsk();if(gen!==probeGen)return;
   progStart("probe");bgBegin();
   try{await probeLoop(gen)}finally{bgEnd()}
-  if(gen===probeGen)bgNotify(t("bgProbeDone"));
+  if(gen===probeGen){bgNotify(t("bgProbeDone"));suggestVideo()}
 }
 async function probeLoop(gen){
   for(var i=0;i<items.length;i++){
@@ -3257,6 +3258,51 @@ function progSaving(){
   /* niente stime per i file non ancora analizzati: il numero parte da zero e cresce solo con risparmi misurati (R-UI-10) */
   return sum;
 }
+/* niente da risparmiare: proposta di un livello più forte (R-LST-05) */
+var VLV=[["0.985","soft"],["0.97","mid"],["0.95","hard"]],LVK=["soft","mid","hard"];
+async function suggestVideo(){
+  if(busy||loading||!$("modal").hidden)return;
+  var vids=items.filter(function(x){return x.kind==="video"&&!x.scan});
+  if(!vids.length||vids.some(function(x){return x.status==="wait"&&x.plan||x.status==="probe"||x.status==="done"||x.status==="kept"}))return;
+  var cur=vThr(),best=null;
+  for(var k=0;k<VLV.length;k++){
+    var thr=+VLV[k][0];if(thr>=cur)continue;
+    var sv=0,n=0,known=true;
+    vids.forEach(function(x){if(!x.vp)return;if(!vCovered(x.vp,thr)){known=false;return}var pl=planVideo(x.vp,thr);if(pl&&pl.bytes<x.size*.9){sv+=x.size-pl.bytes;n++}});
+    best={v:VLV[k][0],k:VLV[k][1],sv:sv,n:n,known:known};
+    if(n)break;
+  }
+  if(!best||best.known&&!best.n)return;
+  if(!await suggestAsk(best.k,best.n?best.sv:0,best.n))return;
+  if(mode==="all"){var ar=document.querySelector('input[name="alvl"][value="'+best.k+'"]');if(ar)ar.checked=true}
+  var r=document.querySelector('input[name="vlvl"][value="'+best.v+'"]');if(r){r.checked=true;r.dispatchEvent(new Event("change",{bubbles:true}))}
+}
+async function suggestAsk(k,sv,n){
+  return await ask({title:t("sugTitle"),text:sv?t("sugBodyN",{lvl:t(k),size:fmt(sv),n:nf(n)}):t("sugBody",{lvl:t(k)}),noCancel:true,
+    buttons:[{label:t("sugYes",{lvl:t(k)}),cls:"ok",value:1},{label:t("sugNo"),cls:"alt",value:null}]})===1;
+}
+/* PDF e foto: lo si sa solo dopo la compressione */
+async function suggestStill(){
+  if(busy||loading||!$("modal").hidden||mode==="video")return;
+  var still=items.filter(function(x){return !x.scan&&x.kind!=="video"});
+  if(!still.length||still.some(function(x){return x.status==="done"||x.status==="kept"||x.status==="over"}))return;
+  /* solo se c'erano immagini da stringere: un PDF senza immagini non cambia con la forza */
+  if(!still.some(function(x){return x.status==="same"&&x.note==="noGain"}))return;
+  if(mode==="jpg"){
+    var sd=document.querySelector('input[name="side"]:checked'),wg=document.querySelector('input[name="weight"]:checked');
+    if(sd&&sd.value==="1280"&&wg&&wg.value==="204800")return;
+    if(!await suggestAsk("sugJpg",0,0))return;
+    $("side1280").checked=true;$("weight204800").checked=true;goNow();return;
+  }
+  var lv=document.querySelector('input[name="lvl"]:checked'),i=LVK.indexOf(lv?lv.value:"mid");
+  if(i>=2)return;
+  var nk=LVK[i+1];
+  if(!await suggestAsk(nk,0,0))return;
+  if(mode==="all"){var ar=document.querySelector('input[name="alvl"][value="'+nk+'"]');if(ar)ar.checked=true}
+  var r=document.querySelector('input[name="lvl"][value="'+nk+'"]');if(r)r.checked=true;
+  goNow();
+}
+
 /* riepilogo sopra l'elenco (R-LST-04): cosa verrà schiacciato e quanto si risparmia */
 var sumWasProbing=false;
 function sumShow(){
