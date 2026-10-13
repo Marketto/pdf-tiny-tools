@@ -160,6 +160,32 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Pausa e ripresa: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- pulizia all'avvio (R-APP-15): analisi di un formato vecchio e file privati senza lavoro vengono proposti e cancellati
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url); await page.waitForTimeout(1200);
+  await page.evaluate(async () => {
+    await new Promise((res) => { const r = indexedDB.open("schiaccia", 2); r.onupgradeneeded = () => { const d = r.result; if (!d.objectStoreNames.contains("vprobe")) d.createObjectStore("vprobe"); if (!d.objectStoreNames.contains("jobs")) d.createObjectStore("jobs"); };
+      r.onsuccess = () => { const tx = r.result.transaction(["vprobe", "jobs"], "readwrite"); tx.objectStore("vprobe").put({ ver: "1", v: {} }, "vecchia"); tx.objectStore("vprobe").put({ ver: "2", v: {} }, "buona"); tx.objectStore("jobs").put({ id: "jok", t: Date.now(), mode: "pdf", name: "ok", files: [], set: {} }, "jok"); tx.oncomplete = () => { r.result.close(); res(); }; }; });
+    const root = await navigator.storage.getDirectory();
+    const d = await root.getDirectoryHandle("vecchia-cartella", { create: true }); const w = await (await d.getFileHandle("x.bin", { create: true })).createWritable(); await w.write(new Uint8Array(200000)); await w.close();
+  });
+  await page.reload(); await page.waitForTimeout(1600);
+  const tt = await page.isVisible("#modal") && await page.innerText("#modalTitle");
+  const tb = tt ? await page.innerText("#modalBody") : "";
+  check(tt === "Pulizia" && /analisi video: 1/.test(tb) && /file temporanei: 1/.test(tb) && !/lavori in pausa/.test(tb), `Pulizia: all'avvio propone solo i dati non più utilizzabili (${tb.replace(/\n/g, " ")})`);
+  if (tt === "Pulizia") await page.click("#modalBtns .danger");
+  await page.waitForTimeout(800);
+  check(/lavori in pausa/.test(await page.isVisible("#modal") && await page.innerText("#modalTitle") || ""), "Pulizia: dopo, il lavoro in pausa ancora valido viene proposto come sempre");
+  const left = await page.evaluate(async () => { const root = await navigator.storage.getDirectory(); const n = []; for await (const e of root.values()) n.push(e.name); return n.join(); });
+  check(!/vecchia-cartella/.test(left), "Pulizia: i file privati senza lavoro sono stati cancellati");
+  check(errors.length === 0, `Pulizia: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
 // --- titolo: stessa grandezza nelle tre modalità, versione sulla stessa riga anche a 360 px (R-UI-04/06)
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 360, height: 760 } });
