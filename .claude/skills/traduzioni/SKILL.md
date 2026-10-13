@@ -13,12 +13,13 @@ Tutti i testi stanno in `i18n.js`, un oggetto per lingua con le stesse chiavi. L
 2. Nel markup usa `data-i18n="chiave"` (testo), `data-i18n-html="chiave"` (se contiene tag) o `data-i18n-aria="chiave"` (etichetta per lettori di schermo). Nel codice usa `t("chiave", {n: …})`.
 3. Esegui `node tools/check-i18n.mjs` finché non segnala zero problemi.
 
-## PDF e JPG
+## PDF, JPG e video
 
-L'app ha due modalità, PDF e JPG, ma un solo testo per ogni chiave. In modalità JPG la funzione `t()` sostituisce da sola «PDF» con «JPG» (e «pdf» con «jpg»). Quindi:
+L'app ha tre modalità, PDF, JPG e video, ma un solo testo per ogni chiave. In modalità JPG la funzione `t()` sostituisce da sola «PDF» con «JPG» (e «pdf» con «jpg»). Quindi:
 
 - scrivi sempre la sigla **«PDF» tale e quale**, staccata dalle altre parole, e costruisci la frase in modo che regga anche con «JPG» al suo posto;
 - quando la frase non regge (parla di immagini *dentro* un documento, di password, di pagine), aggiungi una seconda chiave con lo stesso nome più una `J` finale (`sub` → `subJ`): in modalità JPG vince quella. Oggi esistono `subJ`, `descJ`, `whatBodyJ` e `s2J`;
+- in modalità video «PDF» diventa la parola della chiave `vWord` della lingua (con la maiuscola se apre la frase); le varianti con la `V` finale vincono come quelle con la `J`. Oggi esistono `subV`, `descV`, `whatBodyV` e `s2V`;
 - la chiave `h1` contiene `<span>PDF</span>`: quello span diventa il rullo del titolo, non toglierlo.
 
 ## Come tradurre

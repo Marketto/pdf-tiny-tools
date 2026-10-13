@@ -13,7 +13,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 ## MOD · Modalità PDF / JPG / VIDEO
 - R-MOD-01 Stessa app e stessa esperienza per PDF, foto JPG e video.
 - R-MOD-02 Si cambia toccando la parola «PDF» del titolo: un rullo con due freccette che gira in ordine PDF → JPG → VIDEO → PDF; la prima volta accenna da solo mezzo giro.
-- R-MOD-03 Cambiando modalità cambiano colore della mascotte (rosa PDF, menta JPG, terzo colore per VIDEO, R-VID-12), colori dell'interfaccia (R-UI-05), testi e opzioni del passo 2; l'elenco si svuota.
+- R-MOD-03 Cambiando modalità cambiano colore della mascotte (rosa PDF, menta JPG, lavanda VIDEO, R-VID-12), colori dell'interfaccia (R-UI-05), testi e opzioni del passo 2; l'elenco si svuota.
 - R-MOD-04 Modalità ricordata; `#jpg` o `#video` nel link aprono quella modalità e la condivisione lo include.
 - R-MOD-05 Il rullo è un pulsante vero: tastiera e lettori di schermo.
 
@@ -47,7 +47,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-VID-09 Video HDR (tipici dell'iPhone): lasciati com'è con la nota «HDR, lasciato com'è», perché il browser li renderebbe spenti.
 - R-VID-10 Estensione: `.mp4`, `.m4v` e `.mov` restano uguali (compatibili con HEVC e H.264); WebM e MKV diventano `.mp4`. Nome invariato salvo l'estensione.
 - R-VID-11 In modalità video il pulsante della fotocamera è nascosto.
-- R-VID-12 Terzo colore per mascotte e interfaccia in modalità video, scelto dal proprietario tra proposte (R-UI-05).
+- R-VID-12 Terzo colore per mascotte e interfaccia in modalità video: lavanda (pelle della mascotte lilla chiaro, accento viola), scelto dal proprietario tra tre proposte (R-UI-05).
 - R-VID-13 Durante la codifica lo schermo resta acceso dove il browser lo permette; ogni scheda mostra l'avanzamento.
 
 ## SCN · Scansione

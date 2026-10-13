@@ -10,6 +10,8 @@ Come funziona oggi: `squeezePdf` apre il PDF con pdf-lib, elenca gli oggetti ind
 
 Dalla 2.0.0 c'è anche il motore per le foto, `squeezeJpg`, nella stessa sezione: decodifica il JPG, lo riduce al lato lungo scelto, cerca per bisezione la qualità più alta che rientra nel peso massimo (riducendo ancora le dimensioni se non basta) e ricopia nel file nuovo il blocco EXIF dell'originale con l'orientamento riportato a «normale». Le richieste sulle foto toccano a te come quelle sui PDF.
 
+Dalla 2.4.0 c'è anche il motore video, nella sezione `video`: analisi a spezzoni con SSIM (`probeVideo`, `planVideo`) e ricodifica con Mediabunny (`squeezeVideo`). Il funzionamento è descritto in `docs/ARCHITETTURA.md` («Video»); i requisiti sono R-VID. Per provarlo nel Chromium di sviluppo, che non ha H.264/HEVC, apri l'app con `?vcodec=vp9`.
+
 Principi da non violare:
 - **Mai peggiorare un file.** Nel dubbio l'immagine si lascia com'è: un PDF non alleggerito è accettabile, uno rovinato no.
 - **Il testo resta testo.** Non rasterizzare le pagine.

@@ -8,11 +8,11 @@ Tutto il JavaScript è in `index.html`, dentro un'unica funzione, diviso da comm
 
 | Sezione (marcatore) | Funzioni principali | Requisiti |
 |---|---|---|
-| `lingue` | `pickLang`, `t`, `applyLang`, `showTitle`, `setMode`, `isPdf` | I18N, MOD |
+| `lingue` | `pickLang`, `t`, `applyLang`, `showTitle`, `turnDrum`, `setMode`, `isPdf` | I18N, MOD |
 | `carico` | `addFile`, `walkHandle`, `walkEntry`, `loaderOn`, `loaderOff` | CAR |
 | `vista` | `render` | LST, SAV-08 |
 | `motore` | `squeezePdf`, `squeezeImage`, `squeezeJpg`, `exifSegment`, `jpgOpts` | CMP, JPG |
-| `video` | `loadMB`, `videoCodec`, `probeVideo`, `ssim`, `planVideo`, `squeezeVideo` | VID |
+| `video` | `loadMB`, `checkVideo`, `probeAll`, `probeVideo`, `ssim`, `planVideo`, `planAll`, `goVideo`, `squeezeVideo` | VID |
 | `salvataggio` | `saveBlob`, `ask`, `writeJobs`, `finish`, gestori di `saveAs`/`saveElse`/`saveBeside`/`overBtn` | SAV |
 | `scansione con la fotocamera` | `scanFile`, `detectPage`, `editCorners`, `makePage`, `warp`, `enhance`, `morePages`, `finishPdf`, `showPreview` | SCN |
 | `avvio` | menu lingue, modalità iniziale | I18N, MOD-04 |
@@ -34,13 +34,13 @@ Fuori dallo script principale: registrazione del service worker in fondo a `inde
 
 ## Stato globale
 
-`items` (elenco: `{name, rel, file, size, status, out, note, handle, dir, scan, pages, pageBlobs}`), `mode` (`"pdf"`/`"jpg"`), `rootDir` (cartella scelta), `busy` (compressione in corso), `loading` (schermata a tutto schermo aperta), `scanPages` (pagine del PDF in corso di scansione).
+`items` (elenco: `{name, rel, file, size, status, out, note, handle, dir, scan, pages, pageBlobs, vp, plan}`), `mode` (`"pdf"`/`"jpg"`/`"video"`), `rootDir` (cartella scelta), `busy` (compressione in corso), `loading` (schermata a tutto schermo aperta), `scanPages` (pagine del PDF in corso di scansione).
 
-`status`: `wait` → `work` → `done` | `same` (non alleggerito) | `err` | `over` (sovrascritto).
+`status`: (`probe`, solo video) → `wait` → `work` → `done` | `same` (non alleggerito) | `err` | `over` (sovrascritto).
 
 ## Testi e modalità
-- `t(k)`: in modalità JPG usa la chiave `kJ` se esiste, altrimenti sostituisce «PDF» con «JPG».
-- Il rullo è un `<button id="modeBtn">` costruito da `showTitle()` al posto di `<span>PDF</span>` della chiave `h1`; due facce 3D, ruotate dalla classe `mode-jpg` su `<body>`, che cambia anche il colore `.m-skin` della mascotte e i tre toni d'accento (UI-05): `--acc-l` (chiaro: badge), `--acc` (pelle: pulsanti, etichette, conferme), `--acc-s` (intenso: «Schiaccia!», livello scelto, barra, contorni di fuoco). Definiti su `:root` per il PDF e ridefiniti in `.mode-jpg`; `--tomato` solo per errori e sovrascrittura.
+- `MODES=["pdf","jpg","video"]`. `t(k)`: in modalità JPG usa la chiave `kJ` se esiste, altrimenti sostituisce «PDF» con «JPG»; in modalità video `kV`, altrimenti «PDF» → `vWord` (maiuscola se apre la frase).
+- Il rullo è un `<button id="modeBtn">` costruito da `showTitle()` al posto di `<span>PDF</span>` della chiave `h1`: quattro facce 3D (PDF, JPG, VIDEO e di nuovo PDF), girate in avanti da `turnDrum()` con un angolo in linea (`rollAngle`); dalla quarta faccia torna a 0 senza animazione. La larghezza del rullo segue la faccia visibile. In modalità video il titolo è un po' più piccolo per stare su una riga. Le classi `mode-jpg` e `mode-video` su `<body>` che cambia anche il colore `.m-skin` della mascotte e i tre toni d'accento (UI-05): `--acc-l` (chiaro: badge), `--acc` (pelle: pulsanti, etichette, conferme), `--acc-s` (intenso: «Schiaccia!», livello scelto, barra, contorni di fuoco). Definiti su `:root` per il PDF e ridefiniti in `.mode-jpg` e `.mode-video` (lavanda, dove `#camBtn` è nascosto); `--tomato` solo per errori e sovrascrittura.
 
 ## PDF (CMP)
 `squeezePdf` apre con pdf-lib, prende i flussi `/Subtype /Image` (escluse le `SMask`), `squeezeImage` decodifica (JPEG col browser, Flate con `DecompressionStream` + filtro PNG), riduce, ricodifica JPEG, sostituisce solo se < 90%. Intoccati: CMYK, Indexed, `Decode`, `Mask`, JBIG2, JPX, CCITT. Forze in `PRESETS`: qualità 0,82/0,68/0,50, lato 2400/1700/1200.
@@ -49,11 +49,16 @@ Fuori dallo script principale: registrazione del service worker in fondo a `inde
 `squeezeJpg`: decodifica raddrizzando l'orientamento, ridisegna entro il lato scelto; con peso massimo bisezione della qualità tra 0,30 e 0,92, poi riduzione delle dimensioni fino a 5 giri; senza peso qualità 0,80. EXIF ricopiato in testa con orientamento riportato a 1 (`exifSegment`); profilo colore non ricopiato. Su iPhone massimo 16 Mpx.
 
 ## Video (VID)
-Libreria `vendor/mediabunny.min.mjs` (Mediabunny, MPL-2.0, ESM), caricata con `import()` solo alla prima volta in modalità video. Sezione `video` in `index.html`.
-1. `videoCodec()`: primo codec codificabile tra `hevc` e `avc` (`getFirstEncodableVideoCodec`), alla risoluzione del video. Per le prove automatiche `?vcodec=vp9` forza VP9 (il Chromium di prova non ha H.264/HEVC).
-2. `probeVideo(it)` (analisi, VID-04), lanciata dopo la lettura su un video alla volta: `Input` su `BlobSource`; HDR → `same` con nota `hdr`; bitrate d'origine da `computePacketStats`. Spezzoni da 1 s distribuiti sulla durata (tutto il video se < 6 s). Per una scala di bitrate decrescente (frazioni del bitrate d'origine) `Conversion` con `trim`, audio scartato, `forceTranscode`, uscita in `BufferTarget`; per ogni gradino SSIM medio (`ssim()`, finestre 8×8 sulla luminosità, lato lungo al massimo 1920 px) tra fotogrammi originali e ricodificati (`CanvasSink.canvasesAtTimestamps`) e byte al secondo reali. Si scende finché la qualità resta ≥ 0,95. Il risultato (`it.curve`) basta per tutti e tre i livelli.
-3. `planVideo(it,soglia)`: interpolazione sulla curva (scala logaritmica del bitrate) del bitrate minimo che rispetta la soglia, +5% di margine; stima del peso = video stimato + audio (copiato o AAC). Sotto il 10% di risparmio → `same`.
-4. `squeezeVideo(it)`: `Conversion` completa con `Quality({bitrate, bitrateMode:"variable"})`, audio copiato o AAC secondo VID-08, uscita MP4 o MOV (`outName`, VID-10) in `BufferTarget`; avanzamento da `onProgress`; Wake Lock dello schermo durante il lavoro.
+Libreria `vendor/mediabunny.min.mjs` (Mediabunny 1.59.1, MPL-2.0, licenza in `vendor/mediabunny-LICENSE.txt`), caricata con `import()` da `loadMB()` solo in modalità video. Sezione `video` in `index.html`.
+1. `checkVideo()` all'ingresso nella modalità: `videoCodec()` sceglie il primo codec codificabile tra `hevc` e `avc` (`getFirstEncodableVideoCodec`). Se non ce n'è nessuno, `vidOk=false`: riga `#vidOff` e pulsanti di scelta spenti (VID-02). Per le prove automatiche `?vcodec=vp9` forza VP9, perché il Chromium di prova non ha H.264/HEVC.
+2. Dopo la lettura `loaded()` lancia `probeAll()`: un video alla volta, stato `probe` con avanzamento nella scheda; `probeGen` interrompe l'analisi se l'elenco cambia. «Schiaccia!» resta spento finché l'analisi non finisce (`probing`).
+3. `probeVideo(it)` (VID-04): `Input` su `BlobSource`; HDR (`hasHighDynamicRange`) → `same` con nota `hdr`; bitrate d'origine da `computePacketStats`. Spezzoni da 1,5 s (tutto il video se < 6 s, 2 se < 20 s, altrimenti 3); per ogni spezzone tre fotogrammi di riferimento presi con `CanvasSink`, al massimo a 1920 px di lato lungo (`fitSize`). Per la scala `LADDER` (frazioni del bitrate d'origine, da 0,85 a 0,035) `Conversion` con `trim`, audio scartato, `forceTranscode`, uscita in `BufferTarget`; SSIM medio (`ssim()`, finestre 8×8 sulla luminosità) e bit al secondo reali. Si scende finché la qualità resta ≥ 0,95. Risultato in `it.vp` (`curve`, `codec`, `dur`, `abr`, `aac`).
+4. Audio (VID-08): `aac` vale true se l'audio è PCM o oltre 256 kbps, il passaggio ad AAC 160 kbps fa risparmiare almeno il 5% del file e `canEncodeAudio("aac")` risponde sì; altrimenti si copia.
+5. `planVideo(vp,soglia)` (VID-06): bitrate minimo che rispetta la soglia, interpolato sul logaritmo del bitrate tra i due gradini vicini, +5%; il peso stimato usa i bit al secondo reali (il codificatore resta sotto il bitrate chiesto). `planAll()` lo applica al livello scelto (`vThr()`); sotto il 10% di risparmio → `same` con nota `noGainV` (VID-07). Cambiare livello richiama solo `planAll()`.
+6. `goVideo()` → `squeezeVideo(it)`: `Conversion` completa con `Quality({bitrate, bitrateMode:"variable"})`, audio copiato o AAC, uscita `MovOutputFormat` per `.mov` e `Mp4OutputFormat` (fastStart in memoria) per il resto, in `BufferTarget`; Wake Lock dello schermo (`wakeLock()`, VID-13). Se il risultato non scende sotto il 90% → `same`. WebM e MKV: `vidExt()` cambia `name` e `rel` in `.mp4` e toglie `handle`, così la sovrascrittura non è offerta (VID-10).
+7. Scheda: peso → ≈ stima · codec · qualità, badge «≈ −NN%» in attesa (`render`).
+
+Misure sul video di prova (720p, 6 s): stima e risultato entro il 2%; SSIM su tutto il video misurato con ffmpeg 0,990 / 0,979 / 0,960 per le soglie 0,985 / 0,97 / 0,95.
 
 ## Scansione (SCN)
 1. 📷 apre `<input id="camInput" capture="environment">`: fotocamera di sistema, nessun permesso.
@@ -92,4 +97,4 @@ Tutto Web Audio, niente file. `music` mette in coda le note ~0,35 s prima; umori
 `sw.js`: installazione con `cache: "reload"`; pagina e testi rete prima (cache se manca o > 4 s); `vendor/`, `icons/`, font cache prima. Il nome cache lo cambia `pages.yml`. Al cambio di service worker la pagina si ricarica se non c'è lavoro in corso.
 
 ## Limiti noti
-PDF: CMYK, JBIG2, JPEG 2000, CCITT non ricompressi; PDF con password saltati; tutto in RAM. Foto: colori ad ampia gamma un po' spenti; HEIC non leggibile. Scansione: rilevamento del foglio debole su sfondo chiaro; pieghe interne non corrette; ombre nette attenuate ma con alone. Cartelle: non scrivibili su iPhone, Firefox, Safari.
+PDF: CMYK, JBIG2, JPEG 2000, CCITT non ricompressi; PDF con password saltati; tutto in RAM. Foto: colori ad ampia gamma un po' spenti; HEIC non leggibile. Video: HDR non ricodificati; uscita tenuta tutta in memoria (video molto lunghi possono esaurire la RAM del telefono); con l'app in secondo piano la codifica può fermarsi; date e luogo nei metadati conservati solo se Mediabunny li riconosce. Scansione: rilevamento del foglio debole su sfondo chiaro; pieghe interne non corrette; ombre nette attenuate ma con alone. Cartelle: non scrivibili su iPhone, Firefox, Safari.

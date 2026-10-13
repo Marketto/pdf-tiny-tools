@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Prova di fumo nel browser: avvia un server locale, apre l'app in più lingue,
-// crea un PDF di prova con un'immagine, lo comprime e controlla che pesi meno.
+// crea un PDF di prova con un'immagine, lo comprime e controlla che pesi meno; poi JPG, video e scansione.
 // Richiede Playwright (npm install in tools/). Uso: node tools/smoke-test.mjs
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, extname, normalize } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const types = { ".html": "text/html", ".js": "text/javascript", ".json": "application/json", ".webmanifest": "application/manifest+json", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon" };
+const types = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".json": "application/json", ".webmanifest": "application/manifest+json", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon" };
 const server = createServer(async (req, res) => {
   const path = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)).replace(/^([/\\])+/, "") || "index.html";
   try {
@@ -98,6 +98,62 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(out[2] === 0xFF && out[3] === 0xE1 && out.toString("latin1", 6, 10) === "Exif" && out[30] === 1, "JPG: dati dello scatto conservati, orientamento riportato a normale");
   check(await page.locator("#rows .row").count() === 0, "JPG: elenco svuotato dopo il salvataggio");
   check(errors.length === 0, `JPG: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
+// --- modalità video: rullo a tre facce, analisi, stima, codifica. Il Chromium di prova non ha H.264/HEVC:
+// `?vcodec=vp9` forza VP9 (vedi docs/ARCHITETTURA.md). Il video di prova nasce nella pagina con Mediabunny.
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 }, acceptDownloads: true });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(() => { for (const k of ["showOpenFilePicker", "showSaveFilePicker", "showDirectoryPicker"]) Object.defineProperty(window, k, { value: undefined }); });
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url + "?vcodec=vp9");
+  await page.click("#modeBtn"); await page.waitForTimeout(300); await page.click("#modeBtn");
+  check(await page.evaluate(() => document.body.classList.contains("mode-video") && !document.getElementById("optsVid").hidden && location.hash === "#video"), "Video: il rullo arriva alla terza modalità");
+  check(await page.evaluate(() => getComputedStyle(document.getElementById("camBtn")).display === "none"), "Video: pulsante della fotocamera nascosto");
+  check(await page.evaluate(() => document.documentElement.scrollWidth <= 400), "Video: nessuno scorrimento orizzontale a 400 px");
+  const made = await page.evaluate(async () => {
+    const M = await import("./vendor/mediabunny.min.mjs");
+    const c = document.createElement("canvas"); c.width = 640; c.height = 360;
+    const g = c.getContext("2d"), tgt = new M.BufferTarget(), out = new M.Output({ format: new M.Mp4OutputFormat(), target: tgt });
+    const src = new M.CanvasSource(c, { codec: "vp9", bitrate: 6e6 }); out.addVideoTrack(src, { frameRate: 30 });
+    await out.start();
+    for (let i = 0; i < 120; i++) {
+      g.fillStyle = `hsl(${i * 3},70%,55%)`; g.fillRect(0, 0, 640, 360);
+      for (let k = 0; k < 400; k++) { g.fillStyle = `rgba(0,0,0,${Math.random() * .4})`; g.fillRect(Math.random() * 640, Math.random() * 360, 6, 6); }
+      g.fillStyle = "#fff"; g.font = "48px Arial"; g.fillText("Fotogramma " + i, 40 + i, 180);
+      await src.add(i / 30, 1 / 30);
+    }
+    await out.finalize();
+    const dt = new DataTransfer(); dt.items.add(new File([tgt.buffer], "clip.mov", { type: "video/quicktime" }));
+    const input = document.getElementById("pickFiles"); input.files = dt.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    return tgt.buffer.byteLength;
+  });
+  await page.waitForFunction(() => !document.getElementById("go").disabled || document.querySelector("#rows .badge.same, #rows .badge.err"), null, { timeout: 240000 });
+  const est = await page.innerText("#rows .meta");
+  check(/≈/.test(est) && /qualità 97/.test(est), `Video: analisi con stima e qualità (${est})`);
+  await page.click("#vlvlMin");
+  const est95 = await page.innerText("#rows .meta");
+  check(/qualità 95/.test(est95) && est95 !== est, `Video: cambiando livello la stima si aggiorna (${est95})`);
+  await page.click("#vlvlMid");
+  await page.click("#go");
+  await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && document.querySelector("#rows .badge:not(.wait):not(.work)"), null, { timeout: 240000 });
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#saveAs")]);
+  const { readFile: read } = await import("node:fs/promises");
+  const vid = await read(await dl.path());
+  const info = await page.evaluate(async (b) => {
+    const M = await import("./vendor/mediabunny.min.mjs");
+    const inp = new M.Input({ source: new M.BufferSource(new Uint8Array(b).buffer), formats: M.ALL_FORMATS });
+    const t = await inp.getPrimaryVideoTrack(), st = await t.computePacketStats();
+    return { w: t.displayWidth, h: t.displayHeight, n: st.packetCount, codec: t.codec, fmt: (await inp.getFormat()).name };
+  }, [...vid]);
+  check(dl.suggestedFilename() === "clip-compresso.mov" && /QuickTime|MOV/i.test(info.fmt), `Video: nome ed estensione conservati (${dl.suggestedFilename()}, ${info.fmt})`);
+  check(vid.length < made * .9, `Video: da ${Math.round(made / 1024)} KB a ${Math.round(vid.length / 1024)} KB`);
+  check(info.w === 640 && info.h === 360 && info.n === 120, `Video: risoluzione e fotogrammi conservati (${info.w}×${info.h}, ${info.n} fotogrammi, ${info.codec})`);
+  check(errors.length === 0, `Video: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
 // --- scansione: due pagine in un PDF, angoli di partenza

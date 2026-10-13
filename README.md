@@ -1,10 +1,11 @@
-# Schiaccia PDF (e JPG)
+# Schiaccia PDF (e JPG, e video)
 
 Compressore di PDF a fumetti che gira tutto nel browser: carichi i PDF pieni di immagini, scegli la forza, salvi le versioni leggere. I file non lasciano mai il dispositivo.
 
 - **PDF**: ricomprime in JPEG le immagini dentro il documento; testo, link e pagine restano come sono.
 - **JPG**: toccando la parola «PDF» nel titolo, che ruota come un rullo, l'app passa alle foto: si sceglie un lato lungo massimo e un peso massimo, e data e luogo dello scatto si possono conservare.
-- **Scansione**: con il pulsante della fotocamera si fotografa un foglio; l'app propone da sola angoli e curvatura dei lati (con un reticolato che mostra il raddrizzamento), si correggono se serve, poi raddrizza, pulisce la luce e mostra un'anteprima; in modalità PDF le pagine si raccolgono in un unico PDF, in modalità JPG ogni scatto è una foto.
+- **Video**: un altro giro del rullo porta ai video (MP4, MOV, M4V; anche WebM e MKV, salvati come MP4). Appena caricati, l'app ne analizza qualche spezzone e stima per ciascuno peso e qualità; si sceglie tra massima qualità, bilanciato e massimo risparmio (sempre sopra il 95% di somiglianza), poi ricodifica in HEVC o H.264 lasciando invariati risoluzione e fotogrammi al secondo. Serve un browser che sappia codificare video (Chrome, Edge, Safari aggiornati); i video HDR restano come sono.
+- **Scansione**: con il pulsante della fotocamera si fotografa un foglio; l'app propone da sola angoli e curvatura dei lati (con un reticolato che mostra il raddrizzamento), si correggono se serve, poi raddrizza, pulisce la luce e mostra un'anteprima; in modalità PDF le pagine si raccolgono in un unico PDF, in modalità JPG ogni scatto è una foto. In modalità video il pulsante è nascosto.
 - Funziona su file singoli, su più file o su una cartella intera (sottocartelle comprese).
 - Con un solo file si salva con nome o si sovrascrive l'originale; con più file si salva in un'altra cartella mantenendo la struttura, accanto agli originali con un prefisso o un suffisso, oppure si sovrascrive, sempre dopo conferma. Scrivere nelle cartelle richiede Chrome o Edge da computer; altrove si scarica il file o uno ZIP.
 - Si installa come app su Android e iPhone e funziona anche senza rete dopo la prima apertura.

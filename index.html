@@ -25,6 +25,7 @@
   --paper:#fffdf3;
   --tomato:#ff5a4e;
   --acc-l:#ffd3df;--acc:#ffb3c7;--acc-s:#ef5b8b;
+  --vid:#d6c2ff;
   --muted:#5b5a70;
   --display:"Lilita One","Baloo 2","Baloo Da 2","Baloo Bhaijaan 2","Rubik","Arial Rounded MT Bold","PingFang SC","Microsoft YaHei","Noto Sans SC","Trebuchet MS",sans-serif;
   --body:"Baloo 2","Baloo Da 2","Baloo Bhaijaan 2","Rubik","PingFang SC","Microsoft YaHei","Noto Sans SC","Trebuchet MS","Segoe UI",sans-serif;
@@ -49,14 +50,17 @@ h1,h2{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 h1{font-size:clamp(44px,11vw,76px);line-height:.92;color:var(--paper);
   -webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:5px 5px 0 var(--ink);letter-spacing:.5px}
 h1 span{color:var(--acc)}
-/* la parola del titolo è un rullo a due facce: PDF e JPG. Toccandolo si cambia cosa schiacciare. */
+/* la parola del titolo è un rullo: PDF → JPG → VIDEO → PDF (la quarta faccia ripete PDF, così il giro va sempre avanti).
+   L'angolo e la larghezza li imposta setMode(); la larghezza segue la faccia visibile. */
 .roll{font:inherit;color:inherit;background:none;border:0;padding:0 .03em;margin:0;cursor:pointer;display:inline-flex;align-items:center;gap:.1em;
   letter-spacing:inherit;-webkit-text-stroke:inherit;paint-order:inherit;text-shadow:inherit;perspective:500px;border-radius:10px;-webkit-tap-highlight-color:transparent}
-.drum{display:inline-grid;transform-style:preserve-3d;transform:translateZ(-.5em) rotateX(0deg);transition:transform .55s cubic-bezier(.3,1.6,.5,1)}
-.face{grid-area:1/1;text-align:center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.drum{display:inline-grid;justify-items:center;transform-style:preserve-3d;transform:translateZ(-.5em) rotateX(0deg);transition:transform .55s cubic-bezier(.3,1.6,.5,1),width .45s ease}
+.drum.snap{transition:none}
+.face{grid-area:1/1;text-align:center;white-space:nowrap;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .f-pdf{transform:rotateX(0deg) translateZ(.5em);color:#ffb3c7}
 h1 .f-jpg{transform:rotateX(-90deg) translateZ(.5em);color:#a8ecd0}
-.mode-jpg .drum{transform:translateZ(-.5em) rotateX(90deg)}
+h1 .f-vid{transform:rotateX(-180deg) translateZ(.5em);color:var(--vid)}
+h1 .f-pdf2{transform:rotateX(-270deg) translateZ(.5em);color:#ffb3c7}
 .rollArrows{flex:none;width:.24em;height:.56em;color:var(--ink);-webkit-text-stroke:0;filter:none}
 .roll:hover .rollArrows{color:var(--acc-s)}
 .roll:focus-visible{outline:4px solid var(--acc-s);outline-offset:4px}
@@ -65,6 +69,12 @@ h1 .f-jpg{transform:rotateX(-90deg) translateZ(.5em);color:#a8ecd0}
 /* modalità JPG: mascotte verde menta e accento verde */
 .mode-jpg{--acc-l:#cdf5e4;--acc:#a8ecd0;--acc-s:#13a57f}
 .mode-jpg .m-skin{fill:#a8ecd0}
+/* modalità VIDEO: terzo colore (R-VID-12) */
+.mode-video{--acc-l:#ece3ff;--acc:#d6c2ff;--acc-s:#7b5cff}
+.mode-video .m-skin{fill:#d6c2ff}
+.mode-video #camBtn{display:none}
+/* «VIDEO» è più lungo: il titolo si stringe un po' per restare su una riga */
+.mode-video h1{font-size:clamp(36px,9.2vw,76px)}
 .m-skin{transition:fill .4s}
 .titleRow{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .ver{font-family:var(--body);font-weight:700;font-size:14px;line-height:1;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:4px 9px;margin-bottom:6px;transform:rotate(-4deg);box-shadow:2px 2px 0 var(--ink);font-variant-numeric:tabular-nums}
@@ -128,6 +138,7 @@ h1 .f-jpg{transform:rotateX(-90deg) translateZ(.5em);color:#a8ecd0}
 .sure{border:var(--line);border-radius:14px;background:var(--acc);padding:14px;margin-top:14px;text-align:center}
 .sure p{margin:0 0 12px;font-weight:700}
 .btn.sm{font-size:16px;padding:5px 12px;box-shadow:3px 3px 0 var(--ink)}
+.btn.off{opacity:.45;cursor:not-allowed;pointer-events:none}
 .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:4px 4px 0 var(--ink)}
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
 .hint{font-size:15px;color:var(--muted);margin:14px 0 0}
@@ -311,6 +322,14 @@ details p{margin:8px 0 0;max-width:65ch}
       </div>
       <label class="check" for="keepExif"><input type="checkbox" id="keepExif" checked><span data-i18n="keepExif">Conserva data e luogo dello scatto</span></label>
     </div>
+    <div id="optsVid" hidden>
+    <div class="lvls" role="radiogroup" aria-label="Qualità minima" data-i18n-aria="vLvlAria">
+      <label class="lvl"><input type="radio" name="vlvl" id="vlvlMax" value="0.985"><span><b data-i18n="vMax">Massima qualità</b><small data-i18n="vMaxD">Qualità ≥ 98,5%</small></span></label>
+      <label class="lvl"><input type="radio" name="vlvl" id="vlvlMid" value="0.97" checked><span><b data-i18n="vMid">Bilanciato</b><small data-i18n="vMidD">Qualità ≥ 97%</small></span></label>
+      <label class="lvl"><input type="radio" name="vlvl" id="vlvlMin" value="0.95"><span><b data-i18n="vMin">Massimo risparmio</b><small data-i18n="vMinD">Qualità ≥ 95%</small></span></label>
+    </div>
+    <p class="hint" id="vidOff" hidden data-i18n="vidOff">Questo browser non sa codificare video in HEVC o H.264: prova con Chrome, Edge o Safari aggiornati.</p>
+    </div>
   </section>
 
   <button class="btn go" type="button" id="go" disabled>Schiaccia!</button>
@@ -385,8 +404,8 @@ details p{margin:8px 0 0;max-width:65ch}
 "use strict";
 var PRESETS={soft:{q:.82,max:2400},mid:{q:.68,max:1700},hard:{q:.5,max:1200}};
 var items=[],rootDir=null,busy=false,nextId=1,readOnlyDir=false;
-/* cosa si schiaccia: "pdf" o "jpg". Si cambia dal rullo nel titolo. */
-var mode="pdf";
+/* cosa si schiaccia: "pdf", "jpg" o "video". Si cambia dal rullo nel titolo, in quest'ordine. */
+var mode="pdf",MODES=["pdf","jpg","video"],rollAngle=0;
 var $=function(id){return document.getElementById(id)};
 var rowsEl=$("rows"),msgEl=$("msg"),goBtn=$("go"),press=$("press");
 
@@ -398,10 +417,13 @@ function pickLang(){
   for(var i=0;i<l.length;i++){var c=String(l[i]).toLowerCase().split("-")[0];if(c==="in")c="id";if(I[c])return c}
   return I.en?"en":"it";
 }
-/* In modalità JPG vale la variante "chiaveJ" se esiste; altrimenti lo stesso testo con «PDF» sostituito da «JPG». */
+/* In modalità JPG vale la variante "chiaveJ" se esiste, in modalità video "chiaveV"; altrimenti lo stesso testo
+   con «PDF» sostituito da «JPG» o dalla parola «video» della lingua (chiave vWord). */
 function t(k,p){
-  var d=I[lang]||{},e=I.en||{},str=(mode==="jpg"&&(d[k+"J"]||e[k+"J"]))||d[k]||e[k]||k;
+  var d=I[lang]||{},e=I.en||{},sx=mode==="jpg"?"J":mode==="video"?"V":"";
+  var str=(sx&&(d[k+sx]||e[k+sx]))||d[k]||e[k]||k;
   if(mode==="jpg"&&k!=="h1")str=str.replace(/PDF/g,"JPG").replace(/pdf/g,"jpg");
+  if(mode==="video"&&k!=="h1"&&k!=="vWord"&&!(d[k+sx]||e[k+sx])){var w=t("vWord");if(/^PDF/.test(str))str=w.charAt(0).toUpperCase()+w.slice(1)+str.slice(3);str=str.replace(/PDF/g,w).replace(/pdf/g,w)}
   if(p)for(var x in p)str=str.split("{"+x+"}").join(p[x]);
   return str;
 }
@@ -424,7 +446,8 @@ function fmt(n){
   if(n<1024*1024)return nf(Math.max(1,Math.round(n/1024)))+" KB";
   return nf(n/1048576,{minimumFractionDigits:1,maximumFractionDigits:1})+" MB";
 }
-function isPdf(name){return (mode==="jpg"?/\.jpe?g$/i:/\.pdf$/i).test(name)}
+var EXT={pdf:/\.pdf$/i,jpg:/\.jpe?g$/i,video:/\.(mp4|m4v|mov|webm|mkv)$/i};
+function isPdf(name){return EXT[mode].test(name)}
 
 /* titolo con il rullo: si ricostruisce solo quando cambia la lingua, così la rotazione resta animata */
 function showTitle(){
@@ -433,23 +456,41 @@ function showTitle(){
     h1.innerHTML=t("h1");h1.setAttribute("data-lang",lang);
     var sp=h1.querySelector("span");if(!sp)return;
     b=document.createElement("button");b.type="button";b.id="modeBtn";b.className="roll";
-    b.innerHTML='<span class="drum"><span class="face f-pdf">PDF</span><span class="face f-jpg">JPG</span></span><svg class="rollArrows" viewBox="0 0 12 26" aria-hidden="true"><path d="M2 9l4-6 4 6M2 17l4 6 4-6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    b.addEventListener("click",function(){setMode(mode==="pdf"?"jpg":"pdf")});
+    b.innerHTML='<span class="drum"><span class="face f-pdf">PDF</span><span class="face f-jpg">JPG</span><span class="face f-vid">VIDEO</span><span class="face f-pdf2" aria-hidden="true">PDF</span></span><svg class="rollArrows" viewBox="0 0 12 26" aria-hidden="true"><path d="M2 9l4-6 4 6M2 17l4 6 4-6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    b.addEventListener("click",function(){setMode(MODES[(MODES.indexOf(mode)+1)%MODES.length])});
     sp.replaceWith(b);
+    turnDrum(true);
   }
   b.setAttribute("aria-label",t("modeLbl",{kind:mode.toUpperCase()}));
 }
+/* il rullo gira sempre in avanti di un quarto; dopo VIDEO arriva sulla quarta faccia (PDF) e poi torna a 0 senza animazione */
+function turnDrum(now){
+  var b=$("modeBtn");if(!b)return;
+  var d=b.querySelector(".drum"),i=MODES.indexOf(mode);
+  if(now||(rollAngle/90)%4===3&&i!==0)rollAngle=i*90;
+  else if(rollAngle!==i*90)rollAngle=i===0?270:i*90;
+  d.classList.toggle("snap",!!now);
+  d.style.transform="translateZ(-.5em) rotateX("+rollAngle+"deg)";
+  var f=d.querySelector(i===0&&rollAngle===270?".f-pdf2":[".f-pdf",".f-jpg",".f-vid"][i]);
+  var fs=parseFloat(getComputedStyle(d).fontSize)||1;
+  if(f&&f.offsetWidth)d.style.width=(f.offsetWidth/fs)+"em";
+  if(rollAngle===270)setTimeout(function(){if(rollAngle===270&&mode==="pdf"){rollAngle=0;d.classList.add("snap");d.style.transform="translateZ(-.5em) rotateX(0deg)";d.offsetWidth;d.classList.remove("snap")}},600);
+  else if(now){d.offsetWidth;d.classList.remove("snap")}
+}
 function setMode(m,quiet){
-  if(busy||loading||(m!=="pdf"&&m!=="jpg"))return;
+  if(busy||loading||MODES.indexOf(m)<0)return;
   if(m!==mode&&items.length)reset();
   if(m!==mode)scanPages=[];
   mode=m;
   document.body.classList.toggle("mode-jpg",m==="jpg");
-  $("optsPdf").hidden=m==="jpg";$("optsJpg").hidden=m!=="jpg";
-  $("pickFiles").accept=m==="jpg"?"image/jpeg,.jpg,.jpeg":"application/pdf,.pdf";
+  document.body.classList.toggle("mode-video",m==="video");
+  $("optsPdf").hidden=m!=="pdf";$("optsJpg").hidden=m!=="jpg";$("optsVid").hidden=m!=="video";
+  $("pickFiles").accept={pdf:"application/pdf,.pdf",jpg:"image/jpeg,.jpg,.jpeg",video:"video/*,.mp4,.m4v,.mov,.webm,.mkv"}[m];
+  turnDrum();
+  if(m==="video")checkVideo();
   if(!quiet){
     try{localStorage.setItem("mode",m)}catch(e){}
-    try{history.replaceState(null,"",m==="jpg"?"#jpg":location.pathname+location.search)}catch(e){}
+    try{history.replaceState(null,"",m==="pdf"?location.pathname+location.search:"#"+m)}catch(e){}
     say("");applyLang();
     var b=$("modeBtn");if(b)b.classList.remove("wiggle");
   }
@@ -485,15 +526,17 @@ function loaded(n){
   if(!n){render();say(t("noPdf"),true);return}
   say(t("ready",{n:nf(n)}));
   render();
+  if(mode==="video")probeAll();
 }
-function reset(){items=[];rootDir=null;readOnlyDir=false}
+function reset(){items=[];rootDir=null;readOnlyDir=false;probeGen++;probing=false}
 
 /* dove il browser lo permette, i file scelti arrivano con il permesso di riscriverli (serve per «Sovrascrivi») */
 document.querySelector('label[for="pickFiles"]').addEventListener("click",async function(e){
   if(!window.showOpenFilePicker||busy)return;
   e.preventDefault();
   try{
-    var hs=await window.showOpenFilePicker({multiple:true,types:[mode==="jpg"?{description:"JPG",accept:{"image/jpeg":[".jpg",".jpeg"]}}:{description:"PDF",accept:{"application/pdf":[".pdf"]}}]});
+    var hs=await window.showOpenFilePicker({multiple:true,types:[{pdf:{description:"PDF",accept:{"application/pdf":[".pdf"]}},jpg:{description:"JPG",accept:{"image/jpeg":[".jpg",".jpeg"]}},
+      video:{description:"Video",accept:{"video/mp4":[".mp4",".m4v"],"video/quicktime":[".mov"],"video/webm":[".webm"],"video/x-matroska":[".mkv"]}}}[mode]]});
     reset();
     for(var i=0;i<hs.length;i++)addFile(await hs[i].getFile(),null,hs[i]);
     loaded(items.length);
@@ -614,10 +657,13 @@ function render(){
     var meta=fmt(it.size);
     if(it.scan)meta=fmt(it.out.size)+(it.pages?" · "+t("pages",{n:nf(it.pages)}):"");
     else if(it.out)meta+=" → "+fmt(it.out.size);
+    else if(it.plan&&(it.status==="wait"||it.status==="work"))meta+=" → ≈ "+fmt(it.plan.bytes);
+    if(it.plan&&it.vp&&it.status!=="same"&&it.status!=="err")meta+=" · "+(CODEC_NAME[it.vp.codec]||it.vp.codec)+" · "+t("vQuality",{q:nf(Math.round(it.plan.q*1000)/10)});
     if(it.note)meta+=" · "+t(it.note);
     li.appendChild(el("div","meta",meta));
     var side=el("div","side");
-    if(it.status==="wait")side.appendChild(el("span","badge wait",t("queued")));
+    if(it.status==="probe")side.appendChild(el("span","badge work",t("probing",{pct:nf(it.pct)})));
+    if(it.status==="wait")side.appendChild(el("span","badge wait",it.plan?"≈ −"+nf(Math.round((1-it.plan.bytes/it.size)*100))+"%":t("queued")));
     if(it.status==="work")side.appendChild(el("span","badge work",nf(it.pct)+"%"));
     if(it.status==="err")side.appendChild(el("span","badge err",t("skipped")));
     if(it.status==="same")side.appendChild(el("span","badge same",t("alreadyMin")));
@@ -632,10 +678,10 @@ function render(){
       done++;inB+=it.size;outB+=it.out.size;
     }
     li.appendChild(side);
-    if(it.status==="work"){var bar=el("div","bar");bar.style.width=it.pct+"%";li.appendChild(bar)}
+    if(it.status==="work"||it.status==="probe"){var bar=el("div","bar");bar.style.width=it.pct+"%";li.appendChild(bar)}
     rowsEl.appendChild(li);
   });
-  goBtn.disabled=busy||!items.some(function(x){return !x.scan});
+  goBtn.disabled=busy||(mode==="video"?probing||vidOk===false||!items.some(function(x){return x.status==="wait"&&x.plan}):!items.some(function(x){return !x.scan}));
   goBtn.textContent=busy?t("going"):t("go");
   $("total").hidden=!done||busy;
   if(done){
@@ -817,6 +863,7 @@ async function squeezePdf(it,preset,onPct){
 
 goBtn.addEventListener("click",async function(){
   if(busy||!items.length)return;
+  if(mode==="video"){if(!probing)goVideo();return}
   var jpg=mode==="jpg";
   if(!jpg&&!L.PDFDocument){say(t("engine"),true);return}
   var preset=jpg?jpgOpts():PRESETS[document.querySelector('input[name="lvl"]:checked').value];
@@ -843,6 +890,172 @@ goBtn.addEventListener("click",async function(){
   if(ok)sfx(playDone);
 });
 
+/* ---------- video: analisi a spezzoni (primo passaggio) e ricodifica (secondo), R-VID ----------
+   Mediabunny si carica solo qui, la prima volta. Qualità = SSIM sulla luminosità; vedi docs/ARCHITETTURA.md. */
+var MB=null,vidOk=null,probeGen=0,probing=false;
+var LADDER=[.85,.65,.5,.38,.28,.2,.14,.1,.07,.05,.035],QMIN=.95,AAC=160000;
+function loadMB(){return MB||(MB=import("./vendor/mediabunny.min.mjs").catch(function(e){MB=null;throw e}))}
+function forcedCodec(){try{return new URLSearchParams(location.search).get("vcodec")}catch(e){return null}}
+async function videoCodec(M,w,h){
+  var f=forcedCodec();
+  return M.getFirstEncodableVideoCodec(f?[f]:["hevc","avc"],{width:w,height:h});
+}
+/* la modalità resta visibile; se il browser non sa codificare né HEVC né H.264 è spenta con una riga di spiegazione */
+async function checkVideo(){
+  if(vidOk===null){
+    try{var M=await loadMB();vidOk=!!(window.VideoEncoder&&await videoCodec(M,1920,1080))}catch(e){vidOk=false}
+  }
+  $("vidOff").hidden=vidOk!==false;
+  $("pickFiles").disabled=$("pickDir").disabled=mode==="video"&&vidOk===false;
+  document.querySelector('label[for="pickFiles"]').classList.toggle("off",mode==="video"&&vidOk===false);
+  if(mode==="video")render();
+}
+function luma(cv){
+  var w=cv.width,h=cv.height,d=cv.getContext("2d",{willReadFrequently:true}).getImageData(0,0,w,h).data,y=new Uint8Array(w*h);
+  for(var i=0,j=0;j<y.length;i+=4,j++)y[j]=(d[i]*77+d[i+1]*150+d[i+2]*29)>>8;
+  return {w:w,h:h,y:y};
+}
+/* SSIM a finestre 8×8 non sovrapposte (come i codificatori), sulla luminosità */
+function ssim(a,b){
+  var w=Math.min(a.w,b.w),h=Math.min(a.h,b.h),C1=6.5025,C2=58.5225,sum=0,n=0;
+  for(var by=0;by+8<=h;by+=8)for(var bx=0;bx+8<=w;bx+=8){
+    var sa=0,sb=0,saa=0,sbb=0,sab=0;
+    for(var y=by;y<by+8;y++){var oa=y*a.w+bx,ob=y*b.w+bx;
+      for(var x=0;x<8;x++){var p=a.y[oa+x],q=b.y[ob+x];sa+=p;sb+=q;saa+=p*p;sbb+=q*q;sab+=p*q}}
+    var ma=sa/64,mb=sb/64,va=saa/64-ma*ma,vb=sbb/64-mb*mb,cv=sab/64-ma*mb;
+    sum+=((2*ma*mb+C1)*(2*cv+C2))/((ma*ma+mb*mb+C1)*(va+vb+C2));n++;
+  }
+  return n?sum/n:1;
+}
+/* fotogrammi confrontati al massimo a 1920 px di lato lungo */
+function fitSize(w,h){var k=Math.min(1,1920/Math.max(w,h));return {width:Math.max(2,Math.round(w*k/2)*2),height:Math.max(2,Math.round(h*k/2)*2)}}
+async function frames(M,track,ts,size){
+  var sink=new M.CanvasSink(track,{width:size.width,height:size.height,fit:"fill",poolSize:0}),out=[];
+  for await(var c of sink.canvasesAtTimestamps(ts))out.push(c?luma(c.canvas):null);
+  return out;
+}
+function vInput(M,blob){return new M.Input({source:blob instanceof Blob?new M.BlobSource(blob):new M.BufferSource(blob),formats:M.ALL_FORMATS})}
+/* primo passaggio: per una scala di bitrate decrescente, qualità e byte reali su 1–3 spezzoni da 1,5 s */
+async function probeVideo(it,onPct,stale){
+  var M=await loadMB(),input=vInput(M,it.file);
+  var vt=await input.getPrimaryVideoTrack();if(!vt)throw new Error("novideo");
+  if(await vt.hasHighDynamicRange())return {hdr:true};
+  var at=await input.getPrimaryAudioTrack(),dur=await input.computeDuration();
+  var vs=await vt.computePacketStats(400),as=at?await at.computePacketStats(400):null;
+  var codec=await videoCodec(M,vt.codedWidth,vt.codedHeight);if(!codec)throw new Error("nocodec");
+  var aac=false;
+  if(at&&as){
+    var big=/^pcm/.test(at.codec||"")||as.averageBitrate>256000,gain=(as.averageBitrate-AAC)*dur/8;
+    if(big&&gain>=it.size*.05)aac=await M.canEncodeAudio("aac",{numberOfChannels:at.numberOfChannels,sampleRate:at.sampleRate,bitrate:AAC}).catch(function(){return false});
+  }
+  var size=fitSize(vt.displayWidth,vt.displayHeight),t0=await vt.getFirstTimestamp(),clips=[],CL=1.5;
+  if(dur<6)clips.push([t0,t0+dur]);
+  else{var n=dur<20?2:3;for(var i=0;i<n;i++){var st=t0+(i+.5)*dur/n-CL/2;clips.push([st,st+CL])}}
+  var ref=[];
+  for(var c=0;c<clips.length;c++){
+    var ts=[];for(var k=1;k<=3;k++)ts.push(clips[c][0]+(clips[c][1]-clips[c][0])*k/4);
+    ref.push({ts:ts,y:await frames(M,vt,ts,size)});
+  }
+  var curve=[],steps=LADDER.length*clips.length,done=0;
+  for(var li=0;li<LADDER.length;li++){
+    var b=Math.round(vs.averageBitrate*LADDER[li]),qs=0,qn=0,bytes=0,secs=0;
+    for(var c2=0;c2<clips.length;c2++){
+      if(stale())throw new Error("stale");
+      var tgt=new M.BufferTarget(),out=new M.Output({format:new M.Mp4OutputFormat(),target:tgt});
+      var conv=await M.Conversion.init({input:input,output:out,trim:{start:clips[c2][0],end:clips[c2][1]},audio:{discard:true},
+        video:{codec:codec,quality:new M.Quality({bitrate:b,bitrateMode:"variable"}),forceTranscode:true},showWarnings:false});
+      await conv.execute();
+      bytes+=tgt.buffer.byteLength;secs+=clips[c2][1]-clips[c2][0];
+      var t2=await vInput(M,tgt.buffer).getPrimaryVideoTrack(),off=clips[c2][0];
+      var got=await frames(M,t2,ref[c2].ts.map(function(x){return x-off}),size);
+      for(var f=0;f<got.length;f++)if(got[f]&&ref[c2].y[f]){qs+=ssim(ref[c2].y[f],got[f]);qn++}
+      onPct(Math.round(++done/steps*100));
+    }
+    curve.push({b:b,q:qn?qs/qn:0,rate:bytes*8/secs});
+    if(!qn||qs/qn<QMIN)break;
+  }
+  return {dur:dur,codec:codec,abr:as?as.averageBitrate:0,aac:aac,curve:curve};
+}
+/* bitrate minimo che rispetta la soglia: interpolazione sul logaritmo del bitrate, +5% di margine; peso dai byte reali */
+function planVideo(v,thr){
+  var c=v.curve;if(!c.length||c[0].q<thr)return null;
+  var i=1;while(i<c.length&&c[i].q>=thr)i++;
+  var b,r;
+  if(i>=c.length){b=c[c.length-1].b;r=c[c.length-1].rate}
+  else{var A=c[i-1],B=c[i],k=(A.q-thr)/((A.q-B.q)||1),lg=function(x,y){return Math.exp(Math.log(x)+(Math.log(y)-Math.log(x))*k)};b=lg(A.b,B.b);r=lg(A.rate,B.rate)}
+  return {b:Math.round(b*1.05),q:thr,bytes:Math.round((r*1.05+(v.aac?AAC:v.abr))*v.dur/8*1.01)};
+}
+function vThr(){var r=document.querySelector('input[name="vlvl"]:checked');return r?parseFloat(r.value):.97}
+/* applica il livello scelto alle schede già analizzate (R-VID-06/07) */
+function planAll(){
+  var thr=vThr();
+  items.forEach(function(it){
+    if(!it.vp||it.status==="done"||it.status==="over"||it.status==="work"||it.status==="err")return;
+    var pl=planVideo(it.vp,thr);
+    it.plan=pl&&pl.bytes<it.size*.9?pl:null;
+    it.status=it.plan?"wait":"same";it.note=it.plan?"":"noGainV";
+  });
+}
+async function probeAll(){
+  var gen=++probeGen;probing=true;
+  items.forEach(function(it){if(!it.vp){it.status="probe";it.pct=0}});
+  render();
+  for(var i=0;i<items.length;i++){
+    var it=items[i];if(it.vp||it.status!=="probe")continue;
+    var last=-1;
+    try{
+      var v=await probeVideo(it,function(p){if(gen===probeGen&&p-last>=5){last=p;it.pct=p;render()}},function(){return gen!==probeGen});
+      if(gen!==probeGen)return;
+      if(v.hdr){it.status="same";it.note="hdr";render();continue}
+      it.vp=v;
+    }catch(e){
+      if(gen!==probeGen)return;
+      it.status="err";it.note=/novideo/.test(String(e&&e.message))?"noVideo":"unreadable";render();continue;
+    }
+    planAll();render();
+  }
+  if(gen===probeGen){probing=false;render()}
+}
+document.querySelectorAll('input[name="vlvl"]').forEach(function(r){r.addEventListener("change",function(){if(!busy){planAll();render()}})});
+/* WebM e MKV diventano MP4; MP4, M4V e MOV tengono l'estensione (R-VID-10) */
+function vidExt(name){return /\.(webm|mkv)$/i.test(name)?name.replace(/\.[^.]+$/,".mp4"):name}
+async function squeezeVideo(it,onPct){
+  var M=await loadMB(),v=it.vp,pl=it.plan,mov=/\.mov$/i.test(it.name),tgt=new M.BufferTarget();
+  var out=new M.Output({format:mov?new M.MovOutputFormat():new M.Mp4OutputFormat({fastStart:"in-memory"}),target:tgt});
+  var conv=await M.Conversion.init({input:vInput(M,it.file),output:out,showWarnings:false,
+    video:{codec:v.codec,quality:new M.Quality({bitrate:pl.b,bitrateMode:"variable"}),forceTranscode:true},
+    audio:v.aac?{codec:"aac",quality:new M.Quality({bitrate:AAC}),forceTranscode:true}:{}});
+  if(!conv.isValid)throw new Error("invalid");
+  conv.onProgress=function(x){onPct(Math.min(99,Math.round(x*100)))};
+  await conv.execute();
+  return new Blob([tgt.buffer],{type:mov?"video/quicktime":"video/mp4"});
+}
+var CODEC_NAME={hevc:"HEVC",avc:"H.264",vp9:"VP9",av1:"AV1"};
+async function wakeLock(){try{return navigator.wakeLock?await navigator.wakeLock.request("screen"):null}catch(e){return null}}
+async function goVideo(){
+  busy=true;press.classList.add("busy");say("");music.setMood("drive");
+  var lock=await wakeLock();
+  render();
+  for(var i=0;i<items.length;i++){
+    var it=items[i];if(it.status!=="wait"||!it.plan)continue;
+    it.status="work";it.pct=0;render();squashSound();
+    try{
+      var last=-1;
+      var blob=await squeezeVideo(it,function(p){if(p-last>=2){last=p;it.pct=p;render()}});
+      if(blob.size<it.size*.9){
+        it.out=blob;it.status="done";
+        var nn=vidExt(it.name);if(nn!==it.name){it.rel=it.rel.slice(0,it.rel.length-it.name.length)+nn;it.name=nn;it.handle=null}
+      }else{it.status="same";it.note="noGainV"}
+    }catch(e){it.status="err";it.note="unreadable"}
+    render();
+  }
+  if(lock)try{lock.release()}catch(e){}
+  busy=false;press.classList.remove("busy");render();music.setMood("calm");
+  var ok=items.filter(function(x){return x.status==="done"}).length;
+  say(ok?t("done",{ok:nf(ok),n:nf(items.length)}):t("none"),!ok);
+  if(ok)sfx(playDone);
+}
+
 /* ---------- salvataggio ---------- */
 var canDir=!!window.showDirectoryPicker,savedAs="",BADCHARS='/ \\ : * ? " < > |';
 function doneItems(){return items.filter(function(x){return x.status==="done"})}
@@ -856,7 +1069,8 @@ async function saveBlob(filename,blob){
   if(window.showSaveFilePicker){
     try{
       var zip=/\.zip$/i.test(filename);
-      var fh=await window.showSaveFilePicker({suggestedName:filename,types:[zip?{description:"ZIP",accept:{"application/zip":[".zip"]}}:(/\.jpe?g$/i.test(filename)?{description:"JPG",accept:{"image/jpeg":[".jpg",".jpeg"]}}:{description:"PDF",accept:{"application/pdf":[".pdf"]}})]});
+      var fh=await window.showSaveFilePicker({suggestedName:filename,types:[zip?{description:"ZIP",accept:{"application/zip":[".zip"]}}:/\.jpe?g$/i.test(filename)?{description:"JPG",accept:{"image/jpeg":[".jpg",".jpeg"]}}:
+        /\.mov$/i.test(filename)?{description:"Video",accept:{"video/quicktime":[".mov"]}}:/\.(mp4|m4v)$/i.test(filename)?{description:"Video",accept:{"video/mp4":[".mp4",".m4v"]}}:{description:"PDF",accept:{"application/pdf":[".pdf"]}}]});
       var w=await fh.createWritable();await w.write(blob);await w.close();
       savedAs=fh.name;return true;
     }catch(e){
@@ -1508,11 +1722,13 @@ lang=pickLang();sel.value=lang;
 /* modalità iniziale: dal link (#jpg o #pdf), altrimenti l'ultima usata */
 var firstMode=null,hadMode=false;
 try{firstMode=localStorage.getItem("mode");hadMode=!!firstMode}catch(e){}
-if(/^#(jpg|pdf)$/i.test(location.hash))firstMode=location.hash.slice(1).toLowerCase();
-setMode(firstMode==="jpg"?"jpg":"pdf",true);
+if(/^#(jpg|pdf|video)$/i.test(location.hash))firstMode=location.hash.slice(1).toLowerCase();
+setMode(MODES.indexOf(firstMode)>=0?firstMode:"pdf",true);
 applyLang();
 if(!hadMode&&$("modeBtn"))$("modeBtn").classList.add("wiggle");
-window.addEventListener("hashchange",function(){if(/^#(jpg|pdf)$/i.test(location.hash))setMode(location.hash.slice(1).toLowerCase())});
+window.addEventListener("hashchange",function(){if(/^#(jpg|pdf|video)$/i.test(location.hash))setMode(location.hash.slice(1).toLowerCase())});
+/* le larghezze delle facce del rullo cambiano quando arriva il carattere del titolo */
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){turnDrum(true)});
 
 /* un solo interruttore per effetti e musica: 0 = accesi, 2 = silenzio */
 /* ---------- suoni: tutto sintetizzato qui, nessun file audio ---------- */
@@ -1790,7 +2006,7 @@ function toast(txt){
   clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},2200);
 }
 $("shareBtn").addEventListener("click",async function(){
-  var url=location.origin+location.pathname.replace(/index\.html$/,"")+(mode==="jpg"?"#jpg":"");
+  var url=location.origin+location.pathname.replace(/index\.html$/,"")+(mode==="pdf"?"":"#"+mode);
   if(navigator.share){
     try{await navigator.share({title:t("title"),text:t("desc"),url:url});return}
     catch(e){if(e&&e.name==="AbortError")return}
