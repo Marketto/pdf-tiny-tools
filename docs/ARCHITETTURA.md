@@ -14,7 +14,8 @@ Tutto il JavaScript è in `index.html`, dentro un'unica funzione, diviso da comm
 | `motore` | `squeezePdf`, `squeezeImage`, `squeezeJpg`, `exifSegment`, `jpgOpts` | CMP, JPG |
 | `video` | `loadMB`, `checkVideo`, `probeAll`, `probeVideo`, `ssim`, `planVideo`, `planAll`, `goVideo`, `squeezeVideo` | VID |
 | `salvataggio` | `saveBlob`, `ask`, `writeJobs`, `finish`, gestori di `saveAs`/`saveElse`/`saveBeside`/`overBtn` | SAV |
-| `scansione con la fotocamera` | `scanFile`, `detectPage`, `editCorners`, `makePage`, `warp`, `enhance`, `morePages`, `finishPdf`, `showPreview` | SCN |
+| `scansione con la fotocamera` | `detectPage`, `editCorners`, `makePage`, `warp`, `enhance`, `scanFileName` | SCN |
+| `cattura` | `setAction`, `turnVerb`, `capRender`, `scanFile`, `galleryFiles`, `capBuild`, `capEdges`, `capMove`, `capSave` | SCN-14…19 |
 | `avvio` | menu lingue, modalità iniziale | I18N, MOD-04 |
 | `suoni` | `tone`, `hiss`, `sfx`, `playJingle`, `playSquash` | AUD-06 |
 | `musica` | oggetto `music` (`start`, `stop`, `setMood`, `festa`), `MOOD`, `playStep` | AUD |
@@ -62,16 +63,19 @@ Libreria `vendor/mediabunny.min.mjs` (Mediabunny 1.59.1, MPL-2.0, licenza in `ve
 
 Misure sul video di prova (720p, 6 s): stima e risultato entro il 2%; SSIM su tutto il video misurato con ffmpeg 0,990 / 0,979 / 0,960 per le soglie 0,985 / 0,97 / 0,95.
 
-## Cattura (SCN-14…19), piano
-- Stato: `act` (`"squash"`/`"capture"`, classe `act-cap` su `<body>`), `cap = {pages:[{work, q, mids, rot, style, blob, url}], sel, style}`. Le sezioni della compressione hanno la classe `squash` e si nascondono in Cattura; la schermata `#capture` si nasconde in Schiaccia.
-- Titolo: `showTitle()` costruisce due rulli, `#actBtn` (verbo: testo di `h1` e di `h1C` fuori dallo `<span>`) e `#modeBtn`. In modalità video `#actBtn` è spento; in Cattura `#modeBtn` alterna solo PDF e JPG. `setAction()` chiede conferma come `setMode` (SCN-18).
-- `capRender()` disegna la proposta A o B secondo `matchMedia("(min-width:760px)")`. Ogni modifica (stile, rotazione, bordi) rifà la pagina con `capBuild(i)` → `makePage` + rotazione.
-- Scatto: `#camInput` → `scanFile` → `editCorners` → `capBuild`. Galleria: `#galInput` multiplo, bordi da `detectPage` senza editor. «Rifai» una pagina: `capTarget`.
-- Salvataggio: PDF con pdf-lib (`capPdf`) e `saveBlob`; JPG uno → `saveBlob`, più → cartella (`showDirectoryPicker`) o ZIP.
+## Cattura (SCN-14…19)
+Sezione `cattura` in `index.html`, dopo `makePage` e `scanFileName`.
+- Stato: `act` (`"squash"`/`"capture"`, classe `act-cap` su `<body>`) e `cap = {pages:[{work, q, mids, rot, style, blob, url}], sel}`. `style` nullo = stile generale `scanStyle` (`capStyle()`). Le sezioni della compressione hanno la classe `squash` e spariscono in Cattura; `#capture` e `#capMsg` spariscono in Schiaccia. `say()` scrive in `#capMsg` quando si è in Cattura.
+- Titolo: `showTitle()` costruisce due rulli dal testo di `h1` e `h1C`: `#actBtn` (il verbo, cioè il testo fuori dallo `<span>`, prima o dopo secondo la lingua; `turnVerb()`) e `#modeBtn`. In modalità video `#actBtn` è spento (`aria-disabled`, freccette nascoste); in Cattura `#modeBtn` alterna solo PDF e JPG e `setMode` rifiuta `video`. `fitTitle()` somma, per ogni rullo, la faccia più larga.
+- `setAction(a)` (SCN-18): conferma se in Schiaccia c'è lavoro (`unsavedSquash()`) o in Cattura ci sono pagine; poi `stopWork()` e `reset()`, oppure `capClear()`. Passare tra PDF e JPG in Cattura non chiede nulla: le pagine restano e cambia solo come si salvano. Il tasto fotocamera chiama `setAction`; le icone `.i-cam` e `.i-squash` si scambiano con `act-cap`.
+- `t(k)`: in Cattura prova prima `kC` (e la sua variante `kCJ` in JPG): `subC`, `subCJ`.
+- `capRender()` ridisegna tutto: con `matchMedia("(min-width:760px)")` la proposta B (griglia `.card` trascinabili con `capMove`, menu dello stile, barra `.dock` sticky), altrimenti la A (`.capBig`, striscia `.thumb` con «+», strumenti della pagina selezionata, `styleSeg` con «Come tutte», pannello Salva).
+- Pagine: `scanFile` (fotocamera → `editCorners` → `capBuild`); `capTarget` indica la pagina da rifare (anche dal «Rifai» dell'editor). `galleryFiles` (input `#galInput` multiplo): bordi da `detectPage` o rettangolo rientrato, senza editor. `capBuild(p)` = `makePage` con lo stile della pagina + `rotBlob` per la rotazione; `capRebuild(list)` con la schermata `scan`. Lo stile generale si sceglie con `capSetStyle` (rifà le pagine senza stile proprio); quello della pagina con `pageStyle`. Nell'editor la scelta dello stile è nascosta (`#scanStyle`).
+- Salvataggio `capSave()`: PDF con pdf-lib (lato lungo 842 pt) e `saveBlob`; JPG una pagina con `saveBlob`, più pagine in una cartella (`showDirectoryPicker`, nomi `scansione-…-1.jpg`) o in uno ZIP. `capDone()` svuota la schermata.
 
 ## Scansione (SCN)
-1. 📷 apre `<input id="camInput" capture="environment">`: fotocamera di sistema, nessun permesso.
-2. `scanFile` riduce la foto a 3000 px (`work`).
+1. «Scatta» in Cattura apre `<input id="camInput" capture="environment">`: fotocamera di sistema, nessun permesso.
+2. `workFrom` riduce la foto a 3000 px (`work`).
 3. `detectPage(work)` (SCN-09/10), su una copia da ~360 px:
    - maschera: punteggio = luminosità − 0,8 × saturazione; soglia di Otsu abbassata verso la media dello sfondo (così le zone del foglio in ombra restano dentro); apertura e chiusura 3×3; componente connessa più grande (≥ 12% dell'immagine, che non tocchi più del 45% del contorno);
    - quadrilatero iniziale: estremi lungo le diagonali o lungo gli assi, il più ampio;
@@ -82,9 +86,7 @@ Misure sul video di prova (720p, 6 s): stima e risultato entro il 2%; SSIM su tu
 4. `editCorners` (SCN-02/10): SVG sopra la foto; 4 angoli + 4 maniglie a metà lato; reticolato 8×10 calcolato con la stessa funzione di `warp`; la lente è un canvas che ingrandisce 3×. Spostando un angolo, le maniglie dei lati conservano lo scarto dal punto medio del lato.
 5. `makePage` → `warp`: omografia `H` (rettangolo d'uscita → angoli, `homography()`, sistema 8×8). Le maniglie dei lati, riportate nello spazio d'uscita con `H⁻¹`, definiscono quattro curve di Bézier quadratiche; una superficie di Coons dà lo spostamento per ogni punto, poi `H` lo porta sulla foto. Lati dritti = pura prospettiva. Campionamento bilineare a blocchi di righe (l'animazione resta fluida).
 6. `enhance`: Documento = luce del foglio stimata per canale (massimo in riquadri 16×16, allargato e sfumato), divisione, livelli; Bianco e nero = idem + soglia morbida; Foto = livelli per canale.
-7. Anteprima (SCN-12): `showPreview` usa `ask()` con un'immagine nel corpo. PDF: `morePages()` mostra l'ultima pagina con «Un'altra pagina», «Rifai questa pagina», «Finisci». JPG: «Tienila» / «Rifai».
-8. PDF: `finishPdf` impagina le pagine (lato lungo 842 pt) con pdf-lib. L'elemento in elenco ha `scan: true`, `pages`, `pageBlobs` (per l'anteprima, SCN-13); «Schiaccia!» lo salta, i salvataggi non offrono sovrascrittura né «accanto».
-9. La fotocamera si riapre dentro il tocco (`now` nei pulsanti di `ask()`), perché i browser lo permettono solo in risposta a un gesto; l'evento `cancel` dell'input riporta alla domanda.
+7. La pagina finita va nella schermata Cattura (vedi sopra), che fa anche anteprima e salvataggio.
 
 ## Cartelle (CAR, SAV)
 Tre ingressi: `showDirectoryPicker` (lettura e scrittura: unico che consente «accanto» e «sovrascrivi»), `<input webkitdirectory>` e trascinamento (sola lettura). File scelti con `showOpenFilePicker` portano `handle` (sovrascrivibili). Ogni elemento tiene `handle` e `dir`. `writeJobs` scrive con la schermata `back`; prima si contano i file già presenti (`okToReplace`).

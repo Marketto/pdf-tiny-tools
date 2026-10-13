@@ -222,7 +222,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Video grandi: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
-// --- scansione: due pagine in un PDF, angoli di partenza
+// --- Cattura: verbo nel titolo, schermata propria (A al telefono, B al computer), due pagine in un PDF, foto in JPG
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 }, acceptDownloads: true });
   const page = await ctx.newPage();
@@ -239,25 +239,51 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     return [...new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/jpeg", .9))).arrayBuffer())];
   }));
   const shot = async (trigger) => { const [fc] = await Promise.all([page.waitForEvent("filechooser"), trigger()]); await fc.setFiles({ name: "foto.jpg", mimeType: "image/jpeg", buffer: photo }); };
-  await shot(() => page.click("#camBtn"));
+  await page.click("#camBtn");
+  check(await page.evaluate(() => document.body.classList.contains("act-cap") && getComputedStyle(document.getElementById("go")).display === "none" && !!document.querySelector("#capture .capBig")), "Cattura: la fotocamera apre la schermata Cattura (passi 1-2-3 al telefono)");
+  check(/Cattura/.test(await page.innerText("#title")), `Cattura: il verbo del titolo cambia (${(await page.innerText("#title")).replace(/\s+/g, " ")})`);
+  await shot(() => page.click("#capture .capBig .btn.go"));
   await page.waitForSelector("#scanner:not([hidden])");
-  check(await page.locator("#scanSvg .hit").count() === 8 && await page.locator("#scanSvg .mesh").count() === 1, "Scansione: editor con angoli, maniglie dei lati e reticolato");
+  check(await page.locator("#scanSvg .hit").count() === 8 && await page.locator("#scanSvg .mesh").count() === 1, "Cattura: editor con angoli, maniglie dei lati e reticolato");
   await page.click("#scanOk");
-  await page.waitForSelector("#modal:not([hidden])", { timeout: 30000 });
-  check((await page.innerText("#modalTitle")).includes("1"), "Scansione: dopo la prima pagina chiede se continuare");
-  await shot(() => page.click("#modalBtns button >> nth=0"));
-  await page.waitForSelector("#scanner:not([hidden])");
-  await page.click("#scanOk");
-  await page.waitForSelector("#modal:not([hidden])", { timeout: 30000 });
-  check(await page.locator("#modal .pv").count() === 1, "Scansione: anteprima della pagina nella domanda");
-  await page.click("#modalBtns button >> nth=2");
-  await page.waitForFunction(() => document.querySelectorAll("#rows .row").length === 1 && document.getElementById("loader").hidden, null, { timeout: 30000 });
-  const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#saveAs")]);
+  await page.waitForSelector("#capture .thumb", { timeout: 30000 });
+  await shot(() => page.click("#capture .add"));
+  await page.waitForSelector("#scanner:not([hidden])"); await page.click("#scanOk");
+  await page.waitForFunction(() => document.querySelectorAll("#capture .thumb").length === 2 && document.getElementById("loader").hidden, null, { timeout: 30000 });
+  check(await page.locator("#capture .tools button").count() === 6, "Cattura: strumenti della pagina selezionata (ruota, bordi, rifai, sposta, elimina)");
+  await page.click("#capture .tools button >> nth=0");
+  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelectorAll("#capture .thumb").length === 2, null, { timeout: 30000 });
+  await page.waitForFunction(() => [...document.querySelectorAll("#capture .thumb img")].every((i) => i.complete && i.naturalWidth));
+  const dims = await page.evaluate(() => [...document.querySelectorAll("#capture .thumb img")].map((i) => i.naturalWidth > i.naturalHeight));
+  check(dims.length === 2 && dims[0] !== dims[1], `Cattura: «Ruota» gira solo la pagina selezionata (${dims})`);
+  await page.click("#capture .seg.sm button >> nth=2");
+  await page.waitForFunction(() => document.getElementById("loader").hidden && !!document.querySelector("#capture .thumb .chip"), null, { timeout: 30000 });
+  check(true, "Cattura: stile proprio della pagina (B/N) segnato sulla miniatura");
+  await page.click("#modeBtn");
+  check(await page.evaluate(() => document.body.classList.contains("mode-jpg") && document.querySelectorAll("#capture .thumb").length === 2), "Cattura: passando a JPG le pagine restano");
+  await page.click("#modeBtn");
+  check(await page.evaluate(() => !document.body.classList.contains("mode-jpg") && !document.body.classList.contains("mode-video")), "Cattura: il rullo alterna solo PDF e JPG");
+  await page.setViewportSize({ width: 1000, height: 900 }); await page.waitForTimeout(300);
+  check(await page.locator("#capture .grid .card").count() === 2 && await page.locator("#capture .dock").count() === 1, "Cattura: al computer griglia di schede e barra in basso");
+  await page.setViewportSize({ width: 400, height: 860 }); await page.waitForTimeout(300);
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#capture .btn.ok")]);
   const { readFile: read } = await import("node:fs/promises");
   const pdf = await read(await dl.path());
   const pages = await page.evaluate(async (b) => (await PDFLib.PDFDocument.load(new Uint8Array(b))).getPageCount(), [...pdf]);
-  check(/\.pdf$/.test(dl.suggestedFilename()) && pages === 2, `Scansione: PDF di ${pages} pagine salvato (${dl.suggestedFilename()})`);
-  check(errors.length === 0, `Scansione: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  check(/\.pdf$/.test(dl.suggestedFilename()) && pages === 2, `Cattura: PDF di ${pages} pagine salvato (${dl.suggestedFilename()})`);
+  check(await page.locator("#capture .thumb").count() === 0, "Cattura: dopo il salvataggio la schermata si svuota");
+  await shot(() => page.click("#capture .capBig .btn.go"));
+  await page.waitForSelector("#scanner:not([hidden])"); await page.click("#scanOk");
+  await page.waitForSelector("#capture .thumb", { timeout: 30000 });
+  await page.click("#actBtn");
+  await page.waitForSelector("#modal:not([hidden])");
+  check(true, "Cattura: tornare a Schiaccia con pagine non salvate chiede conferma");
+  await page.click("#modalBtns button >> nth=0");
+  check(await page.evaluate(() => !document.body.classList.contains("act-cap") && getComputedStyle(document.getElementById("go")).display !== "none"), "Cattura: confermando si torna a Schiaccia");
+  await page.click("#modeBtn"); await page.click("#modeBtn");
+  await page.click("#actBtn", { force: true });
+  check(await page.evaluate(() => document.body.classList.contains("mode-video") && !document.body.classList.contains("act-cap")), "Cattura: in modalità video il verbo non cambia");
+  check(errors.length === 0, `Cattura: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
 await browser.close(); server.close();
