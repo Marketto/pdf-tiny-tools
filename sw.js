@@ -1,7 +1,7 @@
 // Cache offline. Il nome qui sotto viene cambiato a ogni pubblicazione da .github/workflows/pages.yml:
 // non modificarlo a mano.
 const CACHE="schiaccia-pdf-v3";
-const CORE=["./","index.html","manifest.webmanifest","i18n.js","engine.js","vendor/pdf-lib.min.js","icons/icon.svg","icons/icon-192.png","icons/badge-96.png","icons/icon-512.png","icons/apple-touch-icon.png"];
+const CORE=["./","index.html","manifest.webmanifest","config.js","i18n.js","engine.js","vendor/pdf-lib.min.js","icons/icon.svg","icons/icon-192.png","icons/badge-96.png","icons/icon-512.png","icons/apple-touch-icon.png"];
 
 // All'installazione i file si scaricano saltando la cache del browser: altrimenti, subito dopo
 // una pubblicazione, nella cache nuova finirebbe la pagina vecchia.

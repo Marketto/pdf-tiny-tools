@@ -28,8 +28,8 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video--tutto) · [C
 
 ## CMP · Compressione
 - R-CMP-01 PDF: tre livelli di forza (leggero, medio, forte).
-- R-CMP-02 Si ricomprimono solo le immagini; il testo resta selezionabile.
-- R-CMP-03 Un file che non si alleggerisce viene segnalato e lasciato com'è.
+- R-CMP-02 Si ricomprimono solo le immagini; il testo resta selezionabile. Un'immagine viene sostituita solo se la nuova pesa meno del 95% della vecchia.
+- R-CMP-03 Un file che non si alleggerisce di almeno il 2% viene segnalato e lasciato com'è (vale anche per le foto).
 
 ## JPG · Foto
 - R-JPG-01 Due soglie insieme al posto della forza: lato lungo massimo (originale, 2560, 1920, 1280 px) e peso massimo (nessuno, 1 MB, 500 KB, 200 KB).
@@ -164,6 +164,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video--tutto) · [C
 - R-REL-02 Versionamento semantico a tre cifre; il tag nasce da `VERSION`.
 
 ## DOC · Documentazione
+- R-DOC-03 Tutte le soglie e i parametri numerici del motore (forze, soglie di risparmio, scarto rapido dei video, audio, video grandi, livelli di TUTTO, ritmi di aggiornamento) stanno in un unico file, `config.js`, ciascuno con un commento in italiano e il requisito a cui si riferisce.
 - R-DOC-01 La documentazione si aggiorna **prima** dell'implementazione: prima i requisiti, poi il codice, poi `ARCHITETTURA.md` allineata a ciò che è stato fatto.
 - R-DOC-02 Documentazione pensata per essere letta da agenti: voci brevi, codici stabili, una sola fonte per ogni informazione, rimandi invece di ripetizioni.
 

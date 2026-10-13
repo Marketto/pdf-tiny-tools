@@ -7,6 +7,7 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 | File | Cosa contiene |
 |---|---|
 | `index.html` | Tutta l'app: markup, CSS e JavaScript in un file solo |
+| `config.js` | Tutte le soglie e i parametri numerici (`window.CONFIG`), commentati con il requisito |
 | `i18n.js` | Tutti i testi, 13 lingue (`window.I18N`) |
 | `engine.js` | Motore delle immagini di PDF e JPG, eseguito nei worker in parallelo (o nella pagina) |
 | `sw.js` | Cache offline (service worker) |
