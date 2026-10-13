@@ -20,7 +20,7 @@ Tutto il JavaScript è in `index.html`, dentro un'unica funzione, diviso da comm
 | `cattura` | `setAction`, `turnVerb`, `capRender`, `scanFile`, `galleryFiles`, `capBuild`, `capEdges`, `capMove`, `capSave` | SCN-14…19 |
 | `avvio` | menu lingue, modalità iniziale | I18N, MOD-04 |
 | `suoni` | `tone`, `hiss`, `sfx`, `playJingle`, `playSquash` | AUD-06 |
-| `musica` | oggetto `music` (`start`, `stop`, `setMood`, `festa`), `MOOD`, `playStep` | AUD |
+| `musica` | oggetto `music` (`start`, `stop`, `setMood`, `festa`), `THEMES`, `pickTheme`, `MOOD`, `playStep` | AUD |
 | `occhi` | `wink` | UI-01 |
 | `cattura` (mascotte) | `snapFlash` (flash a ogni foto aggiunta) | UI-07 |
 | `secondo piano` | `bgAsk`, `bgBegin`, `bgEnd`, `bgUpdate`, `bgText`, `progStart`/`progFrac`/`progLeft`/`progEta`, `progShow`, `bgStop`, `bgNotify`, `humWav` | APP-05…08 |
@@ -159,7 +159,7 @@ Tre ingressi: `showDirectoryPicker` (lettura e scrittura: unico che consente «a
 `loaderOn(mode, titolo)` / `loaderOff()`; gli oggetti che volano (`.fly`) ci sono in tre versioni (`k-pdf`, `k-jpg`, `k-vid`) e il CSS mostra quella della modalità (UI-08); rende inerte `#app`, resta almeno 0,9 s. Classi su `#loader`: nessuna = lettura cartella (schedario), `back` = scrittura (fogli che tornano), `scan` = scansione (scena `mascot:scan`, senza «Annulla»). Ogni classe sceglie anche l'umore della musica.
 
 ## Suoni e musica (AUD)
-Tutto Web Audio, niente file. `music` mette in coda le note ~0,35 s prima; umori in `MOOD` (bpm, filtro, giro, melodia) e stili in `playStep`: `calm`, `mystery` (giro con re maggiore, staccato), `drive`, `joy`, `scan`, `jump` (fanfara, `festa()`). Volume del sottofondo in `VOL`. L'audio parte al primo tocco e si sospende con la pagina nascosta.
+Tutto Web Audio, niente file. `music` mette in coda le note ~0,35 s prima; temi in `THEMES` (AUD-07: `prog` giro di accordi, `progM` giro del mistero, `lead` melodia, `fprog`/`flead`/`fharm` fanfara, `fin` accordo finale; accordi in `CH`); umori in `MOOD` (bpm, filtro) e stili in `playStep`: `calm`, `mystery` (giro `progM`, staccato), `drive`, `joy`, `scan`, `jump` (fanfara, `festa()`). `pickTheme()` sceglie a caso un tema diverso dall'attuale: all'avvio dello script e in `festa()`, dopo aver messo in coda la fanfara del tema che finisce. Volume del sottofondo in `VOL`. L'audio parte al primo tocco e si sospende con la pagina nascosta.
 
 ## Secondo piano (APP-05…08)
 Sezione `secondo piano` in `index.html`, prima di `condivisione`.

@@ -138,6 +138,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video--tutto) · [C
 - R-AUD-04 Scrittura dei file: allegra, ritmata, vittoriosa (da festa), poi fanfara.
 - R-AUD-05 Elaborazione scansione: arpeggio che sale e scende come la luce di uno scanner.
 - R-AUD-06 Volume del sottofondo gradevole, mai invadente. Jingle all'avvio, suono di schiacciata.
+- R-AUD-07 Cinque temi musicali originali, tutti con le stesse variazioni (calma, mistero, compressione, festa, scansione) e una fanfara propria: l'originale, «Girotondo» (filastrocca saltellante), «Avventura» (da esplorazione, in minore), «Cartone» (salti di accordo buffi) e «Marcia» (marcetta squillante in sol), scelti dal proprietario tra quattro proposte. All'avvio ne parte uno a caso; dopo ogni fanfara di fine lavoro ne riparte uno diverso, a caso.
 
 ## I18N · Lingue
 - R-I18N-01 Lingua dal browser, modificabile da menu, ricordata.

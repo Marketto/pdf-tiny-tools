@@ -2916,7 +2916,7 @@ muteBtn.addEventListener("click",function(){
   if(sndMode===0){jingleDone=true;sfx(playDone);music.start(.4)}else music.stop();
 });
 
-/* ---------- musica: un tema solo, tre umori (calma, compressione, festa) ----------
+/* ---------- musica: cinque temi, ognuno con i suoi umori (calma, mistero, compressione, festa, scansione) ----------
    Le note vengono messe in coda poco prima di suonare, così l'umore può cambiare al volo. */
 var music=(function(){
   var N={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
@@ -2933,20 +2933,39 @@ var music=(function(){
       return out;
     });
   }
-  var CH={C:[36,[48,52,55,60]],Am:[45,[57,60,64,69]],F:[41,[53,57,60,65]],G:[43,[55,59,62,67]],D:[38,[50,54,57,62]]};
-  var PROG=[["C"],["Am"],["F"],["G"],["C"],["Am"],["F","G"],["C"]];
-  var TEMA=bars(["E5 - G5 - C6 - G5 E5","A5 - - G5 E5 - C5 -","F5 - A5 - C6 - A5 F5","G5 - - B5 D6 - B5 G5",
-                 "E5 - G5 - C6 - E6 D6","C6 - A5 - E5 - A5 -","F5 A5 C6 A5 G5 B5 D6 B5","C6 - - - G5 - C5 -"]);
-  var FPROG=[["C"],["F"],["G"],["C"]];
-  var FLEAD=bars(["C5 E5 G5 C6 E6 - G6 -","F6 - A6 G6 F6 - C6 A5","G6 - - D6 G6 - B5 D6","C6 E6 G6 - C6 - - -"]);
-  var FHARM=bars([". . E5 G5 C6 - E6 -","A5 - C6 C6 A5 - A5 F5","B5 - - B5 D6 - G5 B5","G5 C6 E6 - E6 - - -"]);
-  /* mistero giocoso: stessa melodia, ma al posto del la minore c'è un re maggiore (colore lidio, da «chissà cosa c'è qui») */
-  var PROGM=[["C"],["D"],["F"],["G"],["C"],["D"],["F","G"],["C"]];
-  var MOOD={calm:{bpm:84,cut:2200,prog:PROG,lead:TEMA},drive:{bpm:150,cut:4200,prog:PROG,lead:TEMA},mystery:{bpm:112,cut:2600,prog:PROGM,lead:TEMA},
+  /* accordi: nota del basso e quattro note dell'arpeggio */
+  var CH={C:[36,[48,52,55,60]],Am:[45,[57,60,64,69]],F:[41,[53,57,60,65]],G:[43,[55,59,62,67]],D:[38,[50,54,57,62]],
+       Em:[40,[52,55,59,64]],Dm:[38,[50,53,57,62]],E:[40,[52,56,59,64]],Fm:[41,[53,56,60,65]],A:[45,[57,61,64,69]]};
+  /* cinque temi (R-AUD-07), ognuno con giro, giro del mistero, melodia e fanfara; le note sono in ottavi, «-» allunga, «.» è pausa */
+  var THEMES={
+   classico:{prog:[["C"],["Am"],["F"],["G"],["C"],["Am"],["F","G"],["C"]],progM:[["C"],["D"],["F"],["G"],["C"],["D"],["F","G"],["C"]],
+    lead:["E5 - G5 - C6 - G5 E5","A5 - - G5 E5 - C5 -","F5 - A5 - C6 - A5 F5","G5 - - B5 D6 - B5 G5","E5 - G5 - C6 - E6 D6","C6 - A5 - E5 - A5 -","F5 A5 C6 A5 G5 B5 D6 B5","C6 - - - G5 - C5 -"],
+    fprog:[["C"],["F"],["G"],["C"]],flead:["C5 E5 G5 C6 E6 - G6 -","F6 - A6 G6 F6 - C6 A5","G6 - - D6 G6 - B5 D6","C6 E6 G6 - C6 - - -"],fharm:[". . E5 G5 C6 - E6 -","A5 - C6 C6 A5 - A5 F5","B5 - - B5 D6 - G5 B5","G5 C6 E6 - E6 - - -"],fin:[60,64,67]},
+   girotondo:{prog:[["C"],["G"],["Am"],["F"],["C"],["G"],["F","G"],["C"]],progM:[["C"],["Em"],["Am"],["F"],["C"],["Em"],["F","G"],["C"]],
+    lead:["G5 G5 E5 G5 C6 - G5 -","B5 B5 G5 B5 D6 - B5 -","C6 B5 A5 G5 A5 - E5 -","F5 G5 A5 C6 A5 - - -","G5 G5 E5 G5 C6 - E6 -","D6 C6 B5 D6 G6 - D6 -","C6 A5 F5 A5 B5 D6 G5 B5","C6 - G5 - C6 - - -"],
+    fprog:[["C"],["F"],["G"],["C"]],flead:["G5 - C6 - E6 - C6 E6","F6 - E6 - D6 - C6 A5","B5 D6 G6 - F6 - D6 B5","C6 - E6 G6 C7 - - -"],fharm:["E5 - G5 - C6 - G5 C6","A5 - C6 - A5 - A5 F5","G5 B5 D6 - D6 - B5 G5","G5 - C6 E6 G6 - - -"],fin:[60,64,67]},
+   avventura:{prog:[["Am"],["F"],["C"],["G"],["Am"],["F"],["G"],["Am"]],progM:[["Am"],["Dm"],["C"],["G"],["Am"],["Dm"],["G"],["Am"]],
+    lead:["A5 - E5 A5 C6 - B5 A5","C6 - A5 - F5 - A5 C6","E6 - D6 C6 G5 - C6 E6","D6 - - B5 G5 - D6 -","A5 - E5 A5 C6 - E6 -","F6 - E6 C6 A5 - C6 -","B5 - D6 - G6 - F6 D6","E6 - - C6 A5 - - -"],
+    fprog:[["F"],["G"],["C"],["C"]],flead:["C6 - A5 C6 F6 - C6 -","D6 - B5 D6 G6 - D6 -","E6 - G6 E6 C6 E6 G6 -","C7 - - - G6 - C6 -"],fharm:["A5 - F5 A5 C6 - A5 -","B5 - G5 B5 D6 - B5 -","C6 - E6 C6 G5 C6 E6 -","G6 - - - E6 - G5 -"],fin:[60,64,67]},
+   cartone:{prog:[["C"],["E"],["F"],["Fm"],["C"],["A"],["Dm","G"],["C"]],progM:[["C"],["E"],["F"],["Fm"],["C"],["A"],["Dm","G"],["C"]],
+    lead:["E5 - G5 C6 - G5 E5 G5","G#5 - B5 E6 - B5 G#5 B5","A5 - C6 F6 - C6 A5 C6","G#5 - - F5 G#5 - C6 -","G5 E5 G5 C6 E6 - C6 -","C#6 - E6 - A5 - C#6 -","D6 F6 A5 D6 B5 D6 G5 B5","C6 - G5 E5 C5 - - -"],
+    fprog:[["C"],["A"],["Dm","G"],["C"]],flead:["C6 E6 G6 E6 C6 - G5 -","C#6 E6 A6 E6 C#6 - A5 -","D6 F6 A6 - B5 D6 G6 -","C7 - G6 - C6 - - -"],fharm:["G5 C6 E6 C6 G5 - E5 -","A5 C#6 E6 C#6 A5 - E5 -","A5 D6 F6 - G5 B5 D6 -","E6 - E6 - G5 - - -"],fin:[60,64,67]},
+   marcia:{prog:[["G"],["Em"],["C"],["D"],["G"],["Em"],["C","D"],["G"]],progM:[["G"],["A"],["C"],["D"],["G"],["A"],["C","D"],["G"]],
+    lead:["D6 - B5 G5 B5 D6 G6 -","E6 - D6 B5 G5 - E5 -","E5 G5 C6 E6 G6 - E6 C6","D6 - - A5 F#5 - A5 -","B5 D6 G6 - F#6 G6 A6 G6","E6 - B5 - G5 - B5 E6","E6 D6 C6 E6 D6 C6 A5 F#5","G5 - D6 - G6 - - -"],
+    fprog:[["C"],["D"],["G"],["G"]],flead:["E6 - G6 - C7 - G6 E6","F#6 - A6 - D7 - A6 F#6","G6 D6 B5 D6 G6 - B6 -","G6 - - - D6 - G5 -"],fharm:["C6 - E6 - G6 - E6 C6","D6 - F#6 - A6 - F#6 D6","D6 B5 G5 B5 D6 - G6 -","D6 - - - B5 - D5 -"],fin:[67,71,74]}
+  };
+  Object.keys(THEMES).forEach(function(k){var T=THEMES[k];T.lead=bars(T.lead);T.flead=bars(T.flead);T.fharm=bars(T.fharm)});
+  var NAMES=Object.keys(THEMES),theme=null;
+  /* un tema a caso, diverso da quello che sta suonando */
+  function pickTheme(){var l=NAMES.filter(function(k){return k!==theme});theme=l[Math.floor(Math.random()*l.length)]}
+  pickTheme();
+  var MOOD={calm:{bpm:84,cut:2200},drive:{bpm:150,cut:4200},
+            /* mistero giocoso: la stessa melodia sul giro del mistero del tema */
+            mystery:{bpm:112,cut:2600},
             /* gioia: mentre scrive i file, il tema a passo di marcia allegra, in attesa della fanfara finale */
-            joy:{bpm:146,cut:5200,prog:PROG,lead:TEMA},
+            joy:{bpm:146,cut:5200},
             /* scansione: ronzio da macchina che lavora, arpeggio che sale e scende come la luce dello scanner */
-            scan:{bpm:120,cut:3600,prog:PROG,lead:TEMA}};
+            scan:{bpm:120,cut:3600}};
   /* volume del sottofondo: deve restare sotto gli effetti e non stancare */
   var VOL=.26;
   var on=false,timer=0,bus=null,lp=null,noiseBuf=null,mood="calm",bpm=84,step=0,next=0,holdUntil=0;
@@ -3043,7 +3062,7 @@ var music=(function(){
     while(next<c.currentTime+.35){
       var target=MOOD[mood].bpm;bpm+=(target-bpm)*.18;if(Math.abs(target-bpm)<.5)bpm=target;
       var s16=60/bpm/4;
-      if(next>=holdUntil)playStep(c,next,s16,mood,MOOD[mood].prog,MOOD[mood].lead,null,(step>>4)%8,step%16);
+      if(next>=holdUntil){var T=THEMES[theme];playStep(c,next,s16,mood,mood==="mystery"?T.progM:T.prog,T.lead,null,(step>>4)%8,step%16)}
       else step=-1;
       step=(step+1)%128;next+=s16;
     }
@@ -3069,19 +3088,22 @@ var music=(function(){
     if(!MOOD[m]||m===mood)return;mood=m;
     if(lp&&actx)lp.frequency.setTargetAtTime(MOOD[m].cut,actx.currentTime,.25);
   }
-  /* fanfara: il giro tace, suonano quattro battute a due voci, poi riparte la calma dall'inizio */
+  /* fanfara: il giro tace, suonano quattro battute a due voci, poi riparte la calma dall'inizio con un altro tema */
   function festa(){
     var c=actx;if(!on||!c||c.state!=="running")return;
     var s16=60/132/4,t0=Math.max(c.currentTime+.06,next),end=t0+64*s16;
     if(c.currentTime<holdUntil)return;
     setMood("calm");lp.frequency.cancelScheduledValues(c.currentTime);
     lp.frequency.setValueAtTime(4800,t0);lp.frequency.setTargetAtTime(MOOD.calm.cut,end+.6,.4);
+    var T=THEMES[theme];
     for(var s=0;s<64;s++){
       if(s>=56&&s%2)continue;
-      playStep(c,t0+s*s16,s16,"jump",FPROG,FLEAD,FHARM,s>>4,s%16);
+      playStep(c,t0+s*s16,s16,"jump",T.fprog,T.flead,T.fharm,s>>4,s%16);
     }
-    [60,64,67].forEach(function(m){note(c,"square",hz(m),0,end-8*s16,1.5,.06,1.2)});
+    T.fin.forEach(function(m){note(c,"square",hz(m),0,end-8*s16,1.5,.06,1.2)});
     holdUntil=end+1.3;next=Math.max(next,t0);
+    /* dopo la fanfara si riparte con un altro tema (R-AUD-07) */
+    pickTheme();
   }
   return {start:start,stop:stop,setMood:setMood,festa:festa};
 })();
