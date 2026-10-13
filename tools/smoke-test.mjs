@@ -156,6 +156,50 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Video: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- video grandi: con ?safe=1 ogni video è «grande» e va su disco (cartella privata), download uno alla volta, pulizia all'avvio
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 }, acceptDownloads: true });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(() => { for (const k of ["showOpenFilePicker", "showSaveFilePicker", "showDirectoryPicker"]) Object.defineProperty(window, k, { value: undefined }); });
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url + "?vcodec=vp9&safe=1#video");
+  await page.evaluate(async () => {
+    const M = await import("./vendor/mediabunny.min.mjs"), dt = new DataTransfer();
+    for (const name of ["uno.mp4", "due.mp4"]) {
+      const c = document.createElement("canvas"); c.width = 320; c.height = 240;
+      const g = c.getContext("2d"), tgt = new M.BufferTarget(), out = new M.Output({ format: new M.Mp4OutputFormat(), target: tgt });
+      const src = new M.CanvasSource(c, { codec: "vp9", bitrate: 4e6 }); out.addVideoTrack(src, { frameRate: 25 });
+      await out.start();
+      for (let i = 0; i < 50; i++) { g.fillStyle = `hsl(${i * 7},60%,50%)`; g.fillRect(0, 0, 320, 240); for (let k = 0; k < 200; k++) { g.fillStyle = `rgba(0,0,0,${Math.random() * .4})`; g.fillRect(Math.random() * 320, Math.random() * 240, 5, 5); } await src.add(i / 25, 1 / 25); }
+      await out.finalize(); dt.items.add(new File([tgt.buffer], name, { type: "video/mp4" }));
+    }
+    const input = document.getElementById("pickFiles"); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 240000 });
+  check(/si perde/.test(await page.innerText("#rows")), "Video grandi: la scheda avvisa che senza salvare il risultato si perde");
+  await page.click("#go");
+  await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && !document.getElementById("total").hidden, null, { timeout: 240000 });
+  const tmp = await page.evaluate(async () => { const d = await (await navigator.storage.getDirectory()).getDirectoryHandle("schiaccia-tmp"); const n = []; for await (const k of d.keys()) n.push(k); return n.length; });
+  check(tmp === 2, `Video grandi: risultati scritti su disco nella cartella privata (${tmp} file)`);
+  check(/uno alla volta/.test(await page.innerText("#saveElse")), `Video grandi: niente ZIP, «${await page.innerText("#saveElse")}»`);
+  const names = [], dls = [];
+  page.on("download", (d) => { names.push(d.suggestedFilename()); dls.push(d); });
+  await page.click("#saveElse");
+  await page.waitForFunction(() => document.querySelectorAll("#rows .row:not(.demo)").length === 0, null, { timeout: 30000 });
+  await page.waitForTimeout(500);
+  check(names.length === 2 && names.every((n) => /\.mp4$/.test(n)), `Video grandi: scaricati uno alla volta (${names.join(", ")})`);
+  const { readFile: readV } = await import("node:fs/promises");
+  const big = await readV(await dls[0].path());
+  const n = await page.evaluate(async (b) => { const M = await import("./vendor/mediabunny.min.mjs"); const t = await new M.Input({ source: new M.BufferSource(new Uint8Array(b).buffer), formats: M.ALL_FORMATS }).getPrimaryVideoTrack(); return (await t.computePacketStats()).packetCount; }, [...big]);
+  check(n === 50, `Video grandi: il file scritto su disco è completo (${n} fotogrammi su 50)`);
+  await page.reload(); await page.waitForTimeout(1500);
+  const left = await page.evaluate(async () => { try { const d = await (await navigator.storage.getDirectory()).getDirectoryHandle("schiaccia-tmp"); const n = []; for await (const k of d.keys()) n.push(k); return n.length; } catch { return 0; } });
+  check(left === 0, `Video grandi: cartella privata svuotata alla riapertura (${left} file rimasti)`);
+  check(errors.length === 0, `Video grandi: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
 // --- scansione: due pagine in un PDF, angoli di partenza
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 }, acceptDownloads: true });

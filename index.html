@@ -479,7 +479,7 @@ function turnDrum(now){
 }
 function setMode(m,quiet){
   if(busy||loading||MODES.indexOf(m)<0)return;
-  if(m!==mode&&items.length)reset();
+  if(m!==mode&&items.length){reset();tmpClean()}
   if(m!==mode)scanPages=[];
   mode=m;
   document.body.classList.toggle("mode-jpg",m==="jpg");
@@ -523,6 +523,7 @@ function addFile(file,rel,handle,dir){
   if(loading)$("loaderN").textContent=t("found",{n:nf(items.length)});
 }
 function loaded(n){
+  if(mode==="video")tmpClean();
   if(!n){render();say(t("noPdf"),true);return}
   say(t("ready",{n:nf(n)}));
   render();
@@ -660,6 +661,7 @@ function render(){
     else if(it.plan&&(it.status==="wait"||it.status==="work"))meta+=" → ≈ "+fmt(it.plan.bytes);
     if(it.plan&&it.vp&&it.status!=="same"&&it.status!=="err")meta+=" · "+(CODEC_NAME[it.vp.codec]||it.vp.codec)+" · "+t("vQuality",{q:nf(Math.round(it.plan.q*1000)/10)});
     if(it.note)meta+=" · "+t(it.note);
+    if(isBig(it)&&(it.status==="wait"||it.status==="work"||it.status==="done"))meta+=" · "+t("bigNote");
     li.appendChild(el("div","meta",meta));
     var side=el("div","side");
     if(it.status==="probe")side.appendChild(el("span","badge work",t("probing",{pct:nf(it.pct)})));
@@ -691,7 +693,7 @@ function render(){
     var canOver=ready.every(function(x){return x.handle});
     var canBeside=canDir&&ready.every(function(x){return x.dir});
     $("saveAs").hidden=!one;
-    $("saveElse").hidden=one;$("saveElse").textContent=t(canDir?"saveElsewhere":"saveZip");
+    $("saveElse").hidden=one;$("saveElse").textContent=t(canDir?"saveElsewhere":oneByOne()?"saveEach":"saveZip");
     $("saveBeside").hidden=one||scans;$("saveBeside").disabled=!canBeside;
     $("overBtn").hidden=scans;
     $("overBtn").textContent=t(one?"overOne":"overBtn");$("overBtn").disabled=!canOver;
@@ -894,6 +896,38 @@ goBtn.addEventListener("click",async function(){
    Mediabunny si carica solo qui, la prima volta. Qualità = SSIM sulla luminosità; vedi docs/ARCHITETTURA.md. */
 var MB=null,vidOk=null,probeGen=0,probing=false;
 var LADDER=[.85,.65,.5,.38,.28,.2,.14,.1,.07,.05,.035],QMIN=.95,AAC=160000;
+/* oltre questa stima il risultato va su disco, nella cartella privata del browser (R-VID-14) */
+var SAFE=navigator.deviceMemory?Math.min(1024,navigator.deviceMemory*128)*1048576:300*1048576,TMP="schiaccia-tmp";
+try{var sv=+new URLSearchParams(location.search).get("safe");if(sv>0)SAFE=sv}catch(e){}
+function isBig(it){return !!(it.plan&&it.plan.bytes>SAFE)}
+async function tmpDir(create){var r=await navigator.storage.getDirectory();return r.getDirectoryHandle(TMP,{create:!!create})}
+/* svuota la cartella privata (R-VID-16): all'avvio, a ogni reset, alla chiusura */
+/* cancella i file della cartella privata che non appartengono a schede ancora presenti */
+async function clearTmp(){
+  try{
+    var d=await tmpDir(),keep={},names=[];
+    items.forEach(function(it){if(it.tmpName)keep[it.tmpName]=1});
+    for await(var k of d.keys())names.push(k);
+    for(var i=0;i<names.length;i++)if(!keep[names[i]])try{await d.removeEntry(names[i])}catch(e){}
+  }catch(e){}
+}
+/* dopo uno scaricamento il file su disco deve restare leggibile ancora un po': la pulizia aspetta (tmpHold) */
+var tmpHold=0,tmpTimer=0;
+function tmpClean(hold){
+  if(!navigator.storage||!navigator.storage.getDirectory)return;
+  if(hold)tmpHold=Date.now()+hold;
+  clearTimeout(tmpTimer);
+  var wait=tmpHold-Date.now();
+  if(wait>0)tmpTimer=setTimeout(clearTmp,wait);else clearTmp();
+}
+async function dropTmp(it){if(it&&it.tmpName){try{await (await tmpDir()).removeEntry(it.tmpName)}catch(e){}it.tmpName=null}}
+async function canDisk(bytes){
+  try{
+    if(!navigator.storage||!navigator.storage.getDirectory||!window.FileSystemFileHandle||!FileSystemFileHandle.prototype.createWritable)return false;
+    var est=await navigator.storage.estimate();
+    return !est.quota||est.quota-(est.usage||0)>bytes*1.1;
+  }catch(e){return false}
+}
 function loadMB(){return MB||(MB=import("./vendor/mediabunny.min.mjs").catch(function(e){MB=null;throw e}))}
 function forcedCodec(){try{return new URLSearchParams(location.search).get("vcodec")}catch(e){return null}}
 async function videoCodec(M,w,h){
@@ -1020,14 +1054,24 @@ document.querySelectorAll('input[name="vlvl"]').forEach(function(r){r.addEventLi
 /* WebM e MKV diventano MP4; MP4, M4V e MOV tengono l'estensione (R-VID-10) */
 function vidExt(name){return /\.(webm|mkv)$/i.test(name)?name.replace(/\.[^.]+$/,".mp4"):name}
 async function squeezeVideo(it,onPct){
-  var M=await loadMB(),v=it.vp,pl=it.plan,mov=/\.mov$/i.test(it.name),tgt=new M.BufferTarget();
-  var out=new M.Output({format:mov?new M.MovOutputFormat():new M.Mp4OutputFormat({fastStart:"in-memory"}),target:tgt});
+  var M=await loadMB(),v=it.vp,pl=it.plan,mov=/\.mov$/i.test(it.name),big=isBig(it),tgt,fh,ws;
+  if(big){
+    /* video grande: a pezzi su disco, metadati in fondo (nessun accumulo in memoria) */
+    it.tmpName="v"+it.id+"-"+Date.now()+(mov?".mov":".mp4");
+    fh=await (await tmpDir(true)).getFileHandle(it.tmpName,{create:true});
+    ws=await fh.createWritable();
+    tgt=new M.StreamTarget(ws,{chunked:true,chunkSize:4*1048576});
+  }else tgt=new M.BufferTarget();
+  var fs=big?false:"in-memory";
+  var out=new M.Output({format:mov?new M.MovOutputFormat({fastStart:fs}):new M.Mp4OutputFormat({fastStart:fs}),target:tgt});
   var conv=await M.Conversion.init({input:vInput(M,it.file),output:out,showWarnings:false,
     video:{codec:v.codec,quality:new M.Quality({bitrate:pl.b,bitrateMode:"variable"}),forceTranscode:true},
     audio:v.aac?{codec:"aac",quality:new M.Quality({bitrate:AAC}),forceTranscode:true}:{}});
   if(!conv.isValid)throw new Error("invalid");
   conv.onProgress=function(x){onPct(Math.min(99,Math.round(x*100)))};
-  await conv.execute();
+  try{await conv.execute()}
+  catch(e){if(ws)try{await ws.abort()}catch(x){}throw e}
+  if(big){try{await ws.close()}catch(e){}return fh.getFile()}
   return new Blob([tgt.buffer],{type:mov?"video/quicktime":"video/mp4"});
 }
 var CODEC_NAME={hevc:"HEVC",avc:"H.264",vp9:"VP9",av1:"AV1"};
@@ -1038,6 +1082,7 @@ async function goVideo(){
   render();
   for(var i=0;i<items.length;i++){
     var it=items[i];if(it.status!=="wait"||!it.plan)continue;
+    if(isBig(it)&&!await canDisk(it.plan.bytes)){it.status="same";it.note="tooBig";render();continue}
     it.status="work";it.pct=0;render();squashSound();
     try{
       var last=-1;
@@ -1045,8 +1090,8 @@ async function goVideo(){
       if(blob.size<it.size*.9){
         it.out=blob;it.status="done";
         var nn=vidExt(it.name);if(nn!==it.name){it.rel=it.rel.slice(0,it.rel.length-it.name.length)+nn;it.name=nn;it.handle=null}
-      }else{it.status="same";it.note="noGainV"}
-    }catch(e){it.status="err";it.note="unreadable"}
+      }else{it.status="same";it.note="noGainV";await dropTmp(it)}
+    }catch(e){it.status="err";it.note="unreadable";await dropTmp(it)}
     render();
   }
   if(lock)try{lock.release()}catch(e){}
@@ -1077,10 +1122,20 @@ async function saveBlob(filename,blob){
       if(e&&e.name==="AbortError"){say(t("cancelled"));return false}
     }
   }
+  saveDownload(filename,blob);
+  return true;
+}
+/* download semplice; per i file su disco l'indirizzo resta valido un minuto, il tempo di leggerli */
+function saveDownload(filename,blob){
   var a=document.createElement("a"),u=URL.createObjectURL(blob);
   a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();
-  setTimeout(function(){URL.revokeObjectURL(u)},4000);
-  return true;
+  setTimeout(function(){URL.revokeObjectURL(u)},60000);
+}
+/* senza cartelle scrivibili, i video pronti oltre la soglia sicura si scaricano uno alla volta */
+function oneByOne(list){
+  if(mode!=="video")return false;
+  var tot=0;(list||doneItems().map(function(it){return {blob:it.out}})).forEach(function(j){tot+=j.blob.size});
+  return tot>SAFE;
 }
 
 /* finestra di dialogo: restituisce il valore del pulsante scelto, null se annullata (anche con Esc) */
@@ -1136,7 +1191,7 @@ async function okToReplace(hits){
 }
 
 /* salvataggio riuscito: l'app torna come appena aperta, con l'elenco vuoto, e resta solo il messaggio di conferma */
-function finish(msg){reset();render();say(msg);music.festa()}
+function finish(msg){reset();tmpClean(90000);render();say(msg);music.festa()}
 
 /* un solo file: salva con nome */
 $("saveAs").addEventListener("click",async function(){
@@ -1153,6 +1208,14 @@ $("saveElse").addEventListener("click",async function(){
       buttons:[{label:t("keepYes"),cls:"ok",value:"all"},{label:t("keepNo"),value:"done"}]});
     if(a===null)return;
     if(a==="all")plain.forEach(function(it){list.push({rel:it.rel,blob:it.file})});
+  }
+  if(!canDir&&oneByOne(list)){
+    /* video grandi: uno ZIP finirebbe tutto in memoria, quindi un download per file (R-VID-18) */
+    for(var k=0;k<list.length;k++){
+      saveDownload(list[k].rel.replace(/\//g,"_"),list[k].blob);
+      await new Promise(function(r){setTimeout(r,800)});
+    }
+    finish(t("savedEach",{n:nf(list.length)}));return;
   }
   if(!canDir){
     if(!window.JSZip){say(t("zipMissing"),true);return}
@@ -1719,6 +1782,9 @@ sel.addEventListener("change",function(){
   say("");applyLang();
 });
 lang=pickLang();sel.value=lang;
+/* la cartella privata dei video grandi non sopravvive a una sessione (R-VID-16) */
+if(navigator.storage&&navigator.storage.getDirectory)clearTmp();
+window.addEventListener("pagehide",function(){if(!busy&&Date.now()>tmpHold)clearTmp()});
 /* modalità iniziale: dal link (#jpg o #pdf), altrimenti l'ultima usata */
 var firstMode=null,hadMode=false;
 try{firstMode=localStorage.getItem("mode");hadMode=!!firstMode}catch(e){}
