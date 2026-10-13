@@ -85,28 +85,79 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.click("#modalBtns button >> nth=0");
   const seen = await page.waitForFunction(() => navigator.mediaSession && navigator.mediaSession.playbackState === "playing" && navigator.mediaSession.metadata && /Schiaccio \d+ di 4/.test(navigator.mediaSession.metadata.title) && navigator.mediaSession.metadata.title, null, { timeout: 60000, polling: 50 }).then((h) => h.jsonValue()).catch(() => "");
   check(!!seen, `Secondo piano: durante il lavoro il riquadro del lettore mostra l'avanzamento (${seen || "assente"})`);
-  // indicatore nell'app (R-UI-10): pillola sopra l'elenco, si stacca in cima scorrendo, il tocco riporta al file in corso
-  const pill = await page.evaluate(() => !document.getElementById("prog").hidden && document.getElementById("progPill").innerText.replace(/\n/g, " "));
-  check(/\d+%.*di 4/.test(pill || ""), `Indicatore: pillola sopra l'elenco durante il lavoro (${pill || "assente"})`);
-  await page.evaluate(() => { document.body.style.paddingBottom = "3000px"; const r = document.getElementById("prog").getBoundingClientRect(); window.scrollBy(0, r.bottom + 400); });
-  const floated = await page.waitForFunction(() => document.getElementById("progPill").classList.contains("float") && document.getElementById("progPill").getBoundingClientRect().top < 40, null, { timeout: 3000 }).then(() => true).catch(() => false);
-  check(floated, "Indicatore: scorrendo si stacca e resta in cima");
-  if (floated) {
-    await page.evaluate(() => document.getElementById("progPill").click());
-    const back = await page.waitForFunction(() => { const r = document.querySelector("#rows .row.cur"); if (!r) return false; const b = r.getBoundingClientRect(); return b.top >= 0 && b.bottom <= innerHeight && r.classList.contains("hot"); }, null, { timeout: 4000 }).then(() => true).catch(() => false);
-    /* se il lavoro è finito prima del tocco non c'è più un file in corso: la prova non si può fare, non è un errore */
-    const over = !back && await page.evaluate(() => !document.getElementById("press").classList.contains("busy"));
-    check(back || over, `Indicatore: toccandola torna al file in corso, evidenziato${over ? " (lavoro finito prima del tocco, prova saltata)" : ""}`);
-  }
+  // schermata di lavoro (R-APP-10): pressa, Caramella e pulsanti; «Schiaccia subito» solo durante l'analisi
+  const wk = await page.evaluate(() => { const w = document.getElementById("work"); return !w.hidden && !document.getElementById("opSq").hidden && document.getElementById("opAn").hidden && document.getElementById("workNow").hidden && document.getElementById("pillSq").innerText.replace(/\n/g, " "); });
+  check(/\d+%.*di 4/.test(wk || ""), `Lavoro: schermata con la pressa e la Caramella durante la compressione (${wk || "assente"})`);
+  check(await page.evaluate(() => { const b = [...document.querySelectorAll("#workActs .btn")].filter((x) => !x.hidden); return b.length === 2 && Math.abs(b[0].offsetWidth - b[1].offsetWidth) < 2 && b[1].classList.contains("danger"); }), "Lavoro: «Metti in pausa» e «Annulla» (rosso) larghi uguale");
   await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy"), null, { timeout: 120000 });
   check(await page.evaluate(() => localStorage.getItem("bg") === "1" && navigator.mediaSession.playbackState === "none"), "Secondo piano: risposta ricordata, audio spento a lavoro finito");
-  check(await page.evaluate(() => document.getElementById("prog").hidden && !document.getElementById("progPill").classList.contains("float")), "Indicatore: a lavoro finito sparisce");
+  check(await page.evaluate(() => document.getElementById("work").hidden && !document.getElementById("app").inert), "Lavoro: a lavoro finito la schermata sparisce");
   check(await page.evaluate(() => !document.getElementById("bgRow").hidden && /continuo/.test(document.getElementById("bgState").textContent)), "Secondo piano: la riga in fondo dice cosa succede fuori dall'app");
   await page.evaluate(() => document.getElementById("bgChange").click());
   check(await page.waitForSelector("#modal:not([hidden])", { timeout: 3000 }).then(() => true, () => false), "Secondo piano: «Cambia» ripropone la domanda");
   await page.click("#modalBtns button >> nth=1");
   check(await page.waitForFunction(() => /mi fermo/.test(document.getElementById("bgState").textContent), null, { timeout: 4000 }).then(() => true, () => false), "Secondo piano: rispondendo «No» la riga si aggiorna");
   check(errors.length === 0, `Secondo piano: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
+// --- pausa e ripresa (R-APP-10…13): pausa durante la compressione, lavoro ritrovato all'avvio, ripresa con gli stessi file, annulla
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(() => { for (const k of ["showOpenFilePicker", "showSaveFilePicker", "showDirectoryPicker"]) Object.defineProperty(window, k, { value: undefined }); });
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url + "?workers=1#jpg");
+  const b64 = await page.evaluate(async () => {
+    const out = [];
+    for (let k = 0; k < 6; k++) {
+      const c = document.createElement("canvas"); c.width = 3000; c.height = 2000; const g = c.getContext("2d"), d = g.createImageData(3000, 2000);
+      for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = v; d.data[i + 1] = 255 - v; d.data[i + 2] = v / 2; d.data[i + 3] = 255; }
+      g.putImageData(d, 0, 0);
+      const bl = await new Promise((r) => c.toBlob(r, "image/jpeg", .95));
+      out.push(await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(bl); }));
+    }
+    return out;
+  });
+  const load = () => page.evaluate(async (b64) => {
+    const dt = new DataTransfer();
+    for (let k = 0; k < b64.length; k++) { const bl = await (await fetch(b64[k])).blob(); dt.items.add(new File([bl], `p${k}.jpg`, { type: "image/jpeg", lastModified: 1700000000000 + k })); }
+    const input = document.getElementById("pickFiles"); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true }));
+  }, b64);
+  await load(); await page.waitForTimeout(300);
+  await page.click("#go");
+  await page.waitForFunction(() => !document.getElementById("work").hidden && document.querySelector("#rows .badge:not(.wait):not(.work)"), null, { timeout: 120000 }).catch(() => {});
+  const doneBefore = await page.evaluate(() => [...document.querySelectorAll("#rows .row")].filter((r) => /−\d/.test(r.innerText)).length);
+  await page.click("#workPause");
+  await page.waitForFunction(() => document.getElementById("work").hidden && !document.querySelector("#rows .row:not(.demo)"), null, { timeout: 60000 });
+  check(/In pausa/.test(await page.innerText("#msg")), `Pausa: «Metti in pausa» ferma e svuota (${await page.innerText("#msg")})`);
+  await page.reload(); await page.waitForTimeout(1500);
+  const jt = await page.isVisible("#modal") && await page.innerText("#modalTitle");
+  check(/lavori in pausa/.test(jt || ""), "Pausa: all'avvio la finestra elenca i lavori in pausa");
+  const paused = +(((await page.innerText("#modalBody")).match(/(\d+) di 6 schiacciati/) || [])[1] || -1);
+  check(paused >= doneBefore, `Pausa: il lavoro dice a che punto era (${(await page.innerText("#modalBody")).split("\n").slice(-3).join(" ")})`);
+  await page.click("#modalBody .jgo");
+  check(/scegli di nuovo/.test(await page.innerText("#msg")) && await page.evaluate(() => document.body.classList.contains("mode-jpg")), "Pausa: «Riprendi» riporta la modalità e chiede di riscegliere i file");
+  await load(); await page.waitForTimeout(800);
+  const msg = await page.innerText("#msg");
+  const restored = await page.evaluate(() => [...document.querySelectorAll("#rows .row")].filter((r) => /−\d/.test(r.innerText)).length);
+  check(/Ripreso/.test(msg) && /ritrovati 6/.test(msg) && restored === paused, `Pausa: ripresa con i file già schiacciati (${msg} · pronti ${restored} come nel lavoro in pausa)`);
+  await page.click("#go");
+  await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && !document.getElementById("total").hidden, null, { timeout: 180000 });
+  check(/6 su 6/.test(await page.innerText("#msg")), `Pausa: dopo la ripresa il lavoro si completa senza rifare i pronti (${await page.innerText("#msg")})`);
+  // annulla con file pronti: chiede conferma e svuota
+  await page.evaluate(() => document.getElementById("side1280").click());
+  await page.click("#go");
+  await page.waitForFunction(() => !document.getElementById("work").hidden, null, { timeout: 30000 });
+  await page.click("#workCancel");
+  const asked = await page.waitForSelector("#modal:not([hidden])", { timeout: 3000 }).then(() => true, () => false);
+  if (asked) await page.click("#modalBtns .danger");
+  await page.waitForFunction(() => document.getElementById("work").hidden && !document.querySelector("#rows .row:not(.demo)"), null, { timeout: 60000 });
+  check(/annullato/.test(await page.innerText("#msg")), `Annulla: ferma e svuota${asked ? " dopo la conferma" : ""} (${await page.innerText("#msg")})`);
+  await page.reload(); await page.waitForTimeout(1500);
+  check(!(await page.isVisible("#modal")), "Pausa: dopo il salvataggio o l'annullamento il lavoro non resta tra quelli in pausa");
+  check(errors.length === 0, `Pausa e ripresa: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
 // --- titolo: stessa grandezza nelle tre modalità, versione sulla stessa riga anche a 360 px (R-UI-04/06)
@@ -236,7 +287,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.click("#modeBtn");
   await page.waitForSelector("#modal:not([hidden])");
   check(/Cambi modalità/.test(await page.innerText("#modalTitle")), "Video: con un file pronto, cambiare modalità chiede conferma");
-  await page.click("#modalBtns button >> nth=1");
+  await page.click("#modalBtns button.alt");
   check(await page.evaluate(() => document.body.classList.contains("mode-video") && document.querySelectorAll("#rows .row:not(.demo)").length === 1), "Video: annullando si resta in modalità video con il file pronto");
   const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#saveAs")]);
   const { readFile: read } = await import("node:fs/promises");

@@ -92,8 +92,12 @@ export function mascot({ icon = false, hand = false, gear = false, holo = "" } =
 export const pageSvg = () =>
   `<svg viewBox="70 48 400 404" xmlns="http://www.w3.org/2000/svg">${mascot({ gear: true, holo: "p" })}</svg>`;
 
-// Scena del loader: la mascotte prende i fogli da uno schedario.
-export function loaderSvg() {
+// Pressa della schermata di lavoro (R-APP-10): la mascotte della testata senza accessori di Cattura.
+export const workPressSvg = () =>
+  `<svg viewBox="70 48 400 404" xmlns="http://www.w3.org/2000/svg">${mascot({ holo: "q" })}</svg>`;
+
+// Scena del loader: la mascotte prende i fogli da uno schedario (pre: prefisso degli id, "w" nella schermata di lavoro).
+export function loaderSvg(pre = "l") {
   /* oggetti che volano, uno per modalità (R-UI-08): foglio (PDF), Polaroid (JPG), ciak (video). La pagina mostra quello giusto. */
   const items = {
     pdf: `<rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="${INK}" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/>`,
@@ -110,7 +114,7 @@ export function loaderSvg() {
     `<rect x="30" y="96" width="160" height="184" rx="14" fill="#cdb8ff"/>${drawer(156)}${drawer(216)}` +
     `<g class="drawer"><path d="M48 70h124l10 22H38z" fill="#fff"/><path d="M60 70v-8h34v8M104 70v-12h34v12" fill="#fff6a8"/>` +
     `<rect x="26" y="92" width="168" height="54" rx="10" fill="#e3d6ff"/><rect x="92" y="112" width="36" height="14" rx="7" fill="#fff"/></g></g>` +
-    `<g transform="translate(250 50) scale(.52)">${mascot({ hand: true, holo: "l" })}</g>` +
+    `<g transform="translate(250 50) scale(.52)">${mascot({ hand: true, holo: pre })}</g>` +
     sheet("f1") + sheet("f2") + sheet("f3") + `</svg>`;
 }
 
