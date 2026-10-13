@@ -76,7 +76,11 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-SCN-19 Aspetto scelto dal proprietario tra tre proposte. Telefono e finestre strette (proposta A): tre passi 1 · Scatta (pulsante grande e «Dalla galleria»), 2 · Sistema (stile per tutte, striscia di miniature con «+», strumenti della pagina selezionata: ruota, bordi, rifai, ‹ ›, elimina, stile di questa pagina), 3 · Salva. Computer, da 760 px di larghezza (proposta B): griglia di schede, ognuna con i suoi pulsanti e lo stile, spostabili trascinandole, e barra fissa in basso con Scatta, Galleria e Salva.
 - R-SCN-17 Stile (Documento, Bianco e nero, Colore; «Foto» diventa «Colore») scelto una volta per tutte le pagine; ogni pagina può poi averne uno suo.
 - R-SCN-18 Passare da Cattura a Schiaccia (e viceversa) con pagine o file non salvati chiede conferma, come il cambio di modalità (R-MOD-06).
-- Quando Cattura sarà pronta, R-SCN-05, R-SCN-06, R-SCN-12 e R-SCN-13 verranno riscritti di conseguenza (la domanda «un'altra pagina?» e le scansioni nell'elenco della compressione spariscono).
+- R-SCN-20 Orientamento automatico: ogni pagina viene girata da sola (0°, 90°, 180°, 270°) perché il testo si legga dritto nella direzione della sua lingua. Lo decide Tesseract (riconoscimento di orientamento e alfabeto, sul dispositivo); si gira solo se è sicuro, altrimenti resta com'è. «Ruota» si aggiunge sopra.
+- R-SCN-21 Raddrizzamento fine del testo: dopo l'orientamento, le righe di testo vengono raddrizzate (fino a ±10°); gli angoli che restano scoperti si riempiono di bianco. Senza testo riconoscibile non si tocca nulla.
+- R-SCN-22 Tesseract (circa 9 MB) si scarica solo la prima volta che serve, con un messaggio che lo dice, e poi resta disponibile anche senza rete. Se non si può scaricare, le pagine si fanno lo stesso, senza orientamento automatico.
+- R-SCN-23 Calamita dei bordi: nell'editor, quando si lascia un angolo vicino al bordo vero del foglio, l'angolo si aggancia al punto in cui si incontrano i due bordi; le maniglie dei lati lo seguono.
+- R-SCN-24 Controllo dopo il raddrizzamento: se nella pagina raddrizzata un bordo del foglio resta visibile storto o curvo (si vede lo sfondo), angoli e maniglie dei lati vengono corretti da soli e la pagina si rifà una volta.
 
 ## LST · Elenco
 - R-LST-01 Ogni scheda: nome, dimensioni prima e dopo, percentuale, stato.

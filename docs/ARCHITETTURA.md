@@ -73,6 +73,14 @@ Sezione `cattura` in `index.html`, dopo `makePage` e `scanFileName`.
 - Pagine: `scanFile` (fotocamera → `editCorners` → `capBuild`); `capTarget` indica la pagina da rifare (anche dal «Rifai» dell'editor). `galleryFiles` (input `#galInput` multiplo): bordi da `detectPage` o rettangolo rientrato, senza editor. `capBuild(p)` = `makePage` con lo stile della pagina + `rotBlob` per la rotazione; `capRebuild(list)` con la schermata `scan`. Lo stile generale si sceglie con `capSetStyle` (rifà le pagine senza stile proprio); quello della pagina con `pageStyle`. Nell'editor la scelta dello stile è nascosta (`#scanStyle`).
 - Salvataggio `capSave()`: PDF con pdf-lib (lato lungo 842 pt) e `saveBlob`; JPG una pagina con `saveBlob`, più pagine in una cartella (`showDirectoryPicker`, nomi `scansione-…-1.jpg`) o in uno ZIP. `capDone()` svuota la schermata.
 
+## Bordi, orientamento e raddrizzamento del testo (SCN-20…24), piano
+- `paperMap(work)`: punteggio carta/sfondo (come `detectPage`) a 900 px, con la soglia di Otsu abbassata; in cache per ogni `work`.
+- Calamita (SCN-23): all'uscita da un trascinamento d'angolo in `editCorners`, `snapCorner` cerca lungo i due lati vicini il passaggio carta/sfondo, adatta due rette e prende la loro intersezione se è vicina.
+- Controllo (SCN-24): `refineQuad` in `capBuild`, una volta per pagina e dopo ogni «Bordi»: per ogni lato, lungo la normale, cerca dove lo sfondo entra nella pagina; se su almeno 6 punti su 9 lo trova, adatta una retta (e la curvatura al centro) e sposta il lato solo verso l'interno.
+- Orientamento (SCN-20/22): `ocrWorker()` carica `vendor/tesseract/` (tesseract.js 7, core SIMD con modello «legacy», `osd.traineddata.gz`) solo al primo uso; `worker.detect()` dà `orientation_degrees` (rotazione oraria da applicare) e la fiducia; si applica sopra una soglia.
+- Raddrizzamento fine (SCN-21): `findSkew` prova angoli tra −10° e +10° sul profilo orizzontale dei pixel scuri e tiene quello con il profilo più nitido.
+- `capBuild`: `refineQuad` → `pageCanvas` (warp + stile) → `autoOrient` (in cache in `p.auto`, rifatto solo cambiando i bordi) → una sola rotazione (quarti di giro automatici + «Ruota» + inclinazione) con fondo bianco → JPEG.
+
 ## Scansione (SCN)
 1. «Scatta» in Cattura apre `<input id="camInput" capture="environment">`: fotocamera di sistema, nessun permesso.
 2. `workFrom` riduce la foto a 3000 px (`work`).
