@@ -459,7 +459,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(true, "Cattura: tornare a Schiaccia con pagine non salvate chiede conferma");
   await page.click("#modalBtns button >> nth=0");
   check(await page.evaluate(() => !document.body.classList.contains("act-cap") && getComputedStyle(document.getElementById("go")).display !== "none"), "Cattura: confermando si torna a Schiaccia");
-  await page.click("#modeBtn"); await page.click("#modeBtn");
+  for (let k = 0; k < 4 && !(await page.evaluate(() => document.body.classList.contains("mode-video"))); k++) { await page.click("#modeBtn"); await page.waitForTimeout(150); }
   await page.click("#actBtn", { force: true });
   check(await page.evaluate(() => document.body.classList.contains("mode-video") && !document.body.classList.contains("act-cap")), "Cattura: in modalità video il verbo non cambia");
   check(errors.length === 0, `Cattura: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
