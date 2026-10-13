@@ -301,8 +301,16 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .lvls.four b{font-size:18px;white-space:nowrap}
 .optLbl{font-weight:700;margin:0 0 8px}
 .optLbl+.lvls{margin-bottom:16px}
-.check{display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
-.check input{width:22px;height:22px;accent-color:var(--acc-s);flex:none}
+/* caselle «quadratone col segno» (R-UI-11): la casella vera è invisibile, il quadrato .bx la disegna */
+.check{display:flex;align-items:center;gap:12px;font-weight:700;cursor:pointer;position:relative}
+.check input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.check .bx{flex:none;width:30px;height:30px;box-sizing:border-box;border-radius:9px;border:3px solid var(--ink);background:#fff;box-shadow:3px 3px 0 var(--ink);display:grid;place-items:center;transform:rotate(-4deg);transition:background .15s}
+.check .bx svg{width:20px;height:20px;opacity:0;transition:opacity .15s}
+.check input:checked+.bx{background:var(--acc-s)}
+.check input:checked+.bx svg{opacity:1}
+.check input:focus-visible+.bx{outline:4px solid var(--acc-s);outline-offset:3px}
+.mode-all .check input:checked+.bx{background:var(--holo-marea);background-size:400% 400%}
+#optsJpg .check,#optsVid .check{margin-top:20px}
 @media (max-width:520px){.lvls{grid-template-columns:1fr}.lvls.four{grid-template-columns:repeat(2,1fr)}}
 
 /* pila */
@@ -353,6 +361,8 @@ details p{margin:8px 0 0;max-width:65ch}
 .ind.bump .ring{animation:indBump .45s}
 @keyframes indBump{50%{transform:scale(1.2) rotate(-12deg)}}
 .row.hot{outline:4px dashed var(--acc-s);outline-offset:3px}
+.ind .sv{margin-inline-start:auto;flex:none;font:400 18px/1 var(--display);background:var(--acc);color:var(--ink);border:3px solid var(--ink);border-radius:999px;padding:6px 10px;transform:rotate(3deg);box-shadow:2px 2px 0 var(--ink)}
+.mode-all .ind .sv{background:var(--holo-marea);background-size:400% 400%;animation:holoA 8s ease-in-out infinite alternate}
 @media (prefers-reduced-motion:reduce){.drum,.m-skin,.press .m-glasses,.press .m-camera,.press .m-flash{transition:none}.act-cap.snap .press .m-flash{animation:none}.roll.wiggle .drum{animation:none}.loader .pg,.loader .beam,.loader .beamLine,.loader .tw,.press.busy .p-head,.press.busy .p-sheets,.press .p-spark,.loader .p-head,.loader .p-hand,.loader .drawer,.loader .p-spark{animation:none}.loader .fly{animation-duration:3s}.btn,.tray{transition:none}.mode-all .tag,.mode-all .btn,.mode-all .lvl span,.mode-all .tag::before,.mode-all .btn::before,.mode-all .lvl span::before,.mode-all h1 .f-all{animation:none!important}.ind,.ind.float,.ind .ring,.ind .ring::after{animation:none}}
 </style>
 </head>
@@ -452,7 +462,7 @@ details p{margin:8px 0 0;max-width:65ch}
 
   <section class="panel squash">
     <div class="tag" data-i18n="s3">3 · Salva</div>
-    <div class="prog" id="prog" hidden><button class="ind" type="button" id="progPill" aria-label="Vai al file in corso" data-i18n-aria="indGo"><span class="ring" aria-hidden="true"></span><span class="txt"><b id="progPct"></b> <small id="progPos"></small><br><small id="progLeft"></small></span></button></div>
+    <div class="prog" id="prog" hidden><button class="ind" type="button" id="progPill" aria-label="Vai al file in corso" data-i18n-aria="indGo"><span class="ring" aria-hidden="true"></span><span class="txt"><b id="progPct"></b> <small id="progPos"></small><br><small id="progLeft"></small></span><span class="sv" id="progSave" hidden></span></button></div>
     <ul class="rows" id="rows">
       <li class="row demo" id="demo">
         <div class="name" data-i18n="demoName">vacanze-sardegna.pdf</div>
@@ -579,6 +589,7 @@ function applyLang(){
 function say(txt,bad){var m=act==="capture"?$("capMsg"):msgEl;m.textContent=txt||"";m.className=(m===msgEl?"":"capMsg ")+(bad?"bad":"")}
 function fmt(n){
   if(n<1024*1024)return nf(Math.max(1,Math.round(n/1024)))+" KB";
+  if(n>=1073741824)return nf(n/1073741824,{minimumFractionDigits:1,maximumFractionDigits:1})+" GB";
   return nf(n/1048576,{minimumFractionDigits:1,maximumFractionDigits:1})+" MB";
 }
 var EXT={pdf:/\.pdf$/i,jpg:/\.jpe?g$/i,video:/\.(mp4|m4v|mov|webm|mkv)$/i,all:/\.(pdf|jpe?g|mp4|m4v|mov|webm|mkv)$/i};
@@ -1445,6 +1456,9 @@ async function videoLoop(){
   }
 }
 
+/* quadrato disegnato delle caselle (R-UI-11) */
+function checkBx(){var b=el("span","bx");b.setAttribute("aria-hidden","true");b.innerHTML='<svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';return b}
+each(".check input",function(c){if(!c.nextElementSibling||!c.nextElementSibling.classList.contains("bx"))c.after(checkBx())});
 /* salva man mano (R-VID-22): il video appena finito va subito accanto all'originale o, senza cartella scrivibile, nei download */
 var saveNowBox=$("saveNow");
 try{saveNowBox.checked=localStorage.getItem("saveNow")==="1"}catch(e){}
@@ -2546,7 +2560,7 @@ function saveLabel(){return t(mode==="pdf"?"capSavePdf":"capSaveJpg")}
 function ocrBox(){
   var l=el("label","check"),c=document.createElement("input");c.type="checkbox";c.id="ocrText";c.checked=ocrOn();
   c.addEventListener("change",function(){try{localStorage.setItem("ocrText",c.checked?"1":"0")}catch(e){}});
-  l.appendChild(c);l.appendChild(el("span",null,t("ocrText")));return l;
+  l.appendChild(c);l.appendChild(checkBx());l.appendChild(el("span",null,t("ocrText")));return l;
 }
 function shortStyle(s){for(var i=0;i<STYLES.length;i++)if(STYLES[i][0]===s)return t(STYLES[i][1]);return ""}
 function capRender(){
@@ -3137,6 +3151,23 @@ function bgText(){
   var f=progFrac(c.kind);
   return t(c.kind==="work"?"bgWork":"bgProbe",{i:nf(c.i),n:nf(c.n),pct:nf(Math.round(f*100))})+progEta(c.kind,f);
 }
+/* risparmio stimato (R-UI-10): vero per i finiti, dalla stima per i video analizzati, dalla media del tipo per gli altri */
+function progSaving(){
+  var known={},sum=0,unk=[];
+  items.forEach(function(x){
+    if(x.scan)return;
+    var k=x.kind||mode,s=x.size||0,sv=null;
+    if(x.status==="done"&&x.out)sv=s-x.out.size;
+    else if(x.status==="kept")sv=s-(x.outSize||s);
+    else if(x.plan&&(x.status==="wait"||x.status==="work"))sv=s-x.plan.bytes;
+    else if(x.status==="same"||x.status==="err"||x.status==="over")sv=0;
+    if(sv===null){unk.push(x);return}
+    sv=Math.max(0,sv);sum+=sv;
+    var K=known[k]||(known[k]={s:0,v:0});K.s+=s;K.v+=sv;
+  });
+  unk.forEach(function(x){var K=known[x.kind||mode];if(K&&K.s)sum+=(x.size||0)*K.v/K.s});
+  return sum;
+}
 /* indicatore nell'app (R-UI-10): pillola sopra l'elenco che si stacca in cima quando la sezione esce dallo schermo */
 var progBox=$("prog"),progPill=$("progPill"),progSeen=-1,hotUntil=0;
 function progShow(){
@@ -3149,6 +3180,8 @@ function progShow(){
   $("progPct").textContent=nf(Math.round(f*100))+"%";
   $("progPos").textContent="· "+t(c.kind==="work"?"indPos":"indProbe",{i:nf(c.i),n:nf(c.n)});
   $("progLeft").textContent=l?t("indLeft",{t:l}):t("indCalc");
+  var sv=progSaving(),se=$("progSave");se.hidden=sv<1048576;
+  if(!se.hidden){se.textContent="−"+fmt(sv);se.title=t("indSave");}
   if(P)items.forEach(function(x){if(P.ids[x.id]&&x.status!=="wait"&&x.status!=="work"&&x.status!=="probe")ended++});
   if(progSeen>=0&&ended>progSeen&&!calm){progPill.classList.remove("bump");void progPill.offsetWidth;progPill.classList.add("bump")}
   progSeen=ended;

@@ -332,7 +332,8 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(probes === 0 && again === first, `Video: riaprendo lo stesso video la stima arriva dalla memoria, senza rianalizzare (${again})`);
   check(/: 1/.test(await page.innerText("#vMem")), `Video: si vede quante analisi sono salvate (${await page.innerText("#vMem")})`);
   // salva man mano (R-VID-22): il video finito si scarica subito, diventa «Salvato» e alla riapertura viene saltato
-  await page.check("#saveNow");
+  await page.click('label[for="saveNow"] .bx');
+  check(await page.isChecked("#saveNow"), "Casella: toccando il quadrato si accende");
   const dl = page.waitForEvent("download", { timeout: 120000 }).catch(() => null);
   await page.click("#go");
   const d1 = await dl;
@@ -345,7 +346,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await load();
   await page.waitForFunction(() => /già schiacciato e salvato/.test(document.getElementById("rows").innerText), null, { timeout: 20000 }).catch(() => {});
   check(/già schiacciato e salvato/.test(await page.innerText("#rows")), `Video: riaprendo dopo un'interruzione il video già salvato si salta (${(await page.innerText("#rows")).replace(/\n/g, " / ")})`);
-  await page.uncheck("#saveNow");
+  await page.uncheck("#saveNow", { force: true });
   await page.click("#vForget");
   check(await page.waitForFunction(() => document.getElementById("vForget").hidden, null, { timeout: 5000 }).then(() => true, () => false), "Video: «Dimentica le analisi salvate» le cancella");
   check(errors.length === 0, `Memoria delle analisi: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
