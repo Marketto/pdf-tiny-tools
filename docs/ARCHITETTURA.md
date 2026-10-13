@@ -39,7 +39,7 @@ Fuori dallo script principale: registrazione del service worker in fondo a `inde
 
 ## Testi e modalità
 - `t(k)`: in modalità JPG usa la chiave `kJ` se esiste, altrimenti sostituisce «PDF» con «JPG».
-- Il rullo è un `<button id="modeBtn">` costruito da `showTitle()` al posto di `<span>PDF</span>` della chiave `h1`; due facce 3D, ruotate dalla classe `mode-jpg` su `<body>`, che cambia anche `--grape` e il colore `.m-skin` della mascotte.
+- Il rullo è un `<button id="modeBtn">` costruito da `showTitle()` al posto di `<span>PDF</span>` della chiave `h1`; due facce 3D, ruotate dalla classe `mode-jpg` su `<body>`, che cambia anche il colore `.m-skin` della mascotte e i tre toni d'accento (UI-05): `--acc-l` (chiaro: badge), `--acc` (pelle: pulsanti, etichette, conferme), `--acc-s` (intenso: «Schiaccia!», livello scelto, barra, contorni di fuoco). Definiti su `:root` per il PDF e ridefiniti in `.mode-jpg`; `--tomato` solo per errori e sovrascrittura.
 
 ## PDF (CMP)
 `squeezePdf` apre con pdf-lib, prende i flussi `/Subtype /Image` (escluse le `SMask`), `squeezeImage` decodifica (JPEG col browser, Flate con `DecompressionStream` + filtro PNG), riduce, ricodifica JPEG, sostituisce solo se < 90%. Intoccati: CMYK, Indexed, `Decode`, `Mask`, JBIG2, JPX, CCITT. Forze in `PRESETS`: qualità 0,82/0,68/0,50, lato 2400/1700/1200.
