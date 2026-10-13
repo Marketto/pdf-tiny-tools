@@ -243,6 +243,8 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(await icons() === "i-cam", `Cattura: in Schiaccia il pulsante mostra solo la fotocamera (${await icons()})`);
   await page.click("#camBtn");
   check(await icons() === "i-squash", `Cattura: in Cattura mostra solo l'icona della compressione (${await icons()})`);
+  await page.waitForTimeout(700);
+  check(await page.evaluate(() => [".m-glasses", ".m-camera", ".m-flash"].every((c) => getComputedStyle(document.querySelector("#press " + c)).opacity === "1") && getComputedStyle(document.querySelector("#press .p-spark")).visibility === "hidden"), "Cattura: la mascotte mette occhiali, fotocamera e flash");
   check(await page.evaluate(() => document.body.classList.contains("act-cap") && getComputedStyle(document.getElementById("go")).display === "none" && !!document.querySelector("#capture .capBig")), "Cattura: la fotocamera apre la schermata Cattura (passi 1-2-3 al telefono)");
   check(/Cattura/.test(await page.innerText("#title")), `Cattura: il verbo del titolo cambia (${(await page.innerText("#title")).replace(/\s+/g, " ")})`);
   await shot(() => page.click("#capture .capBig .btn.go"));

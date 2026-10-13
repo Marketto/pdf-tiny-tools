@@ -24,9 +24,23 @@ export const face = (blink = true) =>
   `<ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/></g>` +
   `<path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="${INK}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`;
 
+// Accessori di Cattura (R-UI-07, proposta E): occhialoni (dentro la testa, così la seguono), macchina fotografica
+// davanti ai fogli e flash al posto della scintilla. Nascono invisibili: li mostra la classe act-cap su <body>.
+const glasses = () =>
+  `<g class="m-glasses"><g fill="#fff" fill-opacity=".22" stroke="${INK}" stroke-width="9"><circle cx="198" cy="224" r="50"/><circle cx="314" cy="224" r="50"/></g>` +
+  `<path d="M248 218q8 -8 16 0M148 214l-22 -8M364 214l22 -8" fill="none" stroke="${INK}" stroke-width="9" stroke-linecap="round"/>` +
+  `<path d="M176 196l22 -14M292 196l22 -14" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".8"/></g>`;
+const camera = () =>
+  `<g class="m-camera"><g stroke="${INK}" stroke-width="10" stroke-linejoin="round"><rect x="214" y="304" width="44" height="24" rx="8" fill="#cdb8ff"/>` +
+  `<rect x="186" y="318" width="140" height="88" rx="22" fill="#e3d6ff"/><circle cx="256" cy="362" r="30" fill="${INK}"/></g>` +
+  `<circle cx="256" cy="362" r="16" fill="#8f6bd9"/><circle cx="248" cy="354" r="6" fill="#fff"/><circle cx="302" cy="336" r="7" fill="#ff7fa3" stroke="${INK}" stroke-width="5"/></g>`;
+const flash = () =>
+  `<g class="m-flash"><path transform="translate(432 104) scale(1.1)" d="M0 -30l9 20l22 -6l-14 18l16 16l-22 -2l-4 22l-9 -20l-20 10l8 -21l-20 -12l23 -2z" fill="#fff36b" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/></g>`;
+
 // icon: base più stretta e niente scintilla, per stare nel ritaglio tondo di Android.
 // hand: manina che si allunga verso l'archivio (solo nel loader).
-export function mascot({ icon = false, hand = false } = {}) {
+// gear: accessori di Cattura (solo nella testata della pagina).
+export function mascot({ icon = false, hand = false, gear = false } = {}) {
   const [bx, bw] = icon ? [116, 280] : [84, 344];
   const spark = icon ? "" :
     `<path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
@@ -35,11 +49,12 @@ export function mascot({ icon = false, hand = false } = {}) {
     `<rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/>` +
     `<g class="p-sheets"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g>` +
     `<rect x="${bx}" y="392" width="${bw}" height="50" rx="25" fill="#a48cf0"/></g>` +
-    `<g class="p-head"><rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>${face(!icon)}</g>${paw}${spark}`;
+    `<g class="p-head"><rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>${face(!icon)}${gear ? glasses() : ""}</g>` +
+    `${gear ? camera() : ""}${paw}${spark}${gear ? flash() : ""}`;
 }
 
 export const pageSvg = () =>
-  `<svg viewBox="70 62 400 390" xmlns="http://www.w3.org/2000/svg">${mascot()}</svg>`;
+  `<svg viewBox="70 62 400 390" xmlns="http://www.w3.org/2000/svg">${mascot({ gear: true })}</svg>`;
 
 // Scena del loader: la mascotte prende i fogli da uno schedario.
 export function loaderSvg() {

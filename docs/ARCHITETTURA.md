@@ -21,6 +21,7 @@ Tutto il JavaScript è in `index.html`, dentro un'unica funzione, diviso da comm
 | `suoni` | `tone`, `hiss`, `sfx`, `playJingle`, `playSquash` | AUD-06 |
 | `musica` | oggetto `music` (`start`, `stop`, `setMood`, `festa`), `MOOD`, `playStep` | AUD |
 | `occhi` | `wink` | UI-01 |
+| `cattura` (mascotte) | `snapFlash` (flash a ogni foto aggiunta) | UI-07 |
 | `condivisione` | `toast`, gestore di `shareBtn` | APP-02 |
 | `installazione` | `beforeinstallprompt`, istruzioni iPhone | APP-01 |
 
@@ -30,7 +31,7 @@ Fuori dallo script principale: registrazione del service worker in fondo a `inde
 |---|---|
 | `i18n.js` | `window.I18N`: un oggetto per lingua, stesse chiavi. Regole nella skill `traduzioni`. |
 | `sw.js` | Cache offline: rete prima per pagina e testi, cache prima per `vendor/`, `icons/`, font. |
-| `tools/mascot.mjs` | Unica fonte dei disegni della mascotte; `build-icons.mjs` li inietta in `index.html` tra `<!-- mascot:page|loader|scan -->`. |
+| `tools/mascot.mjs` | Unica fonte dei disegni della mascotte; `build-icons.mjs` li inietta in `index.html` tra `<!-- mascot:page|loader|scan -->`. La testata ha anche gli accessori di Cattura (`gear`: occhiali, fotocamera, flash), nascosti fuori da Cattura (UI-07). |
 | `.github/workflows/pages.yml` | Controlla le traduzioni, copia in `_site/` i soli file dell'app, scrive versione e nome cache, pubblica. |
 | `.github/workflows/tag.yml` | Crea `v<VERSION>` quando cambia `VERSION`. |
 
