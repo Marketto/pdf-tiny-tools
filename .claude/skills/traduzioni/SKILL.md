@@ -15,11 +15,12 @@ Tutti i testi stanno in `i18n.js`, un oggetto per lingua con le stesse chiavi. L
 
 ## PDF, JPG e video
 
-L'app ha tre modalità, PDF, JPG e video, ma un solo testo per ogni chiave. In modalità JPG la funzione `t()` sostituisce da sola «PDF» con «JPG» (e «pdf» con «jpg»). Quindi:
+L'app ha quattro modalità, PDF, JPG, video e TUTTO, ma un solo testo per ogni chiave. In modalità JPG la funzione `t()` sostituisce da sola «PDF» con «JPG» (e «pdf» con «jpg»). Quindi:
 
 - scrivi sempre la sigla **«PDF» tale e quale**, staccata dalle altre parole, e costruisci la frase in modo che regga anche con «JPG» al suo posto;
 - quando la frase non regge (parla di immagini *dentro* un documento, di password, di pagine), aggiungi una seconda chiave con lo stesso nome più una `J` finale (`sub` → `subJ`): in modalità JPG vince quella. Oggi esistono `subJ`, `descJ`, `whatBodyJ` e `s2J`;
 - in modalità video «PDF» diventa la parola della chiave `vWord` della lingua (con la maiuscola se apre la frase); le varianti con la `V` finale vincono come quelle con la `J`. Oggi esistono `subV`, `descV`, `whatBodyV`, `s2V` e `demoNameV`;
+- in modalità TUTTO vince la variante con la `A` finale; ogni chiave che nomina «PDF» ne ha una (`titleA`, `descA`, `subA`, `dropA`, `pickFilesA`, `foundA`, `readyA`, `savedToA`…), che non viene mai ritoccata. Senza variante «PDF» diventa la parola della chiave `aWord` («file»). Se aggiungi una chiave con «PDF», aggiungi anche la sua `…A`. `aFace` è la parola del rullo (TUTTO), in maiuscolo come VIDEO;
 - in Cattura vince la variante con la `C` finale (e `CJ` in JPG): oggi `subC` e `subCJ`. Il titolo di Cattura è `h1C`: come `h1`, il verbo sta tutto prima o tutto dopo lo `<span>PDF</span>`, perché diventa il rullo Schiaccia ⇄ Cattura;
 - la chiave `h1` contiene `<span>PDF</span>`: quello span diventa il rullo del titolo, non toglierlo.
 

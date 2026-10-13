@@ -1,6 +1,6 @@
 # Schiaccia PDF (pdf-tiny-tools)
 
-Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini che contengono) le foto JPG (entro un lato lungo e un peso massimi) e i video (ricodifica in HEVC o H.264 con qualità misurata). Le tre modalità si scambiano dal rullo nel titolo. Il verbo del titolo è un secondo rullo, Schiaccia ⇄ Cattura: in Cattura (o dal pulsante della fotocamera), solo per PDF e JPG, fa da scanner con una schermata propria: scatto, angoli e lati proposti, raddrizzamento e pulizia della luce, pagine da sistemare, salvataggio. Nessun server, nessuna build, nessun framework: quello che c'è nel repository è quello che viene pubblicato su GitHub Pages.
+Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini che contengono) le foto JPG (entro un lato lungo e un peso massimi) e i video (ricodifica in HEVC o H.264 con qualità misurata). Le modalità si scambiano dal rullo nel titolo; la quarta, TUTTO, prende insieme PDF, foto e video di una cartella. Il verbo del titolo è un secondo rullo, Schiaccia ⇄ Cattura: in Cattura (o dal pulsante della fotocamera), solo per PDF e JPG, fa da scanner con una schermata propria: scatto, angoli e lati proposti, raddrizzamento e pulizia della luce, pagine da sistemare, salvataggio. Nessun server, nessuna build, nessun framework: quello che c'è nel repository è quello che viene pubblicato su GitHub Pages.
 
 ## Mappa
 
@@ -20,7 +20,7 @@ Cosa deve fare l'app: `docs/REQUISITI.md` (voci con codice `R-AREA-nn`). Come è
 
 ## Come cercare, spendendo poco
 
-1. Requisito: `grep -n "R-SCN" docs/REQUISITI.md` (aree: PRI MOD CAR CMP JPG VID SCN LST SAV UI AUD I18N APP REL DOC).
+1. Requisito: `grep -n "R-SCN" docs/REQUISITI.md` (aree: PRI MOD CAR CMP JPG VID TUT SCN LST SAV UI AUD I18N APP REL DOC).
 2. Dove sta nel codice: tabella «Mappa del codice» in `docs/ARCHITETTURA.md`, poi `grep -n -- "---------- scansione" index.html` e leggi solo quella sezione.
 3. Testi: `grep -n "chiave:" i18n.js | head -13` (una riga per lingua).
 4. Non leggere `vendor/` né le parti SVG generate tra `<!-- mascot:… -->`.

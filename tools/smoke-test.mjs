@@ -109,13 +109,13 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
   await page.goto(url);
   const sizes = [], rows = [];
-  for (let k = 0; k < 3; k++) {
+  for (let k = 0; k < 4; k++) {
     await page.waitForTimeout(700);
     sizes.push(await page.evaluate(() => getComputedStyle(document.getElementById("title")).fontSize));
     rows.push(await page.evaluate(() => { const a = document.getElementById("title").getBoundingClientRect(), v = document.getElementById("ver").getBoundingClientRect(); return v.top < a.bottom && v.bottom > a.top && a.height < parseFloat(getComputedStyle(document.getElementById("title")).fontSize) * 1.5; }));
     await page.click("#modeBtn");
   }
-  check(new Set(sizes).size === 1, `Titolo: stessa grandezza in PDF, JPG e VIDEO (${sizes.join(", ")})`);
+  check(new Set(sizes).size === 1, `Titolo: stessa grandezza in PDF, JPG, VIDEO e TUTTO (${sizes.join(", ")})`);
   check(rows.every(Boolean), "Titolo: titolo, modalità e versione su una riga a 360 px");
   await ctx.close();
 }
@@ -244,6 +244,52 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(vid.length < made * .9, `Video: da ${Math.round(made / 1024)} KB a ${Math.round(vid.length / 1024)} KB`);
   check(info.w === 640 && info.h === 360 && info.n === 120, `Video: risoluzione e fotogrammi conservati (${info.w}×${info.h}, ${info.n} fotogrammi, ${info.codec})`);
   check(errors.length === 0, `Video: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
+// --- modalità TUTTO (R-TUT): PDF, foto e video insieme, file di altri tipi saltati, livello unico, Cattura spenta
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(() => { try { localStorage.setItem("bg", "0") } catch {} for (const k of ["showOpenFilePicker", "showSaveFilePicker", "showDirectoryPicker"]) Object.defineProperty(window, k, { value: undefined }); });
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url + "?vcodec=vp9");
+  for (let k = 0; k < 3; k++) { await page.click("#modeBtn"); await page.waitForTimeout(250); }
+  check(await page.evaluate(() => document.body.classList.contains("mode-all") && location.hash === "#all" && !document.getElementById("optsAll").hidden && document.getElementById("optsVid").parentNode.id === "perType"), "Tutto: il rullo arriva alla quarta modalità, opzioni dei tre tipi in «Regola per tipo»");
+  check(await page.evaluate(() => getComputedStyle(document.getElementById("camBtn")).display === "none" && document.getElementById("actBtn").getAttribute("aria-disabled") === "true"), "Tutto: Cattura spenta (fotocamera nascosta, verbo fermo)");
+  check(await page.evaluate(() => getComputedStyle(document.querySelector("#press .m-horn")).display !== "none" && getComputedStyle(document.querySelector("#press .m-gas")).display !== "none"), "Tutto: mascotte olografica con il corno");
+  await page.click('input[name="alvl"][value="hard"]', { force: true });
+  check(await page.evaluate(() => ["lvl", "side", "weight", "vlvl"].map((n) => document.querySelector(`input[name="${n}"]:checked`).value).join() === "hard,1280,204800,0.95"), "Tutto: il livello unico vale per PDF, foto e video");
+  await page.click('input[name="alvl"][value="mid"]', { force: true });
+  await page.evaluate(async () => {
+    const dt = new DataTransfer();
+    const c = document.createElement("canvas"); c.width = 2000; c.height = 1500; const g = c.getContext("2d"), d = g.createImageData(2000, 1500);
+    for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = v; d.data[i + 1] = 200 - v / 2; d.data[i + 2] = v / 3; d.data[i + 3] = 255; }
+    g.putImageData(d, 0, 0); const jb = await new Promise((r) => c.toBlob(r, "image/jpeg", .95));
+    const M = await import("./vendor/mediabunny.min.mjs");
+    const cv = document.createElement("canvas"); cv.width = 640; cv.height = 360; const gg = cv.getContext("2d"), tgt = new M.BufferTarget(), o = new M.Output({ format: new M.Mp4OutputFormat(), target: tgt });
+    const src = new M.CanvasSource(cv, { codec: "vp9", bitrate: 6e6 }); o.addVideoTrack(src, { frameRate: 30 }); await o.start();
+    for (let i = 0; i < 90; i++) { gg.fillStyle = `hsl(${i * 3},70%,55%)`; gg.fillRect(0, 0, 640, 360); for (let k = 0; k < 300; k++) { gg.fillStyle = `rgba(0,0,0,${Math.random() * .4})`; gg.fillRect(Math.random() * 640, Math.random() * 360, 6, 6); } await src.add(i / 30, 1 / 30); }
+    await o.finalize();
+    const doc = await PDFLib.PDFDocument.create(); const img = await doc.embedJpg(new Uint8Array(await jb.arrayBuffer())); doc.addPage([600, 450]).drawImage(img, { x: 0, y: 0, width: 600, height: 450 });
+    dt.items.add(new File([tgt.buffer], "clip.mp4", { type: "video/mp4" }));
+    dt.items.add(new File([jb], "foto.jpg", { type: "image/jpeg" }));
+    dt.items.add(new File(["x"], "nota.txt", { type: "text/plain" }));
+    dt.items.add(new File([await doc.save()], "doc.pdf", { type: "application/pdf" }));
+    const input = document.getElementById("pickFiles"); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.waitForTimeout(300);
+  const types = await page.evaluate(() => [...document.querySelectorAll("#rows .row .ty")].map((x) => x.textContent).join());
+  check(types === "JPG,PDF,VIDEO", `Tutto: etichette del tipo, video in fondo (${types})`);
+  const msg = await page.innerText("#msg");
+  check(/ignorati.*PDF, JPG o video: 1/.test(msg), `Tutto: file di altri tipi saltati e contati (${msg})`);
+  await page.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 120000 });
+  await page.click("#go");
+  await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && !document.getElementById("total").hidden, null, { timeout: 300000 }).catch(() => {});
+  const done = await page.evaluate(() => document.querySelectorAll("#rows .row").length === 3 && /3 su 3/.test(document.getElementById("msg").textContent));
+  check(done, `Tutto: PDF, foto e video alleggeriti in un giro (${(await page.innerText("#rows")).replace(/\n/g, " / ")})`);
+  check(errors.length === 0, `Tutto: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
 // --- memoria delle analisi (R-VID-19): riaprendo lo stesso video la stima arriva senza rianalizzare

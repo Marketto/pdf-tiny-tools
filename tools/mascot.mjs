@@ -50,10 +50,32 @@ const UNDER = {
 };
 const under = (icon) => icon ? UNDER.pdf : Object.entries(UNDER).map(([k, v]) => `<g class="s-${k}">${v}</g>`).join("");
 
+// Aspetto olografico di TUTTO (R-TUT-02): sopra la pelle un velo che si muove come un gas, alternando «Marea»
+// (gradiente che ruota) e «Nebbia» (quattro nuvole che si spostano, opacità 0 → 1 → 0 su 30 s); corno dorato
+// dietro la testa e tre stelline. Nascono nascosti (display="none"): li mostra la classe mode-all su <body>.
+// p è il prefisso degli id, diverso per ogni disegno della pagina.
+export const HOLO = ["#ff8fd1", "#9ef0ff", "#c9a6ff", "#ffd36b"];
+const BLOBS = [[HOLO[0], "150;330;200;150", "130;280;240;130", "9s"], [HOLO[1], "350;180;300;350", "290;150;130;290", "11s"],
+  [HOLO[3], "260;360;150;260", "300;200;150;300", "13s"], ["#b98cff", "180;260;360;180", "150;300;260;150", "10s"]];
+const holoDefs = (p) => `<defs><linearGradient id="${p}hm" x1="0" y1="0" x2="1" y2="1">` +
+  HOLO.map((c, i) => `<stop offset="${[0, .35, .65, 1][i]}" stop-color="${c}"/>`).join("") +
+  `<animateTransform attributeName="gradientTransform" type="rotate" values="0 .5 .5;360 .5 .5" dur="16s" repeatCount="indefinite"/></linearGradient>` +
+  BLOBS.map(([c, xs, ys, d], i) => `<radialGradient id="${p}hb${i}" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="${c}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/>` +
+    `<animate attributeName="cx" values="${xs}" dur="${d}" repeatCount="indefinite"/><animate attributeName="cy" values="${ys}" dur="${d}" repeatCount="indefinite"/></radialGradient>`).join("") + `</defs>`;
+const SKIN_IN = `x="133" y="117" width="246" height="196" rx="83"`;
+const gas = (p) => `<g class="m-gas" display="none" stroke="none"><rect ${SKIN_IN} fill="url(#${p}hm)"/><g class="m-neb" opacity="0"><rect ${SKIN_IN} fill="#e6d8ff"/>` +
+  BLOBS.map((_, i) => `<rect ${SKIN_IN} fill="url(#${p}hb${i})"/>`).join("") +
+  `<animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;.4;.5;.9;1" dur="30s" repeatCount="indefinite"/></g></g>`;
+const horn = () => `<g class="m-horn" display="none" stroke="${INK}" stroke-width="8" stroke-linejoin="round"><path d="M228 132L256 56L284 132Z" fill="#ffe14d"/>` +
+  `<path d="M243 98l24 -8M237 116l32 -10" fill="none" stroke="#e8a400" stroke-width="6" stroke-linecap="round"/></g>`;
+const star = (x, y, k, c) => `<path transform="translate(${x} ${y}) scale(${k})" d="M0 -24l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="${c}" stroke="${INK}" stroke-width="${6 / k}" stroke-linejoin="round"/>`;
+const stars = () => `<g class="m-stars" display="none">${star(92, 120, .6, HOLO[0])}${star(440, 300, .5, HOLO[1])}${star(96, 340, .45, "#ffe14d")}</g>`;
+
 // icon: base più stretta e niente scintilla, per stare nel ritaglio tondo di Android.
 // hand: manina che si allunga verso l'archivio (solo nel loader).
 // gear: accessori di Cattura (solo nella testata della pagina).
-export function mascot({ icon = false, hand = false, gear = false } = {}) {
+// holo: prefisso degli id per l'aspetto olografico di TUTTO (pagina e loader); vuoto = niente.
+export function mascot({ icon = false, hand = false, gear = false, holo = "" } = {}) {
   const [bx, bw] = icon ? [116, 280] : [84, 344];
   const spark = icon ? "" :
     `<path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
@@ -62,12 +84,13 @@ export function mascot({ icon = false, hand = false, gear = false } = {}) {
     `<rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/>` +
     `<g class="p-sheets">${under(icon)}</g>` +
     `<rect x="${bx}" y="392" width="${bw}" height="50" rx="25" fill="#a48cf0"/></g>` +
-    `<g class="p-head"><rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>${face(!icon)}${gear ? glasses() : ""}</g>` +
-    `${gear ? camera() : ""}${paw}${spark}${gear ? flash() : ""}`;
+    `${holo ? holoDefs(holo) : ""}<g class="p-head">${holo ? horn() : ""}<rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>` +
+    `${holo ? gas(holo) : ""}${face(!icon)}${gear ? glasses() : ""}</g>` +
+    `${gear ? camera() : ""}${paw}${spark}${gear ? flash() : ""}${holo && gear ? stars() : ""}`;
 }
 
 export const pageSvg = () =>
-  `<svg viewBox="70 62 400 390" xmlns="http://www.w3.org/2000/svg">${mascot({ gear: true })}</svg>`;
+  `<svg viewBox="70 48 400 404" xmlns="http://www.w3.org/2000/svg">${mascot({ gear: true, holo: "p" })}</svg>`;
 
 // Scena del loader: la mascotte prende i fogli da uno schedario.
 export function loaderSvg() {
@@ -87,7 +110,7 @@ export function loaderSvg() {
     `<rect x="30" y="96" width="160" height="184" rx="14" fill="#cdb8ff"/>${drawer(156)}${drawer(216)}` +
     `<g class="drawer"><path d="M48 70h124l10 22H38z" fill="#fff"/><path d="M60 70v-8h34v8M104 70v-12h34v12" fill="#fff6a8"/>` +
     `<rect x="26" y="92" width="168" height="54" rx="10" fill="#e3d6ff"/><rect x="92" y="112" width="36" height="14" rx="7" fill="#fff"/></g></g>` +
-    `<g transform="translate(250 50) scale(.52)">${mascot({ hand: true })}</g>` +
+    `<g transform="translate(250 50) scale(.52)">${mascot({ hand: true, holo: "l" })}</g>` +
     sheet("f1") + sheet("f2") + sheet("f3") + `</svg>`;
 }
 

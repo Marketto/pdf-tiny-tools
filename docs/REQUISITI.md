@@ -2,7 +2,7 @@
 
 Comportamento deciso dal proprietario. Ogni voce ha un codice stabile (`R-AREA-nn`): citalo nei commit e cercalo con `grep -n "R-SCN" docs/*.md`. Un codice non si riusa mai; se un requisito cade, la voce resta con «(ritirato)».
 
-Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#car-caricamento) · [CMP](#cmp-compressione) · [JPG](#jpg-foto) · [VID](#vid-video) · [SCN](#scn-scansione) · [LST](#lst-elenco) · [SAV](#sav-salvataggio) · [UI](#ui-aspetto) · [AUD](#aud-suoni-e-musica) · [I18N](#i18n-lingue) · [APP](#app-installazione-e-condivisione) · [REL](#rel-rilascio) · [DOC](#doc-documentazione)
+Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video--tutto) · [CAR](#car-caricamento) · [CMP](#cmp-compressione) · [JPG](#jpg-foto) · [VID](#vid-video) · [TUT](#tut-schiaccia-tutto) · [SCN](#scn-scansione) · [LST](#lst-elenco) · [SAV](#sav-salvataggio) · [UI](#ui-aspetto) · [AUD](#aud-suoni-e-musica) · [I18N](#i18n-lingue) · [APP](#app-installazione-e-condivisione) · [REL](#rel-rilascio) · [DOC](#doc-documentazione)
 
 ## PRI · Principi
 - R-PRI-01 Tutto avviene nel browser; i file e le foto non lasciano il dispositivo, niente telemetria.
@@ -10,11 +10,11 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-PRI-03 Gli originali si modificano solo dopo conferma esplicita.
 - R-PRI-04 Stile a fumetto con mascotte kawaii; testi giocosi.
 
-## MOD · Modalità PDF / JPG / VIDEO
+## MOD · Modalità PDF / JPG / VIDEO / TUTTO
 - R-MOD-01 Stessa app e stessa esperienza per PDF, foto JPG e video.
-- R-MOD-02 Si cambia toccando la parola «PDF» del titolo: un rullo con due freccette che gira in ordine PDF → JPG → VIDEO → PDF; la prima volta accenna da solo mezzo giro.
+- R-MOD-02 Si cambia toccando la parola «PDF» del titolo: un rullo con due freccette che gira in ordine PDF → JPG → VIDEO → TUTTO → PDF (R-TUT-01); la prima volta accenna da solo mezzo giro.
 - R-MOD-03 Cambiando modalità cambiano colore della mascotte (rosa PDF, menta JPG, lavanda VIDEO, R-VID-12), colori dell'interfaccia (R-UI-05), testi e opzioni del passo 2; l'elenco si svuota.
-- R-MOD-04 Modalità ricordata; `#jpg` o `#video` nel link aprono quella modalità e la condivisione lo include.
+- R-MOD-04 Modalità ricordata; `#jpg`, `#video` o `#all` nel link aprono quella modalità e la condivisione lo include.
 - R-MOD-05 Il rullo è un pulsante vero: tastiera e lettori di schermo.
 - R-MOD-06 Se ci sono lavorazioni in corso o risultati non salvati (compressione o analisi in corso, file pronti da salvare, pagine scansionate non salvate), cambiare modalità chiede sempre conferma, avvisando che il lavoro non salvato si perde. Confermando, il lavoro in corso si interrompe e l'elenco si svuota.
 
@@ -58,6 +58,16 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-VID-19 Memoria delle analisi: ogni video analizzato si registra sul dispositivo (archivio del browser; solo i numeri dell'analisi, mai il video), riconosciuto da percorso, nome, dimensione, data di modifica e un'impronta dei primi e ultimi 64 KB. Riaprendo la stessa cartella i video già analizzati mostrano subito la stima e l'analisi riprende dal primo mancante, anche dopo una chiusura a metà. Le analisi si scartano se cambia il metodo di analisi o il formato di uscita del dispositivo. Un comando «Dimentica le analisi salvate» le cancella.
 - R-VID-20 «Schiaccia!» si può premere appena c'è un video analizzato: la compressione procede sui video pronti mentre l'analisi continua sugli altri, e aspetta i nuovi finché l'analisi non è finita.
 - R-VID-21 Scarto rapido: un video già molto compresso (pochi dati per pixel e fotogramma: sotto 0,05 bit con HEVC, VP9 o AV1, sotto 0,035 con H.264) viene segnato «già leggero» senza codifiche di prova.
+
+## TUT · Schiaccia tutto
+- R-TUT-01 Quarta modalità, «TUTTO» sul rullo del titolo: prende insieme PDF, foto JPG e video, da file scelti, trascinati o da una cartella con le sottocartelle.
+- R-TUT-02 Aspetto «Olografico» (scelto dal proprietario tra tre varianti unicorno): pelle della mascotte, pulsanti, etichette dei passi, livello scelto e cerchio della Caramella in sfumature rosa, azzurro ghiaccio, lilla e oro. Il colore si muove come un gas, alternando due moti: «Marea» (le sfumature scorrono lente) e «Nebbia» (nuvole di colore che si mescolano), con giri lenti di 8–30 s. Con «riduci movimento» il colore resta fermo. La mascotte ha un corno dorato e tre stelline; la parola «TUTTO» del titolo cambia colore piano.
+- R-TUT-03 Passo 2: un livello unico (Carezza, Stretta, Martellata) che vale per tutti i tipi: PDF con lo stesso livello; foto 2560 px senza limite di peso, 1920 px e 500 KB, 1280 px e 200 KB; video con qualità ≥ 98,5%, ≥ 97%, ≥ 95%. Sotto, «Regola per tipo» (chiusa all'inizio) contiene le opzioni delle tre modalità per cambiare un tipo solo; toccare di nuovo il livello unico riallinea tutti i tipi.
+- R-TUT-04 Ogni riga dell'elenco ha l'etichetta del tipo (PDF, JPG, VIDEO) nel colore della sua modalità. Prima si schiacciano i PDF (uno alla volta) e le foto (più insieme), poi i video; l'analisi dei video parte subito al caricamento, come in modalità video, e procede intanto.
+- R-TUT-05 Per i video valgono le regole della modalità video: memoria delle analisi e ripresa (R-VID-19), soglia sicura e conferma per i video grandi (R-VID-14…16), estensione (R-VID-10). Se il browser non sa codificare video, i video restano com'erano con una nota e il resto si schiaccia lo stesso.
+- R-TUT-06 Salvataggio con gli stessi pulsanti delle altre modalità, mantenendo le sottocartelle.
+- R-TUT-07 I file di altri tipi (HEIC, PNG, documenti…) si saltano e alla fine del caricamento si dice quanti sono stati ignorati.
+- R-TUT-08 Cattura non è disponibile in TUTTO: fotocamera nascosta e verbo fermo, come in VIDEO.
 
 ## SCN · Scansione
 - R-SCN-01 Pulsante fotocamera in testata accanto a suoni e condivisione: porta a Cattura (R-SCN-14). In modalità video è nascosto (R-VID-11).

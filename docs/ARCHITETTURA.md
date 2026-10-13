@@ -8,12 +8,12 @@ Tutto il JavaScript è in `index.html`, dentro un'unica funzione, diviso da comm
 
 | Sezione (marcatore) | Funzioni principali | Requisiti |
 |---|---|---|
-| `lingue` | `pickLang`, `t`, `applyLang`, `showTitle`, `turnDrum`, `fitTitle`, `unsaved`, `stopWork`, `setMode`, `isPdf` | I18N, MOD |
+| `lingue` | `pickLang`, `t`, `applyLang`, `showTitle`, `turnDrum`, `fitTitle`, `unsaved`, `stopWork`, `capOff`, `placeOpts`, `allLevel`, `setMode`, `isPdf`, `kindOf`, `wants` | I18N, MOD, TUT |
 | `carico` | `addFile`, `walkHandle`, `walkEntry`, `loaderOn`, `loaderOff` | CAR |
 | `vista` | `render` | LST, SAV-08 |
-| `motore` | `squeezePdf` (immagini in parallelo), `squeezeImage` (controlli e sostituzione nel PDF), `squeezeJpg`, `jpgOpts` | CMP, JPG |
+| `motore` | `squeezePdf` (immagini in parallelo), `squeezeImage` (controlli e sostituzione nel PDF), `squeezeJpg`, `jpgOpts`, `squashList`, `workEnd`, gestore di `goBtn` | CMP, JPG, TUT-04 |
 | `worker` | `startPool`, `poolSize`, `runTask`, `poolWidth` | APP-09 |
-| `video` | `loadMB`, `checkVideo`, `vRecall`, `vRemember`, `vFingerprint`, `vMemShow`, `probeAll`, `refineCurve`, `probeVideo`, `ssim`, `planVideo`, `planAll`, `goVideo`, `squeezeVideo` | VID |
+| `video` | `loadMB`, `checkVideo`, `vRecall`, `vRemember`, `vFingerprint`, `vMemShow`, `probeAll`, `refineCurve`, `probeVideo`, `ssim`, `planVideo`, `planAll`, `goVideo`, `videoLoop`, `squeezeVideo` | VID |
 | `salvataggio` | `saveBlob`, `ask`, `writeJobs`, `finish`, gestori di `saveAs`/`saveElse`/`saveBeside`/`overBtn` | SAV |
 | `scansione con la fotocamera` | `detectPage`, `editCorners`, `makePage`, `warp`, `enhance`, `scanFileName` | SCN |
 | `bordi` / `orientamento` | `paperMap`, `snapCorner`, `refineQuad`, `ocrWorker`, `autoOrient`, `findSkew`, `turnCanvas` | SCN-20…24 |
@@ -41,13 +41,13 @@ Fuori dallo script principale: registrazione del service worker in fondo a `inde
 
 ## Stato globale
 
-`items` (elenco: `{name, rel, file, size, status, out, note, handle, dir, scan, pages, pageBlobs, vp, plan}`), `mode` (`"pdf"`/`"jpg"`/`"video"`), `rootDir` (cartella scelta), `busy` (compressione in corso), `loading` (schermata a tutto schermo aperta), `scanPages` (pagine del PDF in corso di scansione).
+`items` (elenco: `{name, rel, file, size, status, out, note, handle, dir, scan, pages, pageBlobs, vp, plan}`), `mode` (`"pdf"`/`"jpg"`/`"video"`/`"all"`), `rootDir` (cartella scelta), `busy` (compressione in corso), `loading` (schermata a tutto schermo aperta), `scanPages` (pagine del PDF in corso di scansione).
 
 `status`: (`probe`, solo video) → `wait` → `work` → `done` | `same` (non alleggerito) | `err` | `over` (sovrascritto).
 
 ## Testi e modalità
-- `MODES=["pdf","jpg","video"]`. `t(k)`: in modalità JPG usa la chiave `kJ` se esiste, altrimenti sostituisce «PDF» con «JPG»; in modalità video `kV`, altrimenti «PDF» → `vWord` (maiuscola se apre la frase).
-- Il rullo è un `<button id="modeBtn">` costruito da `showTitle()` al posto di `<span>PDF</span>` della chiave `h1`: quattro facce 3D (PDF, JPG, VIDEO e di nuovo PDF), girate in avanti da `turnDrum()` con un angolo in linea (`rollAngle`); dalla quarta faccia torna a 0 senza animazione. La larghezza del rullo segue la faccia visibile (colonna `minmax(0,1fr)`, così le facce più larghe non spostano quella visibile). `fitTitle()` (all'avvio, al cambio di lingua, all'arrivo del carattere, al ridimensionamento) dà al titolo una sola grandezza per tutte le modalità: lo misura come se mostrasse la faccia più larga, con la versione accanto, e lo rimpicciolisce (minimo 26 px) finché la riga ci sta; sotto i 26 px lascia andare a capo (UI-04/06).
+- `MODES=["pdf","jpg","video","all"]`. `t(k)`: in modalità JPG usa la chiave `kJ` se esiste, altrimenti sostituisce «PDF» con «JPG»; in modalità video `kV`, altrimenti «PDF» → `vWord` (maiuscola se apre la frase).
+- Il rullo è un `<button id="modeBtn">` costruito da `showTitle()` al posto di `<span>PDF</span>` della chiave `h1`: quattro facce 3D (PDF, JPG, VIDEO, TUTTO), girate sempre in avanti da `turnDrum()` con un angolo in linea (`rollAngle`); oltre i 360° l'angolo torna nel primo giro senza animazione. La larghezza del rullo segue la faccia visibile (colonna `minmax(0,1fr)`, così le facce più larghe non spostano quella visibile). `fitTitle()` (all'avvio, al cambio di lingua, all'arrivo del carattere, al ridimensionamento) dà al titolo una sola grandezza per tutte le modalità: lo misura come se mostrasse la faccia più larga, con la versione accanto, e lo rimpicciolisce (minimo 26 px) finché la riga ci sta; sotto i 26 px lascia andare a capo (UI-04/06).
 - Cambio di modalità (MOD-06): `setMode` è asincrona; se `unsaved()` (lavoro in corso, analisi, file pronti, pagine scansionate) chiede conferma con `ask()`, poi `stopWork()` alza `abortWork` (i cicli di compressione si fermano tra un file e l'altro), annulla la conversione video in corso (`curConv.cancel()`) e aspetta che `busy` torni falso. Le classi `mode-jpg` e `mode-video` su `<body>` che cambia anche il colore `.m-skin` della mascotte e i tre toni d'accento (UI-05): `--acc-l` (chiaro: badge), `--acc` (pelle: pulsanti, etichette, conferme), `--acc-s` (intenso: «Schiaccia!», livello scelto, barra, contorni di fuoco). Definiti su `:root` per il PDF e ridefiniti in `.mode-jpg` e `.mode-video` (lavanda, dove `#camBtn` è nascosto); `--tomato` solo per errori e sovrascrittura.
 
 ## PDF (CMP)
@@ -72,6 +72,17 @@ Libreria `vendor/mediabunny.min.mjs` (Mediabunny 1.59.1, MPL-2.0, licenza in `ve
 11. Scarto rapido (VID-21): in `probeVideo0`, bit per pixel e fotogramma = bitrate / (larghezza × altezza × fotogrammi al secondo); sotto 0,035 (H.264) o 0,05 (HEVC, VP9, AV1) → `{light:true}`, scheda «già leggero» senza codifiche di prova.
 
 Misure sul video di prova (720p, 6 s): stima e risultato entro il 2%; SSIM su tutto il video misurato con ffmpeg 0,990 / 0,979 / 0,960 per le soglie 0,985 / 0,97 / 0,95.
+
+## Tutto (TUT)
+Modalità `"all"` (hash `#all`), classe `mode-all` su `<body>`. Riusa i tre motori: niente codice di compressione nuovo.
+- Tipo per file: `kindOf(name)` → `"pdf"`/`"jpg"`/`"video"` (da `EXT`); `addFile` lo salva in `it.kind` (in tutte le modalità) e in TUTTO `wants(name)` conta gli scartati in `ignored` (TUT-07, chiave `ignoredA`). `loaded()` ordina l'elenco: PDF e foto prima, video dopo (ordinamento stabile), poi `probeAll()` se ci sono video.
+- Passo 2: `#optsAll` con il livello unico (`name="alvl"`) e `<details id="perType">`. In TUTTO `setMode` sposta dentro `#perType` i tre blocchi esistenti `#optsPdf`, `#optsJpg`, `#optsVid` (e li rimette al loro posto uscendo): così `PRESETS`, `jpgOpts()` e `vThr()` funzionano senza cambiare. `allLevel(v)` imposta i tre blocchi secondo `ALLMAP` (TUT-03) e scatena `change` su `vlvl` per ripianificare i video.
+- `probeAll`/`probeLoop` considerano solo gli elementi `kind==="video"`; senza codificatore (`vidOk===false`) i video vanno a `same` con nota `noCodec`.
+- «Schiaccia!» in TUTTO: `goAll()` → `squashList(lista PDF, 1 corsia)` → `squashList(lista JPG, poolWidth corsie)` → `videoLoop()`. `squashList` è il ciclo che prima stava dentro il gestore di `goBtn`; `videoLoop` è il ciclo di `goVideo` (attende i video ancora in analisi). Solo i file non video tornano a `wait` all'avvio.
+- Testi: suffisso `A` in `t()`: le chiavi con «PDF» hanno tutte la variante `…A` (`titleA`, `descA`, `subA`, `dropA`, `pickFilesA`, `foundA`, `readyA`, `savedToA`…; `engineA` uguale a `engine`); per le altre «PDF» → `aWord` (con «aWord PDF» → «aWord»). Le chiavi che finiscono in `A` non vengono mai toccate dalla sostituzione. Faccia del rullo `f-all` (`aFace`) al posto della vecchia quarta faccia: con quattro modalità il giro torna da sé a PDF (`turnDrum` gira sempre in avanti e poi normalizza l'angolo).
+- Righe: etichetta `.ty` con il tipo; `oneByOne` vale anche in TUTTO.
+- Aspetto (TUT-02): token `--holo-*`; `.mode-all` su pulsanti, `.tag`, livello scelto e cerchio della Caramella mette la «Marea» (gradiente lineare 400% con `background-position` animata) e un `::before` con la «Nebbia» (quattro `radial-gradient` con posizioni animate) la cui opacità alterna 0 e 1 su 30 s. Mascotte (in `tools/mascot.mjs`, opzione `holo` con prefisso degli id): gruppo `m-gas` sopra la pelle (rettangolo con gradiente lineare che ruota via SMIL + `m-neb` con quattro gradienti radiali che si spostano, opacità alternata come i pulsanti), corno `m-horn` dietro la testa, stelline `m-stars`; tutti nascosti fuori da `mode-all`. Con `calm` (riduci movimento) le animazioni CSS sono spente e gli SVG chiamano `pauseAnimations()`. Loader: in TUTTO volano foglio, Polaroid e ciak insieme.
+- Cattura spenta in TUTTO come in VIDEO (`capOff()`).
 
 ## Cattura (SCN-14…19)
 Sezione `cattura` in `index.html`, dopo `makePage` e `scanFileName`.
