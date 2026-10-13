@@ -107,6 +107,28 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(rows.every(Boolean), "Titolo: titolo, modalità e versione su una riga a 360 px");
   await ctx.close();
 }
+// --- motore senza worker (?workers=0): lo stesso engine.js gira nella pagina (R-APP-09)
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(() => { window.__workers = 0; const W = window.Worker; window.Worker = function (u, o) { window.__workers++; return new W(u, o); }; });
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url + "?workers=0#jpg");
+  await page.evaluate(async () => {
+    const c = document.createElement("canvas"); c.width = 2400; c.height = 1600; const g = c.getContext("2d"), d = g.createImageData(2400, 1600);
+    for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = v; d.data[i + 1] = v; d.data[i + 2] = v; d.data[i + 3] = 255; }
+    g.putImageData(d, 0, 0);
+    const dt = new DataTransfer(); dt.items.add(new File([await new Promise((r) => c.toBlob(r, "image/jpeg", .95))], "a.jpg", { type: "image/jpeg" }));
+    const input = document.getElementById("pickFiles"); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.click("#go");
+  await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && !document.getElementById("total").hidden, null, { timeout: 60000 });
+  check(await page.evaluate(() => window.__workers === 0 && !!window.Engine), "Motore: senza worker gira nella pagina e alleggerisce lo stesso");
+  check(errors.length === 0, `Motore senza worker: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
 // --- modalità JPG: rullo nel titolo, soglie di lato e di peso, dati dello scatto conservati
 {
   const { readFile: read } = await import("node:fs/promises");

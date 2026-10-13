@@ -28,7 +28,7 @@ jobs:
         # Solo i file dell'app: strumenti, documentazione e configurazione degli agenti restano fuori.
         run: |
           mkdir _site
-          cp -r index.html i18n.js sw.js manifest.webmanifest favicon.ico icons vendor _site/
+          cp -r index.html i18n.js engine.js sw.js manifest.webmanifest favicon.ico icons vendor _site/
           touch _site/.nojekyll
           # Nuova versione della cache offline a ogni pubblicazione
           sed -i -E "s/schiaccia-pdf-v[0-9]+/schiaccia-pdf-${GITHUB_SHA::7}/" _site/sw.js
