@@ -50,16 +50,18 @@
     if (!blob) return null;
     return { bytes: new Uint8Array(await blob.arrayBuffer()), w: nw, h: nh };
   }
-  /* Trova nel file originale il blocco con data, luogo e fotocamera. La foto viene raddrizzata mentre la ridisegniamo,
-     quindi nel blocco copiato l'orientamento va riportato a «normale». */
-  function exifSegment(bytes) {
-    if (bytes[0] !== 0xFF || bytes[1] !== 0xD8) return null;
+  /* Dall'inizio del file originale: il blocco con data, luogo e fotocamera (APP1 Exif) e quelli del profilo colore
+     (APP2 ICC_PROFILE, anche più d'uno). La foto viene raddrizzata mentre la ridisegniamo, quindi nel blocco Exif
+     l'orientamento va riportato a «normale». Si conservano sempre (R-JPG-02). */
+  function jpgMeta(bytes) {
+    var out = { exif: null, icc: [] };
+    if (bytes[0] !== 0xFF || bytes[1] !== 0xD8) return out;
     var p = 2;
-    while (p + 10 < bytes.length && bytes[p] === 0xFF) {
+    while (p + 4 < bytes.length && bytes[p] === 0xFF) {
       var m = bytes[p + 1]; if (m === 0xDA || m === 0xD9) break;
       var len = (bytes[p + 2] << 8) | bytes[p + 3];
-      if (m === 0xE1 && bytes[p + 4] === 0x45 && bytes[p + 5] === 0x78 && bytes[p + 6] === 0x69 && bytes[p + 7] === 0x66 && bytes[p + 8] === 0 && bytes[p + 9] === 0) {
-        if (p + 2 + len > bytes.length) return null;
+      if (p + 2 + len > bytes.length) break;
+      if (!out.exif && m === 0xE1 && bytes[p + 4] === 0x45 && bytes[p + 5] === 0x78 && bytes[p + 6] === 0x69 && bytes[p + 7] === 0x66 && bytes[p + 8] === 0 && bytes[p + 9] === 0) {
         var seg = bytes.slice(p, p + 2 + len), t0 = 10, le = seg[t0] === 0x49;
         var u16 = function (o) { return le ? seg[o] | (seg[o + 1] << 8) : (seg[o] << 8) | seg[o + 1]; };
         var u32 = function (o) { return (le ? seg[o] | (seg[o + 1] << 8) | (seg[o + 2] << 16) | (seg[o + 3] << 24) : (seg[o] << 24) | (seg[o + 1] << 16) | (seg[o + 2] << 8) | seg[o + 3]) >>> 0; };
@@ -71,51 +73,48 @@
             if (u16(e) === 0x0112) { seg[e + 8] = le ? 1 : 0; seg[e + 9] = le ? 0 : 1; break; }
           }
         }
-        return seg;
+        out.exif = seg;
+      } else if (m === 0xE2 && len > 16 && String.fromCharCode.apply(null, bytes.subarray(p + 4, p + 16)) === "ICC_PROFILE\0") {
+        out.icc.push(bytes.slice(p, p + 2 + len));
       }
       p += 2 + len;
     }
-    return null;
+    return out;
   }
-  /* una foto: {file, side, weight, exif, ios} → {bytes}. Rimpicciolisce fino al lato lungo scelto; con un peso massimo
-     cerca la qualità più alta che ci sta, e se non basta nemmeno la più bassa riduce ancora le dimensioni. */
+  function exifSegment(bytes) { return jpgMeta(bytes).exif; }
+  /* una foto: {file, side, q, ios} → {bytes}. Ridisegna entro il lato lungo del livello (0 = misure originali)
+     e ricodifica con la qualità del livello (R-JPG-01). */
   async function squeezeJpgFile(o, onPct) {
+    var meta = { exif: null, icc: [] };
+    try { meta = jpgMeta(new Uint8Array(await o.file.slice(0, 262144).arrayBuffer())); } catch (e) {}
+    /* con un profilo colore i valori restano nel loro spazio: il profilo ricopiato li descrive (gamma ampia preservata) */
+    var opt = { imageOrientation: "from-image" }; if (meta.icc.length) opt.colorSpaceConversion = "none";
     var bmp;
-    try { bmp = await createImageBitmap(o.file, { imageOrientation: "from-image" }); } catch (e) { bmp = await createImageBitmap(o.file); }
+    try { bmp = await createImageBitmap(o.file, opt); } catch (e) { meta.icc = []; bmp = await createImageBitmap(o.file); }
     var w = bmp.width, h = bmp.height, k = o.side ? Math.min(1, o.side / Math.max(w, h)) : 1;
     var cap = (o.ios ? 16e6 : 120e6) / (w * h); if (k * k > cap) k = Math.sqrt(cap);
-    var seg = null;
-    if (o.exif) { try { seg = exifSegment(new Uint8Array(await o.file.slice(0, 262144).arrayBuffer())); } catch (e) {} }
-    var limit = o.weight ? Math.max(8000, o.weight - (seg ? seg.length : 0)) : 0, best = null, last = null;
-    for (var round = 0; round < 5 && !best; round++) {
-      var cv = canvas(Math.max(1, Math.round(w * k)), Math.max(1, Math.round(h * k)));
-      var g = cv.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
-      g.imageSmoothingQuality = "high"; g.drawImage(bmp, 0, 0, cv.width, cv.height);
-      if (!limit) best = await jpeg(cv, .8);
-      else {
-        var lo = .3, hi = .92; last = await jpeg(cv, hi);
-        if (last && last.size <= limit) best = last;
-        else for (var s = 0; s < 6; s++) {
-          var q = (lo + hi) / 2; last = await jpeg(cv, q);
-          if (last && last.size <= limit) { best = last; lo = q; } else hi = q;
-        }
-        if (!best) { last = await jpeg(cv, .3); if (last && last.size <= limit) best = last; }
-      }
-      cv.width = cv.height = 0; if (onPct) onPct(Math.min(95, (round + 1) * 30));
-      if (!best && last) k *= Math.max(.5, Math.sqrt(limit / last.size) * .95);
-      if (!limit && !best) break;
-    }
+    var cv = canvas(Math.max(1, Math.round(w * k)), Math.max(1, Math.round(h * k)));
+    var g = cv.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
+    g.imageSmoothingQuality = "high"; g.drawImage(bmp, 0, 0, cv.width, cv.height);
     if (bmp.close) bmp.close();
-    best = best || last; if (!best) throw new Error("unreadable");
-    var bytes = new Uint8Array(await best.arrayBuffer());
-    if (seg) { var out = new Uint8Array(bytes.length + seg.length); out.set(bytes.subarray(0, 2), 0); out.set(seg, 2); out.set(bytes.subarray(2), 2 + seg.length); bytes = out; }
+    if (onPct) onPct(50);
+    var blob = await jpeg(cv, o.q || 0.82); cv.width = cv.height = 0;
+    if (!blob) throw new Error("unreadable");
+    var bytes = new Uint8Array(await blob.arrayBuffer());
+    var extra = (meta.exif ? [meta.exif] : []).concat(meta.icc);
+    if (extra.length) {
+      var add = extra.reduce(function (s, x) { return s + x.length; }, 0), out = new Uint8Array(bytes.length + add), at = 2;
+      out.set(bytes.subarray(0, 2), 0);
+      extra.forEach(function (x) { out.set(x, at); at += x.length; });
+      out.set(bytes.subarray(2), at); bytes = out;
+    }
     return { bytes: bytes };
   }
   /* il worker sa disegnare? (canvas fuori schermo con 2D e JPEG) */
   function canWork() {
     try { var c = new OffscreenCanvas(2, 2); return !!(c.getContext("2d") && c.convertToBlob && typeof createImageBitmap === "function"); } catch (e) { return false; }
   }
-  G.Engine = { recompress: recompress, squeezeJpgFile: squeezeJpgFile, exifSegment: exifSegment, canWork: canWork };
+  G.Engine = { recompress: recompress, squeezeJpgFile: squeezeJpgFile, exifSegment: exifSegment, jpgMeta: jpgMeta, canWork: canWork };
 
   if (typeof document === "undefined" && typeof G.postMessage === "function") {
     G.onmessage = async function (e) {

@@ -308,10 +308,6 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .lvl small{font-size:14px;color:var(--muted);line-height:1.2;display:block}
 .lvl input:checked+span{background:var(--acc-s);color:var(--paper);box-shadow:4px 4px 0 var(--ink);transform:translate(-2px,-2px)}
 .lvl input:checked+span small{color:var(--paper)}
-.lvls.four{grid-template-columns:repeat(4,1fr)}
-.lvls.four b{font-size:18px;white-space:nowrap}
-.optLbl{font-weight:700;margin:0 0 8px}
-.optLbl+.lvls{margin-bottom:16px}
 /* caselle «quadratone col segno» (R-UI-11): la casella vera è invisibile, il quadrato .bx la disegna */
 .check{display:flex;align-items:center;gap:12px;font-weight:700;cursor:pointer;position:relative}
 .check input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
@@ -322,7 +318,7 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .check input:focus-visible+.bx{outline:4px solid var(--acc-s);outline-offset:3px}
 .mode-all .check input:checked+.bx{background:var(--holo-marea);background-size:400% 400%}
 #optsJpg .check,#optsVid .check{margin-top:20px}
-@media (max-width:520px){.lvls{grid-template-columns:1fr}.lvls.four{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.lvls{grid-template-columns:1fr}}
 
 /* pila */
 .rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
@@ -450,44 +446,33 @@ details p{margin:8px 0 0;max-width:65ch}
     <div class="tag" data-i18n="s2">2 · Quanta forza?</div>
     <div id="optsAll" hidden>
     <div class="lvls" role="radiogroup" aria-label="Forza di compressione" data-i18n-aria="lvlAria">
-      <label class="lvl"><input type="radio" name="alvl" value="soft"><span><b data-i18n="soft">Carezza</b><small data-i18n="softD">Qualità quasi intatta</small></span></label>
-      <label class="lvl"><input type="radio" name="alvl" value="mid" checked><span><b data-i18n="mid">Stretta</b><small data-i18n="midD">Per mail e archivio</small></span></label>
-      <label class="lvl"><input type="radio" name="alvl" value="hard"><span><b data-i18n="hard">Martellata</b><small data-i18n="hardD">Peso minimo, si nota</small></span></label>
+      <label class="lvl"><input type="radio" name="alvl" value="soft" checked><span><b data-i18n="soft">Carezza</b><small data-lv="all.soft"></small></span></label>
+      <label class="lvl"><input type="radio" name="alvl" value="mid"><span><b data-i18n="mid">Stretta</b><small data-lv="all.mid"></small></span></label>
+      <label class="lvl"><input type="radio" name="alvl" value="hard"><span><b data-i18n="hard">Martellata</b><small data-lv="all.hard"></small></span></label>
     </div>
     <details class="perType" id="perType"><summary data-i18n="perType">Regola per tipo</summary></details>
     </div>
     <div id="optsHome">
     <div id="optsPdf">
     <div class="lvls" role="radiogroup" aria-label="Forza di compressione" data-i18n-aria="lvlAria">
-      <label class="lvl"><input type="radio" name="lvl" id="lvlSoft" value="soft"><span><b data-i18n="soft">Carezza</b><small data-i18n="softD">Qualità quasi intatta</small></span></label>
-      <label class="lvl"><input type="radio" name="lvl" id="lvlMid" value="mid" checked><span><b data-i18n="mid">Stretta</b><small data-i18n="midD">Per mail e archivio</small></span></label>
-      <label class="lvl"><input type="radio" name="lvl" id="lvlHard" value="hard"><span><b data-i18n="hard">Martellata</b><small data-i18n="hardD">Peso minimo, si nota</small></span></label>
+      <label class="lvl"><input type="radio" name="lvl" id="lvlSoft" value="soft" checked><span><b data-i18n="soft">Carezza</b><small data-lv="pdf.soft"></small></span></label>
+      <label class="lvl"><input type="radio" name="lvl" id="lvlMid" value="mid"><span><b data-i18n="mid">Stretta</b><small data-lv="pdf.mid"></small></span></label>
+      <label class="lvl"><input type="radio" name="lvl" id="lvlHard" value="hard"><span><b data-i18n="hard">Martellata</b><small data-lv="pdf.hard"></small></span></label>
     </div>
     </div>
     <div id="optsJpg" hidden>
-      <p class="optLbl" id="sideLbl" data-i18n="sideLbl">Lato lungo massimo</p>
-      <div class="lvls four" role="radiogroup" aria-labelledby="sideLbl">
-        <label class="lvl"><input type="radio" name="side" id="side0" value="0"><span><b data-i18n="orig">Originale</b></span></label>
-        <label class="lvl"><input type="radio" name="side" id="side2560" value="2560"><span><b translate="no">2560 px</b></span></label>
-        <label class="lvl"><input type="radio" name="side" id="side1920" value="1920" checked><span><b translate="no">1920 px</b></span></label>
-        <label class="lvl"><input type="radio" name="side" id="side1280" value="1280"><span><b translate="no">1280 px</b></span></label>
-      </div>
-      <p class="optLbl" id="weightLbl" data-i18n="weightLbl">Peso massimo</p>
-      <div class="lvls four" role="radiogroup" aria-labelledby="weightLbl">
-        <label class="lvl"><input type="radio" name="weight" id="weight0" value="0"><span><b data-i18n="noLimit">Nessun limite</b></span></label>
-        <label class="lvl"><input type="radio" name="weight" id="weight1048576" value="1048576"><span><b translate="no">1 MB</b></span></label>
-        <label class="lvl"><input type="radio" name="weight" id="weight512000" value="512000" checked><span><b translate="no">500 KB</b></span></label>
-        <label class="lvl"><input type="radio" name="weight" id="weight204800" value="204800"><span><b translate="no">200 KB</b></span></label>
-      </div>
-      <label class="check" for="keepExif"><input type="checkbox" id="keepExif" checked><span data-i18n="keepExif">Conserva data e luogo dello scatto</span></label>
+    <div class="lvls" role="radiogroup" aria-label="Forza di compressione" data-i18n-aria="lvlAria">
+      <label class="lvl"><input type="radio" name="jlvl" id="jlvlSoft" value="soft" checked><span><b data-i18n="soft">Carezza</b><small data-lv="jpg.soft"></small></span></label>
+      <label class="lvl"><input type="radio" name="jlvl" id="jlvlMid" value="mid"><span><b data-i18n="mid">Stretta</b><small data-lv="jpg.mid"></small></span></label>
+      <label class="lvl"><input type="radio" name="jlvl" id="jlvlHard" value="hard"><span><b data-i18n="hard">Martellata</b><small data-lv="jpg.hard"></small></span></label>
+    </div>
     </div>
     <div id="optsVid" hidden>
     <div class="lvls" role="radiogroup" aria-label="Qualità minima" data-i18n-aria="vLvlAria">
-      <label class="lvl"><input type="radio" name="vlvl" id="vlvlMax" value="0.985"><span><b data-i18n="soft">Carezza</b><small data-i18n="vMaxD">Qualità ≥ 98,5%</small></span></label>
-      <label class="lvl"><input type="radio" name="vlvl" id="vlvlMid" value="0.97" checked><span><b data-i18n="mid">Stretta</b><small data-i18n="vMidD">Qualità ≥ 97%</small></span></label>
-      <label class="lvl"><input type="radio" name="vlvl" id="vlvlMin" value="0.95"><span><b data-i18n="hard">Martellata</b><small data-i18n="vMinD">Qualità ≥ 95%</small></span></label>
+      <label class="lvl"><input type="radio" name="vlvl" id="vlvlSoft" value="soft" checked><span><b data-i18n="soft">Carezza</b><small data-lv="video.soft"></small></span></label>
+      <label class="lvl"><input type="radio" name="vlvl" id="vlvlMid" value="mid"><span><b data-i18n="mid">Stretta</b><small data-lv="video.mid"></small></span></label>
+      <label class="lvl"><input type="radio" name="vlvl" id="vlvlHard" value="hard"><span><b data-i18n="hard">Martellata</b><small data-lv="video.hard"></small></span></label>
     </div>
-    <label class="check" for="saveNow"><input type="checkbox" id="saveNow"><span data-i18n="saveNow">Salva ogni video appena è pronto</span></label>
     <p class="hint vMemRow"><span id="vMem"></span> <button type="button" class="linkish" id="vForget" hidden data-i18n="vForget">Dimentica le analisi salvate</button></p>
     <p class="hint" id="vidOff" hidden data-i18n="vidOff">Questo browser non sa codificare video in HEVC o H.264: prova con Chrome, Edge o Safari aggiornati.</p>
     </div>
@@ -583,7 +568,10 @@ details p{margin:8px 0 0;max-width:65ch}
 (function(){
 "use strict";
 /* soglie e parametri: config.js (R-DOC-03) */
-var CFG=window.CONFIG,PRESETS=CFG.pdf.levels;
+var CFG=window.CONFIG,LVK=["soft","mid","hard"];
+/* i tre livelli di forza, uguali in tutte le modalità (R-CMP-01): valori in config.js */
+function LV(k){return CFG.levels[k]||CFG.levels.soft}
+function lvlOf(name){var r=document.querySelector('input[name="'+name+'"]:checked');return r&&CFG.levels[r.value]?r.value:"soft"}
 var items=[],rootDir=null,busy=false,nextId=1,readOnlyDir=false;
 /* cosa si schiaccia: "pdf", "jpg" o "video". Si cambia dal rullo nel titolo, in quest'ordine. */
 var mode="pdf",MODES=["pdf","jpg","video","all"],rollAngle=0;
@@ -623,6 +611,18 @@ function t(k,p){
   if(p)for(var x in p)str=str.split("{"+x+"}").join(p[x]);
   return str;
 }
+/* sottotitoli dei livelli, con i numeri presi da config.js (R-CMP-01, R-DOC-03) */
+function lvlTexts(){
+  each("[data-lv]",function(n){
+    var a=n.getAttribute("data-lv").split("."),k=a[1],L=LV(k),s;
+    if(a[0]==="video")s=L.video.box?t("lvVBox",{q:nf(Math.round(L.video.ssim*1000)/10),p:String(L.video.box[1])}):t("lvV",{q:nf(Math.round(L.video.ssim*1000)/10)});
+    else if(k==="soft")s=t("lvHigh");
+    else if(a[0]==="pdf")s=k==="hard"?t("lvHardP",{px:nf(L.pdf.max,{useGrouping:false})}):t("lvMidP");
+    else if(a[0]==="jpg")s=k==="hard"?t("lvHardJ",{px:nf(L.jpg.side,{useGrouping:false})}):t("lvMidJ");
+    else s=k==="hard"?t("lvHardA"):t("lvMidA");
+    n.textContent=s;
+  });
+}
 function nf(n,o){try{return n.toLocaleString(lang,o)}catch(e){return String(n)}}
 function each(sel,fn){Array.prototype.forEach.call(document.querySelectorAll(sel),fn)}
 function applyLang(){
@@ -633,6 +633,7 @@ function applyLang(){
   each("[data-i18n-html]",function(n){n.innerHTML=t(n.getAttribute("data-i18n-html"))});
   showTitle();
   each("[data-i18n-aria]",function(n){n.setAttribute("aria-label",t(n.getAttribute("data-i18n-aria")))});
+  lvlTexts();
   if(typeof bgShowState==="function"&&$("bgChange"))bgShowState();
   if($("demoMeta")){$("demoMeta").textContent=fmt(19293798)+" → "+fmt(3250586);$("demoPct").textContent="−"+nf(83)+"%"}
   render();capRender();
@@ -739,15 +740,13 @@ function placeOpts(all){
   var box=all?$("perType"):$("optsHome");
   ["optsPdf","optsJpg","optsVid"].forEach(function(id){var n=$(id);if(n.parentNode!==box)box.appendChild(n)});
 }
-var ALLMAP={};["soft","mid","hard"].forEach(function(k){var a=CFG.all[k];ALLMAP[k]={lvl:a.lvl,side:a.side,weight:a.weight,v:String(CFG.video.levels[k])}});
+/* TUTTO: lo stesso livello per PDF, foto e video (R-TUT-03) */
 function allLevel(k){
-  var m=ALLMAP[k];if(!m)return;
-  function pick(name,val){var r=document.querySelector('input[name="'+name+'"][value="'+val+'"]');if(r&&!r.checked){r.checked=true;return r}return null}
-  pick("lvl",m.lvl);pick("side",m.side);pick("weight",m.weight);
-  var v=pick("vlvl",m.v);if(v)v.dispatchEvent(new Event("change",{bubbles:true}));
+  if(!CFG.levels[k])return;
+  function pick(name){var r=document.querySelector('input[name="'+name+'"][value="'+k+'"]');if(r&&!r.checked){r.checked=true;return r}return null}
+  pick("alvl");pick("lvl");pick("jlvl");
+  var v=pick("vlvl");if(v)v.dispatchEvent(new Event("change",{bubbles:true}));
 }
-/* valori dei livelli video presi da config.js */
-[["vlvlMax","soft"],["vlvlMid","mid"],["vlvlMin","hard"]].forEach(function(p){var r=$(p[0]);if(r)r.value=String(CFG.video.levels[p[1]])});
 document.querySelectorAll('input[name="alvl"]').forEach(function(r){r.addEventListener("click",function(){if(!busy)allLevel(r.value)})});
 async function setMode(m,quiet,sure){
   if(loading||MODES.indexOf(m)<0||m===mode&&!quiet||act==="capture"&&(m==="video"||m==="all"))return;
@@ -953,8 +952,9 @@ function render(){
     var meta=fmt(it.size);
     if(it.scan)meta=fmt(it.out.size)+(it.pages?" · "+t("pages",{n:nf(it.pages)}):"");
     else if(it.out)meta+=" → "+fmt(it.out.size);
+    else if(it.status==="kept"&&it.outSize)meta+=" → "+fmt(it.outSize);
     else if(it.plan&&(it.status==="wait"||it.status==="work"))meta+=" → ≈ "+fmt(it.plan.bytes);
-    if(it.plan&&it.vp&&it.status!=="same"&&it.status!=="err")meta+=" · "+(CODEC_NAME[it.vp.codec]||it.vp.codec)+" · "+t("vQuality",{q:nf(Math.round(it.plan.q*1000)/10)});
+    if(it.plan&&it.vp&&it.status!=="same"&&it.status!=="err")meta+=" · "+(CODEC_NAME[it.vp.codec]||it.vp.codec)+" · "+t("vQuality",{q:nf(Math.round(it.plan.q*1000)/10)})+(it.plan.h?" · "+Math.min(it.plan.w,it.plan.h)+"p":"");
     if(it.note)meta+=" · "+t(it.note);
     if(isBig(it)&&(it.status==="wait"||it.status==="work"||it.status==="done"))meta+=" · "+t("bigNote");
     li.appendChild(el("div","meta",meta));
@@ -1101,18 +1101,13 @@ async function runTask(msg,transfer,onPct){
   return new Promise(function(res,rej){pool.queue.push({msg:msg,transfer:transfer,res:res,rej:rej,onPct:onPct});pump()});
 }
 
-function jpgOpts(){
-  return {side:+document.querySelector('input[name="side"]:checked').value,
-          weight:+document.querySelector('input[name="weight"]:checked').value,
-          exif:$("keepExif").checked};
-}
-/* Rimpicciolisce fino al lato lungo scelto; se c'è un peso massimo cerca la qualità più alta che ci sta,
-   e se non basta nemmeno la più bassa riduce ancora le dimensioni. */
+/* qualità e lato lungo massimo del livello scelto (R-JPG-01); dati dello scatto e profilo colore restano sempre (R-JPG-02) */
+function jpgOpts(){return LV(lvlOf("jlvl")).jpg}
 async function squeezeJpg(it,o,onPct){
   var tp=performance.now();try{return await squeezeJpg0(it,o,onPct)}finally{perf("jpg",tp)}
 }
 async function squeezeJpg0(it,o,onPct){
-  var r=await runTask({kind:"jpg",file:it.file,side:o.side,weight:o.weight,exif:o.exif,ios:isIOS},null,onPct);
+  var r=await runTask({kind:"jpg",file:it.file,side:o.side,q:o.q,ios:isIOS},null,onPct);
   return {blob:new Blob([r.bytes],{type:"image/jpeg"}),images:1,changed:1};
 }
 
@@ -1149,7 +1144,7 @@ async function squeezePdf0(it,preset,onPct){
 /* PDF: un file alla volta, le sue immagini in parallelo; JPG: più foto insieme (R-APP-09) */
 async function squashList(list,jpg){
   if(!list.length)return;
-  var preset=jpg?jpgOpts():PRESETS[document.querySelector('input[name="lvl"]:checked').value];
+  var preset=jpg?jpgOpts():LV(lvlOf("lvl")).pdf;
   var next=0,width=jpg?await poolWidth():1;
   async function lane(){
     while(next<list.length&&!abortWork){
@@ -1339,76 +1334,98 @@ async function probeVideo0(it,onPct,stale){
   var t0=await vt.getFirstTimestamp(),clips=[],CL=1.5;
   if(dur<6)clips.push([t0,t0+dur]);
   else{var n=dur<20?2:3;for(var i=0;i<n;i++){var st=t0+(i+.5)*dur/n-CL/2;clips.push([st,st+CL])}}
-  var v={dur:dur,codec:codec,abr:as?as.averageBitrate:0,aac:aac,src:vs.averageBitrate,clips:clips,curve:[]};
-  await refineCurve(it,v,vThr(),onPct,stale);
+  var v={dur:dur,codec:codec,abr:as?as.averageBitrate:0,aac:aac,src:vs.averageBitrate,clips:clips,curve:[],w:vt.displayWidth,h:vt.displayHeight};
+  await refineCurve(it,v,vLv(),onPct,stale);
   return v;
 }
 /* Primo passaggio a bisezione (R-APP-09): si cerca solo la soglia richiesta, finché due punti vicini (rapporto di bitrate
    ≤ 1,45) la racchiudono. Ogni punto = gli spezzoni codificati in parallelo, qualità SSIM media e bit al secondo reali. */
 var FMIN=CFG.video.search.fmin,FMAX=CFG.video.search.fmax,FSTEP=CFG.video.search.fstep;
-function sortCurve(v){v.curve.sort(function(a,b){return b.f-a.f})}
-function nextFrac(v,thr){
-  var c=v.curve;if(!c.length)return FMAX;
+/* livello video scelto: {ssim, box} (R-VID-06/23) */
+function vLv(){return LV(lvlOf("vlvl")).video}
+/* misure ridotte per il riquadro del livello (Martellata, R-VID-23), o null se il video ci sta già */
+function vTarget(v,lv){
+  if(!lv.box||!v.w||!v.h)return null;
+  var k=Math.min(1,lv.box[0]/Math.max(v.w,v.h),lv.box[1]/Math.min(v.w,v.h));if(k>=1)return null;
+  var w=Math.max(2,Math.round(v.w*k/2)*2),h=Math.max(2,Math.round(v.h*k/2)*2);
+  return {w:w,h:h,key:w+"x"+h};
+}
+/* curva dell'originale o della risoluzione ridotta (ognuna ha i suoi punti) */
+function vCurve(v,tg,create){
+  if(!tg)return v.curve;
+  if(!v.sc)v.sc={};
+  return v.sc[tg.key]||(create?(v.sc[tg.key]=[]):[]);
+}
+/* analisi salvate prima della 3.0.0: mancano le misure, si leggono al volo */
+async function vDims(it){
+  var v=it.vp;if(!v||v.w)return;
+  try{var M=await loadMB(),vt=await vInput(M,it.file).getPrimaryVideoTrack();v.w=vt.displayWidth;v.h=vt.displayHeight}catch(e){}
+}
+function sortCurve(c){c.sort(function(a,b){return b.f-a.f})}
+function nextFrac(c,thr){
+  if(!c.length)return FMAX;
   if(c[0].q<thr)return 0;
   var A=null,B=null;
   for(var i=0;i<c.length;i++){if(c[i].q>=thr)A=c[i];else{B=c[i];break}}
   if(!B)return A.f<=FMIN*1.01?0:Math.max(FMIN,A.f/3.2);
   return A.f/B.f<=FSTEP?0:Math.sqrt(A.f*B.f);
 }
-async function vRefs(it,v,M){
-  if(it.vctx)return it.vctx;
-  var input=vInput(M,it.file),vt=await input.getPrimaryVideoTrack(),size=fitSize(vt.displayWidth,vt.displayHeight),ref=[];
+/* fotogrammi di riferimento: alle misure di confronto del bersaglio (per la riduzione, l'originale ridotto) */
+async function vRefs(it,v,M,tg){
+  var key=tg?tg.key:"";
+  if(it.vctx&&it.vctx.key===key)return it.vctx;
+  var input=vInput(M,it.file),vt=await input.getPrimaryVideoTrack(),size=tg?fitSize(tg.w,tg.h):fitSize(vt.displayWidth,vt.displayHeight),ref=[];
   for(var c=0;c<v.clips.length;c++){
     var ts=[];for(var k=1;k<=3;k++)ts.push(v.clips[c][0]+(v.clips[c][1]-v.clips[c][0])*k/4);
     ref.push({ts:ts,y:await frames(M,vt,ts,size)});
   }
-  return (it.vctx={input:input,size:size,ref:ref});
+  return (it.vctx={key:key,input:input,size:size,ref:ref});
 }
-async function clipScore(M,cx,codec,clip,ref,b){
+function vSize(tg){return tg?{width:tg.w,height:tg.h,fit:"fill"}:{}}
+async function clipScore(M,cx,codec,clip,ref,b,tg){
   var tgt=new M.BufferTarget(),out=new M.Output({format:new M.Mp4OutputFormat(),target:tgt});
   var conv=await M.Conversion.init({input:cx.input,output:out,trim:{start:clip[0],end:clip[1]},audio:{discard:true},
-    video:{codec:codec,quality:new M.Quality({bitrate:b,bitrateMode:"variable"}),forceTranscode:true},showWarnings:false});
+    video:Object.assign({codec:codec,quality:new M.Quality({bitrate:b,bitrateMode:"variable"}),forceTranscode:true},vSize(tg)),showWarnings:false});
   await conv.execute();
   var t2=await vInput(M,tgt.buffer).getPrimaryVideoTrack(),off=clip[0];
   var got=await frames(M,t2,ref.ts.map(function(x){return x-off}),cx.size),qs=0,qn=0;
   for(var f=0;f<got.length;f++)if(got[f]&&ref.y[f]){qs+=ssim(ref.y[f],got[f]);qn++}
   return {qs:qs,qn:qn,bytes:tgt.buffer.byteLength,secs:clip[1]-clip[0]};
 }
-async function refineCurve(it,v,thr,onPct,stale){
-  var M=await loadMB(),steps=0,f;
-  while((f=nextFrac(v,thr))){
+async function refineCurve(it,v,lv,onPct,stale){
+  var M=await loadMB(),steps=0,f,thr=lv.ssim,tg=vTarget(v,lv),c=vCurve(v,tg,true);
+  while((f=nextFrac(c,thr))){
     if(stale())throw new Error("stale");
-    var cx=await vRefs(it,v,M),b=Math.round(v.src*f),parts;
+    var cx=await vRefs(it,v,M,tg),b=Math.round(v.src*f),parts;
     /* gli spezzoni in parallelo; se il codificatore non regge più sessioni, uno alla volta */
     try{
       if(busy)throw 0;/* durante la compressione: uno alla volta (R-VID-20) */
-      parts=await Promise.all(v.clips.map(function(cl,j){return clipScore(M,cx,v.codec,cl,cx.ref[j],b)}));
-    }catch(e){parts=[];for(var j=0;j<v.clips.length;j++)parts.push(await clipScore(M,cx,v.codec,v.clips[j],cx.ref[j],b))}
+      parts=await Promise.all(v.clips.map(function(cl,j){return clipScore(M,cx,v.codec,cl,cx.ref[j],b,tg)}));
+    }catch(e){parts=[];for(var j=0;j<v.clips.length;j++)parts.push(await clipScore(M,cx,v.codec,v.clips[j],cx.ref[j],b,tg))}
     var qs=0,qn=0,bytes=0,secs=0;parts.forEach(function(p){qs+=p.qs;qn+=p.qn;bytes+=p.bytes;secs+=p.secs});
-    v.curve.push({f:f,b:b,q:qn?qs/qn:0,rate:bytes*8/secs});sortCurve(v);
+    c.push({f:f,b:b,q:qn?qs/qn:0,rate:bytes*8/secs});sortCurve(c);
     onPct(Math.min(95,Math.round(++steps/6*100)));
   }
   it.vctx=null;
   onPct(100);
 }
 /* bitrate minimo che rispetta la soglia: interpolazione sul logaritmo del bitrate, +5% di margine; peso dai byte reali */
-function vCovered(v,thr){return !nextFrac(v,thr)}
-function planVideo(v,thr){
-  var c=v.curve;if(!c.length||c[0].q<thr)return null;
+function vCovered(v,lv){return !nextFrac(vCurve(v,vTarget(v,lv)),lv.ssim)}
+function planVideo(v,lv){
+  var thr=lv.ssim,tg=vTarget(v,lv),c=vCurve(v,tg);if(!c.length||c[0].q<thr)return null;
   var i=1;while(i<c.length&&c[i].q>=thr)i++;
   var b,r;
   if(i>=c.length){b=c[c.length-1].b;r=c[c.length-1].rate}
   else{var A=c[i-1],B=c[i],k=(A.q-thr)/((A.q-B.q)||1),lg=function(x,y){return Math.exp(Math.log(x)+(Math.log(y)-Math.log(x))*k)};b=lg(A.b,B.b);r=lg(A.rate,B.rate)}
-  return {b:Math.round(b*CFG.video.planMargin),q:thr,bytes:Math.round((r*CFG.video.planMargin+(v.aac?AAC:v.abr))*v.dur/8*1.01)};
+  return {b:Math.round(b*CFG.video.planMargin),q:thr,w:tg?tg.w:0,h:tg?tg.h:0,bytes:Math.round((r*CFG.video.planMargin+(v.aac?AAC:v.abr))*v.dur/8*1.01)};
 }
-function vThr(){var r=document.querySelector('input[name="vlvl"]:checked');return r?parseFloat(r.value):CFG.video.levels.mid}
 /* applica il livello scelto alle schede già analizzate (R-VID-06/07) */
 function planAll(){
-  var thr=vThr();
+  var lv=vLv();
   items.forEach(function(it){
     if(!it.vp||it.status==="done"||it.status==="kept"||it.status==="over"||it.status==="work"||it.status==="err")return;
-    if(!vCovered(it.vp,thr)){it.status="probe";it.pct=0;it.plan=null;return}
-    var pl=planVideo(it.vp,thr);
+    if(!vCovered(it.vp,lv)){it.status="probe";it.pct=0;it.plan=null;return}
+    var pl=planVideo(it.vp,lv);
     it.plan=pl&&pl.bytes<it.size*CFG.video.fileKeep?pl:null;
     it.status=it.plan?"wait":"same";it.note=it.plan?"":"noGainV";
   });
@@ -1440,8 +1457,9 @@ async function probeLoop(gen){
       if(rec&&rec.v)it.vp=rec.v;
     }
     if(it.vp){
-      if(!vCovered(it.vp,vThr())){
-        try{await refineCurve(it,it.vp,vThr(),function(p){if(gen===probeGen&&p-last>=5){last=p;it.pct=p;render()}},function(){return gen!==probeGen})}
+      await vDims(it);if(gen!==probeGen)return;
+      if(!vCovered(it.vp,vLv())){
+        try{await refineCurve(it,it.vp,vLv(),function(p){if(gen===probeGen&&p-last>=5){last=p;it.pct=p;render()}},function(){return gen!==probeGen})}
         catch(e){if(gen!==probeGen)return}
         await vRemember(it,{v:it.vp});
       }
@@ -1479,7 +1497,7 @@ async function squeezeVideo(it,onPct){
   var fs=big?false:"in-memory";
   var out=new M.Output({format:mov?new M.MovOutputFormat({fastStart:fs}):new M.Mp4OutputFormat({fastStart:fs}),target:tgt});
   var conv=curConv=await M.Conversion.init({input:vInput(M,it.file),output:out,showWarnings:false,
-    video:{codec:v.codec,quality:new M.Quality({bitrate:pl.b,bitrateMode:"variable"}),forceTranscode:true},
+    video:Object.assign({codec:v.codec,quality:new M.Quality({bitrate:pl.b,bitrateMode:"variable"}),forceTranscode:true},vSize(pl.w?pl:null)),
     audio:v.aac?{codec:"aac",quality:new M.Quality({bitrate:AAC}),forceTranscode:true}:{}});
   if(!conv.isValid)throw new Error("invalid");
   conv.onProgress=function(x){onPct(Math.min(99,Math.round(x*100)))};
@@ -1513,7 +1531,6 @@ async function videoLoop(){
       if(blob.size<it.size*CFG.video.fileKeep){
         it.out=blob;it.status="done";
         var nn=vidExt(it.name);if(nn!==it.name){it.rel=it.rel.slice(0,it.rel.length-it.name.length)+nn;it.name=nn;it.handle=null}
-        if($("saveNow").checked){render();await keepNow(it)}
         if(it.status==="done")await keepDone(it);
       }else{it.status="same";it.note="noGainV";await dropTmp(it)}
     }catch(e){it.status="err";it.note="unreadable";await dropTmp(it)}
@@ -1524,25 +1541,6 @@ async function videoLoop(){
 /* quadrato disegnato delle caselle (R-UI-11) */
 function checkBx(){var b=el("span","bx");b.setAttribute("aria-hidden","true");b.innerHTML='<svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';return b}
 each(".check input",function(c){if(!c.nextElementSibling||!c.nextElementSibling.classList.contains("bx"))c.after(checkBx())});
-/* salva man mano (R-VID-22): il video appena finito va subito accanto all'originale o, senza cartella scrivibile, nei download */
-var saveNowBox=$("saveNow");
-try{saveNowBox.checked=localStorage.getItem("saveNow")==="1"}catch(e){}
-saveNowBox.addEventListener("change",function(){try{localStorage.setItem("saveNow",saveNowBox.checked?"1":"0")}catch(e){}});
-async function keepNow(it){
-  var blob=it.out,big=!!it.tmpName;
-  try{
-    if(it.dir){
-      var fh=await it.dir.getFileHandle(besideName(it.name),{create:true}),w=await fh.createWritable();
-      try{await w.write(blob);await w.close()}catch(e){try{await w.abort()}catch(x){}throw e}
-      if(big)await dropTmp(it);
-    }else{
-      saveDownload(outName(it),blob);
-      if(big){var keep=it;setTimeout(function(){dropTmp(keep)},90000)}
-    }
-  }catch(e){return}
-  it.outSize=blob.size;it.out=null;it.status="kept";
-  await vRemember(it,{v:it.vp,done:true});
-}
 
 /* ---------- salvataggio ---------- */
 var canDir=!!window.showDirectoryPicker,savedAs="",BADCHARS='/ \\ : * ? " < > |';
@@ -3263,23 +3261,21 @@ function progSaving(){
   return sum;
 }
 /* niente da risparmiare: proposta di un livello più forte (R-LST-05) */
-var LVK=["soft","mid","hard"],VLV=LVK.map(function(k){return [String(CFG.video.levels[k]),k]});
 async function suggestVideo(){
   if(busy||loading||!$("modal").hidden)return;
   var vids=items.filter(function(x){return x.kind==="video"&&!x.scan});
   if(!vids.length||vids.some(function(x){return x.status==="wait"&&x.plan||x.status==="probe"||x.status==="done"||x.status==="kept"}))return;
-  var cur=vThr(),best=null;
-  for(var k=0;k<VLV.length;k++){
-    var thr=+VLV[k][0];if(thr>=cur)continue;
-    var sv=0,n=0,known=true;
-    vids.forEach(function(x){if(!x.vp)return;if(!vCovered(x.vp,thr)){known=false;return}var pl=planVideo(x.vp,thr);if(pl&&pl.bytes<x.size*CFG.video.fileKeep){sv+=x.size-pl.bytes;n++}});
-    best={v:VLV[k][0],k:VLV[k][1],sv:sv,n:n,known:known};
+  var best=null;
+  for(var k=LVK.indexOf(lvlOf("vlvl"))+1;k<LVK.length;k++){
+    var lv=LV(LVK[k]).video,sv=0,n=0,known=true;
+    vids.forEach(function(x){if(!x.vp)return;if(!vCovered(x.vp,lv)){known=false;return}var pl=planVideo(x.vp,lv);if(pl&&pl.bytes<x.size*CFG.video.fileKeep){sv+=x.size-pl.bytes;n++}});
+    best={k:LVK[k],sv:sv,n:n,known:known};
     if(n)break;
   }
   if(!best||best.known&&!best.n)return;
   if(!await suggestAsk(best.k,best.n?best.sv:0,best.n))return;
-  if(mode==="all"){var ar=document.querySelector('input[name="alvl"][value="'+best.k+'"]');if(ar)ar.checked=true}
-  var r=document.querySelector('input[name="vlvl"][value="'+best.v+'"]');if(r){r.checked=true;r.dispatchEvent(new Event("change",{bubbles:true}))}
+  if(mode==="all"){allLevel(best.k);return}
+  var r=document.querySelector('input[name="vlvl"][value="'+best.k+'"]');if(r){r.checked=true;r.dispatchEvent(new Event("change",{bubbles:true}))}
 }
 async function suggestAsk(k,sv,n){
   return await ask({title:t("sugTitle"),text:sv?t("sugBodyN",{lvl:t(k),size:fmt(sv),n:nf(n)}):t("sugBody",{lvl:t(k)}),noCancel:true,
@@ -3292,19 +3288,12 @@ async function suggestStill(){
   if(!still.length||still.some(function(x){return x.status==="done"||x.status==="kept"||x.status==="over"}))return;
   /* solo se c'erano immagini da stringere: un PDF senza immagini non cambia con la forza */
   if(!still.some(function(x){return x.status==="same"&&x.note==="noGain"}))return;
-  if(mode==="jpg"){
-    var sd=document.querySelector('input[name="side"]:checked'),wg=document.querySelector('input[name="weight"]:checked');
-    if(sd&&sd.value===CFG.jpg.maxLevel.side&&wg&&wg.value===CFG.jpg.maxLevel.weight)return;
-    if(!await suggestAsk("sugJpg",0,0))return;
-    var ms=document.querySelector('input[name="side"][value="'+CFG.jpg.maxLevel.side+'"]'),mw=document.querySelector('input[name="weight"][value="'+CFG.jpg.maxLevel.weight+'"]');
-    if(ms)ms.checked=true;if(mw)mw.checked=true;goNow();return;
-  }
-  var lv=document.querySelector('input[name="lvl"]:checked'),i=LVK.indexOf(lv?lv.value:"mid");
-  if(i>=2)return;
+  var name=mode==="jpg"?"jlvl":mode==="all"?"alvl":"lvl",i=LVK.indexOf(lvlOf(name));
+  if(i>=LVK.length-1)return;
   var nk=LVK[i+1];
   if(!await suggestAsk(nk,0,0))return;
-  if(mode==="all"){var ar=document.querySelector('input[name="alvl"][value="'+nk+'"]');if(ar)ar.checked=true}
-  var r=document.querySelector('input[name="lvl"][value="'+nk+'"]');if(r)r.checked=true;
+  if(mode==="all")allLevel(nk);
+  else{var r=document.querySelector('input[name="'+name+'"][value="'+nk+'"]');if(r)r.checked=true}
   goNow();
 }
 
@@ -3377,14 +3366,14 @@ $("workCancel").addEventListener("click",async function(){
   reset();tmpClean();render();say(t("stoppedMsg"));
 });
 /* opzioni del passo 2 da ricordare con il lavoro */
-var SETS=["lvl","side","weight","vlvl","alvl"];
+/* i valori dei lavori salvati prima dei tre livelli uniformi (3.0.0) non corrispondono a nessun pulsante: si resta su Carezza */
+var SETS=["lvl","jlvl","vlvl","alvl"];
 function readSettings(){
-  var o={};SETS.forEach(function(n){var r=document.querySelector('input[name="'+n+'"]:checked');if(r)o[n]=r.value});o.exif=$("keepExif").checked;return o;
+  var o={};SETS.forEach(function(n){var r=document.querySelector('input[name="'+n+'"]:checked');if(r)o[n]=r.value});o.lv=2;return o;
 }
 function applySettings(o){
-  if(!o)return;
+  if(!o||o.lv!==2)return;
   SETS.forEach(function(n){var r=o[n]&&document.querySelector('input[name="'+n+'"][value="'+o[n]+'"]');if(r)r.checked=true});
-  if("exif" in o)$("keepExif").checked=!!o.exif;
 }
 async function jobsDir(create){var r=await navigator.storage.getDirectory();return r.getDirectoryHandle("schiaccia-jobs",{create:!!create})}
 /* later: i file si cancellano dopo un po', perché uno scaricamento appena partito potrebbe ancora leggerli */
@@ -3516,7 +3505,7 @@ async function restoreJob(rec){
         it.out=await (await dir.getFileHandle(f.out)).getFile();it.status="done";it.jobOut=f.out;it.keepOut=true;
         if(f.relOut&&f.relOut!==it.rel){it.rel=f.relOut;it.name=f.relOut.split("/").pop();it.handle=null}
       }catch(e){}
-    }else if(f.status==="kept"){it.status="kept";it.outSize=f.outSize;it.keepOut=true}
+    }else if(f.status==="kept"){it.status="kept";it.outSize=f.outSize;it.note=f.note||"";it.keepOut=true}
     else if(f.status==="same"||f.status==="err"){it.status=f.status;it.note=f.note;it.keepOut=true}
   }
   jobId=rec.id;

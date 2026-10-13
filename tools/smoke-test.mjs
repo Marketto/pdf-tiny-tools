@@ -147,7 +147,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && !document.getElementById("total").hidden, null, { timeout: 180000 });
   check(/6 su 6/.test(await page.innerText("#msg")), `Pausa: dopo la ripresa il lavoro si completa senza rifare i pronti (${await page.innerText("#msg")})`);
   // annulla con file pronti: chiede conferma e svuota
-  await page.evaluate(() => document.getElementById("side1280").click());
+  await page.evaluate(() => document.getElementById("jlvlHard").click());
   await page.click("#go");
   await page.waitForFunction(() => !document.getElementById("work").hidden, null, { timeout: 30000 });
   await page.click("#workCancel");
@@ -268,7 +268,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.click("#modeBtn");
   check(await page.evaluate(() => document.body.classList.contains("mode-jpg") && !document.getElementById("optsJpg").hidden && document.getElementById("optsPdf").hidden), "JPG: il rullo cambia modalità e opzioni");
   check((await page.title()).includes("JPG") && (await page.innerText('label[for="pickFiles"]')).includes("JPG"), "JPG: i testi parlano di JPG");
-  // foto di prova 3000x2000 con un blocco EXIF minimo (orientamento 6)
+  // foto di prova 3000x2000 con un blocco EXIF minimo (orientamento 6) e un blocco del profilo colore (R-JPG-02)
   const before = await page.evaluate(async () => {
     const c = document.createElement("canvas"); c.width = 3000; c.height = 2000;
     const g = c.getContext("2d"), d = g.createImageData(3000, 2000);
@@ -276,22 +276,30 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     g.putImageData(d, 0, 0);
     const jpg = new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/jpeg", .95))).arrayBuffer());
     const exif = [0xFF, 0xE1, 0, 34, 0x45, 0x78, 0x69, 0x66, 0, 0, 0x49, 0x49, 0x2A, 0, 8, 0, 0, 0, 1, 0, 0x12, 1, 3, 0, 1, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0];
-    const all = new Uint8Array(jpg.length + exif.length); all.set(jpg.subarray(0, 2)); all.set(exif, 2); all.set(jpg.subarray(2), 2 + exif.length);
-    const dt = new DataTransfer(); dt.items.add(new File([all], "foto.jpg", { type: "image/jpeg" }));
-    const input = document.getElementById("pickFiles"); input.files = dt.files;
-    input.dispatchEvent(new Event("change", { bubbles: true }));
+    const icc = [0xFF, 0xE2, 0, 22, ..."ICC_PROFILE".split("").map((x) => x.charCodeAt(0)), 0, 1, 1, 1, 2, 3, 4];
+    const all = new Uint8Array(jpg.length + exif.length + icc.length); all.set(jpg.subarray(0, 2)); all.set(exif, 2); all.set(icc, 2 + exif.length); all.set(jpg.subarray(2), 2 + exif.length + icc.length);
+    window.__foto = all;
     return all.length;
   });
-  await page.click("#go");
-  await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && document.querySelector("#rows .badge:not(.wait):not(.work)"), null, { timeout: 60000 });
-  const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#saveAs")]);
-  const out = await read(await dl.path());
-  let w = 0, h = 0;
-  for (let p = 2; p + 9 < out.length && out[p] === 0xFF;) { const m = out[p + 1], len = out.readUInt16BE(p + 2); if (m >= 0xC0 && m <= 0xC2) { h = out.readUInt16BE(p + 5); w = out.readUInt16BE(p + 7); break; } p += 2 + len; }
+  const squashFoto = async () => {
+    await page.evaluate(() => { const dt = new DataTransfer(); dt.items.add(new File([window.__foto], "foto.jpg", { type: "image/jpeg" })); const input = document.getElementById("pickFiles"); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true })); });
+    await page.click("#go");
+    await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && document.querySelector("#rows .badge:not(.wait):not(.work)"), null, { timeout: 60000 });
+    const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#saveAs")]);
+    const out = await read(await dl.path());
+    let w = 0, h = 0;
+    for (let p = 2; p + 9 < out.length && out[p] === 0xFF;) { const m = out[p + 1], len = out.readUInt16BE(p + 2); if (m >= 0xC0 && m <= 0xC2) { h = out.readUInt16BE(p + 5); w = out.readUInt16BE(p + 7); break; } p += 2 + len; }
+    return { dl, out, w, h };
+  };
+  const { dl, out, w, h } = await squashFoto();
   check(dl.suggestedFilename() === "foto-compresso.jpg", `JPG: nome del file salvato (${dl.suggestedFilename()})`);
-  check(out.length <= 512000, `JPG: da ${Math.round(before / 1024)} KB a ${Math.round(out.length / 1024)} KB, entro il limite di 500 KB`);
-  check(Math.max(w, h) > 0 && Math.max(w, h) <= 1920, `JPG: lato lungo ${Math.max(w, h)} px, entro 1920`);
+  check(out.length < before, `JPG: Carezza alleggerisce (da ${Math.round(before / 1024)} KB a ${Math.round(out.length / 1024)} KB)`);
+  check(w === 2000 && h === 3000, `JPG: Carezza lascia le misure originali, raddrizzate (${w}×${h})`);
   check(out[2] === 0xFF && out[3] === 0xE1 && out.toString("latin1", 6, 10) === "Exif" && out[30] === 1, "JPG: dati dello scatto conservati, orientamento riportato a normale");
+  check(out.includes(Buffer.from("ICC_PROFILE\0", "latin1")), "JPG: profilo colore conservato");
+  await page.evaluate(() => document.getElementById("jlvlHard").click());
+  const hard = await squashFoto();
+  check(Math.max(hard.w, hard.h) === 2048 && hard.out.length < out.length, `JPG: Martellata riduce a 2048 px (${hard.w}×${hard.h}, ${Math.round(hard.out.length / 1024)} KB)`);
   check(await page.locator("#rows .row").count() === 0, "JPG: elenco svuotato dopo il salvataggio");
   check(errors.length === 0, `JPG: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
@@ -335,11 +343,11 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   const sumTxt = await page.evaluate(() => !document.getElementById("sum").hidden && document.getElementById("sum").innerText.replace(/\n/g, " "));
   check(/Da schiacciare: 1 di 1/.test(sumTxt || ""), `Riepilogo: sopra l'elenco quanti file verranno schiacciati e il risparmio stimato (${sumTxt || "assente"})`);
   check(/≈/.test(est) && /qualità 97/.test(est), `Video: analisi con stima e qualità (${est})`);
-  await page.click("#vlvlMin");
+  await page.click("#vlvlMid");
   await page.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 240000 });
   const est95 = await page.innerText("#rows .meta");
   check(/qualità 95/.test(est95) && est95 !== est, `Video: cambiando livello la stima si aggiorna (${est95})`);
-  await page.click("#vlvlMid");
+  await page.click("#vlvlSoft");
   await page.click("#go");
   await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && document.querySelector("#rows .badge:not(.wait):not(.work)"), null, { timeout: 240000 });
   await page.click("#modeBtn");
@@ -376,7 +384,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(await page.evaluate(() => getComputedStyle(document.getElementById("camBtn")).display === "none" && document.getElementById("actBtn").getAttribute("aria-disabled") === "true"), "Tutto: Cattura spenta (fotocamera nascosta, verbo fermo)");
   check(await page.evaluate(() => getComputedStyle(document.querySelector("#press .m-horn")).display !== "none" && getComputedStyle(document.querySelector("#press .m-gas")).display !== "none"), "Tutto: mascotte olografica con il corno");
   await page.click('input[name="alvl"][value="hard"]', { force: true });
-  check(await page.evaluate(() => ["lvl", "side", "weight", "vlvl"].map((n) => document.querySelector(`input[name="${n}"]:checked`).value).join() === "hard,1280,204800,0.95"), "Tutto: il livello unico vale per PDF, foto e video");
+  check(await page.evaluate(() => ["lvl", "jlvl", "vlvl"].map((n) => document.querySelector(`input[name="${n}"]:checked`).value).join() === "hard,hard,hard"), "Tutto: il livello unico vale per PDF, foto e video");
   await page.click('input[name="alvl"][value="mid"]', { force: true });
   await page.evaluate(async () => {
     const dt = new DataTransfer();
@@ -440,22 +448,11 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   const probes = await page.evaluate(() => window.__perf.filter((x) => x[0] === "probe").length);
   check(probes === 0 && again === first, `Video: riaprendo lo stesso video la stima arriva dalla memoria, senza rianalizzare (${again})`);
   check(/: 1/.test(await page.innerText("#vMem")), `Video: si vede quante analisi sono salvate (${await page.innerText("#vMem")})`);
-  // salva man mano (R-VID-22): il video finito si scarica subito, diventa «Salvato» e alla riapertura viene saltato
-  await page.click('label[for="saveNow"] .bx');
-  check(await page.isChecked("#saveNow"), "Casella: toccando il quadrato si accende");
-  const dl = page.waitForEvent("download", { timeout: 120000 }).catch(() => null);
+  // a fine compressione i video si salvano con i pulsanti del passo 3 (R-VID-22 tolto)
+  check(await page.evaluate(() => !document.getElementById("saveNow")), "Video: niente più casella «Salva ogni video appena è pronto»");
   await page.click("#go");
-  const d1 = await dl;
-  await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy"), null, { timeout: 120000 });
-  const keptRow = await page.innerText("#rows");
-  check(!!d1 && /-compresso\.mp4$/.test(d1.suggestedFilename()) && /Salvato/.test(keptRow), `Video: con «Salva ogni video appena è pronto» si salva subito (${d1 && d1.suggestedFilename()} · ${keptRow.replace(/\n/g, " / ")})`);
-  check(await page.evaluate(() => document.querySelector("#total .saveBtns").hidden && !document.getElementById("total").hidden), "Video: già salvato, niente pulsanti di salvataggio ma il totale resta");
-  await page.reload(); await page.waitForTimeout(800);
-  check(await page.evaluate(() => document.getElementById("saveNow").checked), "Video: la scelta «Salva man mano» è ricordata");
-  await load();
-  await page.waitForFunction(() => /già schiacciato e salvato/.test(document.getElementById("rows").innerText), null, { timeout: 20000 }).catch(() => {});
-  check(/già schiacciato e salvato/.test(await page.innerText("#rows")), `Video: riaprendo dopo un'interruzione il video già salvato si salta (${(await page.innerText("#rows")).replace(/\n/g, " / ")})`);
-  await page.uncheck("#saveNow", { force: true });
+  await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && document.getElementById("work").hidden, null, { timeout: 120000 });
+  check(await page.evaluate(() => !document.getElementById("total").hidden && !document.querySelector("#total .saveBtns").hidden), "Video: a fine compressione compaiono i pulsanti per salvare");
   await page.click("#vForget");
   check(await page.waitForFunction(() => document.getElementById("vForget").hidden, null, { timeout: 5000 }).then(() => true, () => false), "Video: «Dimentica le analisi salvate» le cancella");
   check(errors.length === 0, `Memoria delle analisi: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
