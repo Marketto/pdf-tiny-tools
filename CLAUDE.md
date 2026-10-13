@@ -1,6 +1,6 @@
 # Schiaccia PDF (pdf-tiny-tools)
 
-Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini che contengono) e le foto JPG (entro un lato lungo e un peso massimi). Le due modalità si scambiano dal rullo nel titolo. Con il pulsante della fotocamera fa anche da scanner: scatto, angoli e lati proposti, raddrizzamento e pulizia della luce, anteprima, in PDF o JPG secondo la modalità. Nessun server, nessuna build, nessun framework: quello che c'è nel repository è quello che viene pubblicato su GitHub Pages.
+Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini che contengono) le foto JPG (entro un lato lungo e un peso massimi) e i video (ricodifica in HEVC o H.264 con qualità misurata). Le tre modalità si scambiano dal rullo nel titolo. Con il pulsante della fotocamera fa anche da scanner: scatto, angoli e lati proposti, raddrizzamento e pulizia della luce, anteprima, in PDF o JPG secondo la modalità. Nessun server, nessuna build, nessun framework: quello che c'è nel repository è quello che viene pubblicato su GitHub Pages.
 
 ## Mappa
 
@@ -10,7 +10,7 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 | `i18n.js` | Tutti i testi, 13 lingue (`window.I18N`) |
 | `sw.js` | Cache offline (service worker) |
 | `manifest.webmanifest`, `icons/`, `favicon.ico` | Installazione come app |
-| `vendor/` | pdf-lib e JSZip, copiati così come sono: non modificarli |
+| `vendor/` | pdf-lib, JSZip e Mediabunny (video), copiati così come sono: non modificarli |
 | `tools/` | Strumenti di sviluppo (controlli, prova nel browser, icone) |
 | `.claude/` | Skill e agenti descritti sotto |
 | `docs/` | Requisiti, architettura e guida al lavoro con gli agenti |
@@ -19,7 +19,7 @@ Cosa deve fare l'app: `docs/REQUISITI.md` (voci con codice `R-AREA-nn`). Come è
 
 ## Come cercare, spendendo poco
 
-1. Requisito: `grep -n "R-SCN" docs/REQUISITI.md` (aree: PRI MOD CAR CMP JPG SCN LST SAV UI AUD I18N APP REL DOC).
+1. Requisito: `grep -n "R-SCN" docs/REQUISITI.md` (aree: PRI MOD CAR CMP JPG VID SCN LST SAV UI AUD I18N APP REL DOC).
 2. Dove sta nel codice: tabella «Mappa del codice» in `docs/ARCHITETTURA.md`, poi `grep -n -- "---------- scansione" index.html` e leggi solo quella sezione.
 3. Testi: `grep -n "chiave:" i18n.js | head -13` (una riga per lingua).
 4. Non leggere `vendor/` né le parti SVG generate tra `<!-- mascot:… -->`.
@@ -32,7 +32,7 @@ Prima di lavorare, guarda in quale riga cade la richiesta e usa la skill o l'age
 |---|---|
 | Testi, traduzioni, una lingua nuova | skill `traduzioni`; per rileggere una lingua, agente `traduttore` |
 | Mascotte, icone, favicon, animazione di caricamento | skill `mascotte-e-icone` |
-| Qualità o peso dei PDF e delle foto JPG, immagini non compresse, file che si rompono | agente `motore-pdf` |
+| Qualità o peso dei PDF, delle foto JPG o dei video, immagini non compresse, file che si rompono | agente `motore-pdf` |
 | «Funziona ancora?», controllo prima di pubblicare | skill `verifica`; per un giro completo e un rapporto, agente `collaudo` |
 | Nuova versione, tag, pubblicazione | skill `rilascio` |
 | Layout, stile, suoni, installazione, cartelle | lavora direttamente su `index.html`, poi skill `verifica` |

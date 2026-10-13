@@ -2,7 +2,7 @@
 
 Comportamento deciso dal proprietario. Ogni voce ha un codice stabile (`R-AREA-nn`): citalo nei commit e cercalo con `grep -n "R-SCN" docs/*.md`. Un codice non si riusa mai; se un requisito cade, la voce resta con «(ritirato)».
 
-Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg) · [CAR](#car-caricamento) · [CMP](#cmp-compressione) · [JPG](#jpg-foto) · [SCN](#scn-scansione) · [LST](#lst-elenco) · [SAV](#sav-salvataggio) · [UI](#ui-aspetto) · [AUD](#aud-suoni-e-musica) · [I18N](#i18n-lingue) · [APP](#app-installazione-e-condivisione) · [REL](#rel-rilascio) · [DOC](#doc-documentazione)
+Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#car-caricamento) · [CMP](#cmp-compressione) · [JPG](#jpg-foto) · [VID](#vid-video) · [SCN](#scn-scansione) · [LST](#lst-elenco) · [SAV](#sav-salvataggio) · [UI](#ui-aspetto) · [AUD](#aud-suoni-e-musica) · [I18N](#i18n-lingue) · [APP](#app-installazione-e-condivisione) · [REL](#rel-rilascio) · [DOC](#doc-documentazione)
 
 ## PRI · Principi
 - R-PRI-01 Tutto avviene nel browser; i file e le foto non lasciano il dispositivo, niente telemetria.
@@ -10,11 +10,11 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg) · [CAR](#car-caric
 - R-PRI-03 Gli originali si modificano solo dopo conferma esplicita.
 - R-PRI-04 Stile a fumetto con mascotte kawaii; testi giocosi.
 
-## MOD · Modalità PDF / JPG
-- R-MOD-01 Stessa app e stessa esperienza per PDF e foto JPG.
-- R-MOD-02 Si cambia toccando la parola «PDF» del titolo: un rullo a due facce (PDF, JPG) con due freccette; la prima volta accenna da solo mezzo giro.
-- R-MOD-03 Cambiando modalità cambiano colore della mascotte (rosa PDF, menta JPG), colori dell'interfaccia (R-UI-05), testi e opzioni del passo 2; l'elenco si svuota.
-- R-MOD-04 Modalità ricordata; `#jpg` nel link apre le foto e la condivisione lo include.
+## MOD · Modalità PDF / JPG / VIDEO
+- R-MOD-01 Stessa app e stessa esperienza per PDF, foto JPG e video.
+- R-MOD-02 Si cambia toccando la parola «PDF» del titolo: un rullo con due freccette che gira in ordine PDF → JPG → VIDEO → PDF; la prima volta accenna da solo mezzo giro.
+- R-MOD-03 Cambiando modalità cambiano colore della mascotte (rosa PDF, menta JPG, terzo colore per VIDEO, R-VID-12), colori dell'interfaccia (R-UI-05), testi e opzioni del passo 2; l'elenco si svuota.
+- R-MOD-04 Modalità ricordata; `#jpg` o `#video` nel link aprono quella modalità e la condivisione lo include.
 - R-MOD-05 Il rullo è un pulsante vero: tastiera e lettori di schermo.
 
 ## CAR · Caricamento
@@ -35,8 +35,23 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg) · [CAR](#car-caric
 - R-JPG-02 Data, luogo e dati dello scatto conservati, salvo togliere la spunta.
 - R-JPG-03 Solo file JPG; il salvato resta JPG con stesso nome ed estensione.
 
+## VID · Video
+- R-VID-01 Video MP4, MOV e M4V (anche WebM e MKV in lettura). Ricodifica nel browser con il codificatore del dispositivo; nessun file lascia il dispositivo.
+- R-VID-02 Formato video di uscita compatibile con i telefoni: HEVC (H.265) se il dispositivo sa codificarlo, altrimenti H.264. Se nessuno dei due è disponibile la modalità resta visibile ma spenta, con una riga di spiegazione.
+- R-VID-03 Risoluzione, orientamento e istanti dei fotogrammi (quindi il frame rate, anche variabile) restano quelli dell'originale.
+- R-VID-04 Analisi in fase di lettura (il «primo passaggio»): da ogni video si codificano alcuni spezzoni brevi a compressioni diverse e si misura la qualità rispetto all'originale; ne escono, per ogni livello, la compressione da usare, la qualità e il peso stimati, mostrati nella scheda. Alla pressione di «Schiaccia!» si codifica tutto il video con la compressione trovata (secondo passaggio).
+- R-VID-05 Qualità misurata come somiglianza strutturale (SSIM) sulla luminosità, fotogramma per fotogramma: 95% = SSIM 0,95. Mai sotto il 95%.
+- R-VID-06 Tre livelli al passo 2: Massima qualità (≥ 98,5%), Bilanciato (≥ 97%), Massimo risparmio (≥ 95%). Cambiando livello le stime nelle schede si aggiornano subito, senza rianalizzare.
+- R-VID-07 Se al livello scelto il risparmio stimato o reale è sotto il 10%, il video viene segnato «già leggero» e lasciato com'è.
+- R-VID-08 Audio copiato così com'è; si ricomprime (AAC) solo se il guadagno è notevole: audio non compresso o oltre 256 kbps, e almeno il 5% del file in meno. Se il dispositivo non sa codificare AAC, si copia.
+- R-VID-09 Video HDR (tipici dell'iPhone): lasciati com'è con la nota «HDR, lasciato com'è», perché il browser li renderebbe spenti.
+- R-VID-10 Estensione: `.mp4`, `.m4v` e `.mov` restano uguali (compatibili con HEVC e H.264); WebM e MKV diventano `.mp4`. Nome invariato salvo l'estensione.
+- R-VID-11 In modalità video il pulsante della fotocamera è nascosto.
+- R-VID-12 Terzo colore per mascotte e interfaccia in modalità video, scelto dal proprietario tra proposte (R-UI-05).
+- R-VID-13 Durante la codifica lo schermo resta acceso dove il browser lo permette; ogni scheda mostra l'avanzamento.
+
 ## SCN · Scansione
-- R-SCN-01 Pulsante fotocamera in testata accanto a suoni e condivisione; apre la fotocamera del telefono (sul computer, scelta di una foto).
+- R-SCN-01 Pulsante fotocamera in testata accanto a suoni e condivisione; apre la fotocamera del telefono (sul computer, scelta di una foto). In modalità video è nascosto (R-VID-11).
 - R-SCN-02 Dopo lo scatto, editor a tutto schermo: angoli trascinabili, lente sotto il dito, ruota, rifai, annulla.
 - R-SCN-03 Stili: Documento (fondo bianco uniforme, ombre e dominanti attenuate, contrasto), Bianco e nero, Foto (solo livelli). Ultimo stile ricordato.
 - R-SCN-04 Raddrizzamento prospettico; proporzioni vicine ad A4 riportate ad A4.
@@ -70,7 +85,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg) · [CAR](#car-caric
 - R-UI-02 Icone dell'app a tutto campo su giallo unito, mascotte più grande possibile.
 - R-UI-03 Testata: accanto al logo, in flex, lingua, installazione e le tre icone suoni, fotocamera, condivisione. Le tre icone stanno sempre su una sola riga, anche su telefoni stretti o con caratteri ingranditi.
 - R-UI-04 Numero di versione visibile accanto al titolo.
-- R-UI-05 Colori «tono su tono» con la pelle della mascotte, che cambiano con la modalità; lo sfondo azzurro a puntini resta uguale. Pulsanti, etichette dei passi, badge e riquadri di conferma nel colore della pelle (rosa in PDF, menta in JPG); «Schiaccia!», livello scelto, barra di avanzamento e contorni di messa a fuoco nella stessa tinta più intensa; badge dei risultati in versione più chiara. Nel titolo la faccia PDF del rullo è rosa e quella JPG menta. Il rosso resta solo per errori e sovrascrittura. L'icona dell'app resta gialla (R-UI-02).
+- R-UI-05 Colori «tono su tono» con la pelle della mascotte, che cambiano con la modalità (anche VIDEO, R-VID-12); lo sfondo azzurro a puntini resta uguale. Pulsanti, etichette dei passi, badge e riquadri di conferma nel colore della pelle (rosa in PDF, menta in JPG); «Schiaccia!», livello scelto, barra di avanzamento e contorni di messa a fuoco nella stessa tinta più intensa; badge dei risultati in versione più chiara. Nel titolo la faccia PDF del rullo è rosa e quella JPG menta. Il rosso resta solo per errori e sovrascrittura. L'icona dell'app resta gialla (R-UI-02).
 
 ## AUD · Suoni e musica
 - R-AUD-01 Un solo pulsante accende e spegne effetti e musica.

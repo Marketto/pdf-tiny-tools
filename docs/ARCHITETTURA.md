@@ -12,6 +12,7 @@ Tutto il JavaScript è in `index.html`, dentro un'unica funzione, diviso da comm
 | `carico` | `addFile`, `walkHandle`, `walkEntry`, `loaderOn`, `loaderOff` | CAR |
 | `vista` | `render` | LST, SAV-08 |
 | `motore` | `squeezePdf`, `squeezeImage`, `squeezeJpg`, `exifSegment`, `jpgOpts` | CMP, JPG |
+| `video` | `loadMB`, `videoCodec`, `probeVideo`, `ssim`, `planVideo`, `squeezeVideo` | VID |
 | `salvataggio` | `saveBlob`, `ask`, `writeJobs`, `finish`, gestori di `saveAs`/`saveElse`/`saveBeside`/`overBtn` | SAV |
 | `scansione con la fotocamera` | `scanFile`, `detectPage`, `editCorners`, `makePage`, `warp`, `enhance`, `morePages`, `finishPdf`, `showPreview` | SCN |
 | `avvio` | menu lingue, modalità iniziale | I18N, MOD-04 |
@@ -46,6 +47,13 @@ Fuori dallo script principale: registrazione del service worker in fondo a `inde
 
 ## JPG (JPG)
 `squeezeJpg`: decodifica raddrizzando l'orientamento, ridisegna entro il lato scelto; con peso massimo bisezione della qualità tra 0,30 e 0,92, poi riduzione delle dimensioni fino a 5 giri; senza peso qualità 0,80. EXIF ricopiato in testa con orientamento riportato a 1 (`exifSegment`); profilo colore non ricopiato. Su iPhone massimo 16 Mpx.
+
+## Video (VID)
+Libreria `vendor/mediabunny.min.mjs` (Mediabunny, MPL-2.0, ESM), caricata con `import()` solo alla prima volta in modalità video. Sezione `video` in `index.html`.
+1. `videoCodec()`: primo codec codificabile tra `hevc` e `avc` (`getFirstEncodableVideoCodec`), alla risoluzione del video. Per le prove automatiche `?vcodec=vp9` forza VP9 (il Chromium di prova non ha H.264/HEVC).
+2. `probeVideo(it)` (analisi, VID-04), lanciata dopo la lettura su un video alla volta: `Input` su `BlobSource`; HDR → `same` con nota `hdr`; bitrate d'origine da `computePacketStats`. Spezzoni da 1 s distribuiti sulla durata (tutto il video se < 6 s). Per una scala di bitrate decrescente (frazioni del bitrate d'origine) `Conversion` con `trim`, audio scartato, `forceTranscode`, uscita in `BufferTarget`; per ogni gradino SSIM medio (`ssim()`, finestre 8×8 sulla luminosità, lato lungo al massimo 1920 px) tra fotogrammi originali e ricodificati (`CanvasSink.canvasesAtTimestamps`) e byte al secondo reali. Si scende finché la qualità resta ≥ 0,95. Il risultato (`it.curve`) basta per tutti e tre i livelli.
+3. `planVideo(it,soglia)`: interpolazione sulla curva (scala logaritmica del bitrate) del bitrate minimo che rispetta la soglia, +5% di margine; stima del peso = video stimato + audio (copiato o AAC). Sotto il 10% di risparmio → `same`.
+4. `squeezeVideo(it)`: `Conversion` completa con `Quality({bitrate, bitrateMode:"variable"})`, audio copiato o AAC secondo VID-08, uscita MP4 o MOV (`outName`, VID-10) in `BufferTarget`; avanzamento da `onProgress`; Wake Lock dello schermo durante il lavoro.
 
 ## Scansione (SCN)
 1. 📷 apre `<input id="camInput" capture="environment">`: fotocamera di sistema, nessun permesso.
