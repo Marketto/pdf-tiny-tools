@@ -97,3 +97,8 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg) · [CAR](#car-caric
 ## DOC · Documentazione
 - R-DOC-01 La documentazione si aggiorna **prima** dell'implementazione: prima i requisiti, poi il codice, poi `ARCHITETTURA.md` allineata a ciò che è stato fatto.
 - R-DOC-02 Documentazione pensata per essere letta da agenti: voci brevi, codici stabili, una sola fonte per ogni informazione, rimandi invece di ripetizioni.
+
+## Idee non ancora decise
+Non sono requisiti: diventano voci con codice solo quando il proprietario le approva.
+- Scansione: mirino dal vivo con scatto automatico quando il foglio è fermo e ben inquadrato.
+- Icona dell'app in rosa invece che gialla (oggi resta gialla, R-UI-02).

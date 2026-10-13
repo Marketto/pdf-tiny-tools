@@ -47,6 +47,7 @@ Se una richiesta tocca più righe, fai una cosa alla volta e chiudi sempre con `
 - **Gli originali non si toccano** se non dopo la conferma esplicita già prevista (pulsante «Sovrascrivi gli originali»).
 - **La mascotte ha una sola fonte**, `tools/mascot.mjs`. Non ritoccare a mano gli SVG dentro `index.html` o in `icons/`: si rigenerano.
 - **Prima la documentazione, poi il codice.** Ogni richiesta del proprietario diventa prima una voce in `docs/REQUISITI.md` (nuovo codice o voce modificata) e, se cambia la struttura, il piano in `docs/ARCHITETTURA.md`; solo dopo si implementa, e alla fine si riallinea `ARCHITETTURA.md` a ciò che è stato fatto, con README e skill toccati. Una sola fonte per ogni informazione: rimanda invece di ripetere.
+- **Scelte estetiche: prima le proposte.** Per colori, stile, mascotte, animazioni o musica nuove mostra al proprietario 2–4 proposte (schermate a larghezza telefono, PDF e JPG affiancate) e implementa solo quella scelta.
 - **Versionamento semantico**, sempre a tre cifre (`MAGGIORE.MINORE.CORREZIONE`); le regole sono nella skill `rilascio`.
 - **I tag non si creano a mano**: basta cambiare `VERSION` (vedi skill `rilascio`).
 - I percorsi nel sito sono relativi (l'app vive sotto `/pdf-tiny-tools/`).
