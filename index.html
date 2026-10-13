@@ -340,6 +340,8 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .sum strong{font-family:var(--display);font-weight:400;font-size:21px;line-height:1.15}
 .sum small{font-weight:700;color:var(--muted)}
 .total{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:16px}
+.total .saveBtns{flex-basis:100%}
+.pickBtns{max-width:460px;margin-inline:auto}
 .total strong{font-family:var(--display);font-weight:400;font-size:22px}
 #msg{font-weight:700;min-height:1.4em;margin:12px 0 0}
 #msg.bad{color:#b3170c}
@@ -433,7 +435,7 @@ details p{margin:8px 0 0;max-width:65ch}
     <div class="tag" data-i18n="s1">1 · Carica</div>
     <div class="tray" id="tray">
       <p data-i18n="drop">Trascina qui i PDF o una cartella intera</p>
-      <div class="btns">
+      <div class="acts pickBtns">
         <label class="btn" for="pickFiles"><span data-i18n="pickFiles">Scegli PDF</span><input class="vh" type="file" id="pickFiles" accept="application/pdf,.pdf" multiple></label>
         <button class="btn alt" type="button" id="pickDir" data-i18n="pickDir">Scegli cartella</button>
         <input class="vh" type="file" id="pickDirInput" webkitdirectory multiple tabindex="-1" aria-hidden="true">
@@ -493,7 +495,7 @@ details p{margin:8px 0 0;max-width:65ch}
     </ul>
     <div class="total" id="total" hidden>
       <strong id="saved"></strong>
-      <div class="btns saveBtns">
+      <div class="acts saveBtns">
         <button class="btn ok" type="button" id="saveAs" data-i18n="saveAs">Salva con nome…</button>
         <button class="btn ok" type="button" id="saveElse">Salva in un'altra cartella</button>
         <button class="btn ok" type="button" id="saveBeside" data-i18n="saveBeside">Salva accanto agli originali</button>
@@ -632,7 +634,7 @@ function applyLang(){
   each("[data-i18n-html]",function(n){n.innerHTML=t(n.getAttribute("data-i18n-html"))});
   showTitle();
   each("[data-i18n-aria]",function(n){n.setAttribute("aria-label",t(n.getAttribute("data-i18n-aria")))});
-  lvlTexts();
+  lvlTexts();each(".pickBtns",function(b){if(b.offsetParent)fitBtns(b)});
   if(typeof bgShowState==="function"&&$("bgChange"))bgShowState();
   if($("demoMeta")){$("demoMeta").textContent=fmt(19293798)+" → "+fmt(3250586);$("demoPct").textContent="−"+nf(83)+"%"}
   render();capRender();
@@ -999,6 +1001,8 @@ function render(){
     $("overBtn").hidden=scans;
     $("overBtn").textContent=t(one?"overOne":"overBtn");$("overBtn").disabled=!canOver;
     $("noWrite").hidden=scans||(canOver&&(one||canBeside));
+    /* larghi uguale, in riga o in colonna (R-UI-13) */
+    fitBtns(document.querySelector("#total .saveBtns"));
   }else $("noWrite").hidden=true;
 }
 
@@ -1590,7 +1594,7 @@ function oneByOne(list){
 /* in riga se ci stanno tutti interi (al massimo due), altrimenti in colonna (R-UI-13) */
 function fitBtns(bar){
   if(!bar)return;bar.classList.remove("stack");
-  var bs=Array.prototype.filter.call(bar.children,function(x){return !x.hidden&&x.offsetParent!==null});
+  var bs=Array.prototype.filter.call(bar.children,function(x){return x.classList.contains("btn")&&!x.hidden&&x.offsetParent!==null});
   if(bs.length>2||bs.some(function(x){return x.scrollWidth>x.clientWidth+1}))bar.classList.add("stack");
 }
 window.addEventListener("resize",function(){each("#modalBtns,.acts",function(b){if(b.offsetParent)fitBtns(b)})});
