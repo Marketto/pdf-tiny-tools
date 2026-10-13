@@ -85,8 +85,20 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.click("#modalBtns button >> nth=0");
   const seen = await page.waitForFunction(() => navigator.mediaSession && navigator.mediaSession.playbackState === "playing" && navigator.mediaSession.metadata && /Schiaccio \d+ di 4/.test(navigator.mediaSession.metadata.title) && navigator.mediaSession.metadata.title, null, { timeout: 60000, polling: 50 }).then((h) => h.jsonValue()).catch(() => "");
   check(!!seen, `Secondo piano: durante il lavoro il riquadro del lettore mostra l'avanzamento (${seen || "assente"})`);
+  // indicatore nell'app (R-UI-10): pillola sopra l'elenco, si stacca in cima scorrendo, il tocco riporta al file in corso
+  const pill = await page.evaluate(() => !document.getElementById("prog").hidden && document.getElementById("progPill").innerText.replace(/\n/g, " "));
+  check(/\d+%.*di 4/.test(pill || ""), `Indicatore: pillola sopra l'elenco durante il lavoro (${pill || "assente"})`);
+  await page.evaluate(() => { document.body.style.paddingBottom = "3000px"; const r = document.getElementById("prog").getBoundingClientRect(); window.scrollBy(0, r.bottom + 400); });
+  const floated = await page.waitForFunction(() => document.getElementById("progPill").classList.contains("float") && document.getElementById("progPill").getBoundingClientRect().top < 40, null, { timeout: 3000 }).then(() => true).catch(() => false);
+  check(floated, "Indicatore: scorrendo si stacca e resta in cima");
+  if (floated) {
+    await page.click("#progPill");
+    const back = await page.waitForFunction(() => { const r = document.querySelector("#rows .row.cur"); if (!r) return false; const b = r.getBoundingClientRect(); return b.top >= 0 && b.bottom <= innerHeight && r.classList.contains("hot"); }, null, { timeout: 4000 }).then(() => true).catch(() => false);
+    check(back, "Indicatore: toccandola torna al file in corso, evidenziato");
+  }
   await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy"), null, { timeout: 120000 });
   check(await page.evaluate(() => localStorage.getItem("bg") === "1" && navigator.mediaSession.playbackState === "none"), "Secondo piano: risposta ricordata, audio spento a lavoro finito");
+  check(await page.evaluate(() => document.getElementById("prog").hidden && !document.getElementById("progPill").classList.contains("float")), "Indicatore: a lavoro finito sparisce");
   check(errors.length === 0, `Secondo piano: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }

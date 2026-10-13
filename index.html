@@ -310,7 +310,21 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 details{font-size:15px}
 details summary{cursor:pointer;font-weight:700}
 details p{margin:8px 0 0;max-width:65ch}
-@media (prefers-reduced-motion:reduce){.drum,.m-skin,.press .m-glasses,.press .m-camera,.press .m-flash{transition:none}.act-cap.snap .press .m-flash{animation:none}.roll.wiggle .drum{animation:none}.loader .pg,.loader .beam,.loader .beamLine,.loader .tw,.press.busy .p-head,.press.busy .p-sheets,.press .p-spark,.loader .p-head,.loader .p-hand,.loader .drawer,.loader .p-spark{animation:none}.loader .fly{animation-duration:3s}.btn,.tray{transition:none}}
+/* indicatore di avanzamento «Caramella» (R-UI-10) */
+.prog{height:60px;margin:0 0 14px}
+.ind{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;margin:0;background:var(--paper);border:var(--line);border-radius:20px;padding:5px 16px 5px 5px;box-shadow:4px 4px 0 var(--acc-s);font:700 15px/1.15 var(--body);color:var(--ink);text-align:start;cursor:pointer;white-space:nowrap}
+.ind b{font-family:var(--display);font-weight:400;font-size:22px}
+.ind small{font-size:13px;opacity:.8}
+.ind .txt{overflow:hidden;text-overflow:ellipsis}
+.ind .ring{flex:none;width:44px;height:44px;box-sizing:border-box;border-radius:50%;border:3px solid var(--ink);position:relative;background:conic-gradient(var(--acc-s) calc(var(--p,0)*1%),var(--acc-l) 0)}
+.ind .ring::after{content:"";position:absolute;inset:5px;border-radius:50%;border:3px solid var(--ink);background:repeating-linear-gradient(45deg,var(--acc) 0 5px,var(--paper) 5px 10px);background-size:14.142px 14.142px;animation:candy 1.4s linear infinite}
+@keyframes candy{to{background-position:14.142px 0}}
+.ind.float{position:fixed;z-index:14;top:calc(10px + env(safe-area-inset-top,0px));left:50%;width:auto;max-width:calc(100% - 32px);border-radius:999px;transform:translateX(-50%) rotate(-2deg);animation:indPop .4s cubic-bezier(.3,1.6,.5,1)}
+@keyframes indPop{from{transform:translateX(-50%) translateY(-40px) rotate(-2deg) scale(.7)}}
+.ind.bump .ring{animation:indBump .45s}
+@keyframes indBump{50%{transform:scale(1.2) rotate(-12deg)}}
+.row.hot{outline:4px dashed var(--acc-s);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.drum,.m-skin,.press .m-glasses,.press .m-camera,.press .m-flash{transition:none}.act-cap.snap .press .m-flash{animation:none}.roll.wiggle .drum{animation:none}.loader .pg,.loader .beam,.loader .beamLine,.loader .tw,.press.busy .p-head,.press.busy .p-sheets,.press .p-spark,.loader .p-head,.loader .p-hand,.loader .drawer,.loader .p-spark{animation:none}.loader .fly{animation-duration:3s}.btn,.tray{transition:none}.ind,.ind.float,.ind .ring,.ind .ring::after{animation:none}}
 </style>
 </head>
 <body>
@@ -398,6 +412,7 @@ details p{margin:8px 0 0;max-width:65ch}
 
   <section class="panel squash">
     <div class="tag" data-i18n="s3">3 · Salva</div>
+    <div class="prog" id="prog" hidden><button class="ind" type="button" id="progPill" aria-label="Vai al file in corso" data-i18n-aria="indGo"><span class="ring" aria-hidden="true"></span><span class="txt"><b id="progPct"></b> <small id="progPos"></small><br><small id="progLeft"></small></span></button></div>
     <ul class="rows" id="rows">
       <li class="row demo" id="demo">
         <div class="name" data-i18n="demoName">vacanze-sardegna.pdf</div>
@@ -811,10 +826,12 @@ function render(){
       done++;inB+=it.size;outB+=it.out.size;
     }
     li.appendChild(side);
+    if((it.status==="work"||it.status==="probe")&&!rowsEl.querySelector(".row.cur")){li.classList.add("cur");if(performance.now()<hotUntil)li.classList.add("hot")}
     if(it.status==="work"||it.status==="probe"){var bar=el("div","bar");bar.style.width=it.pct+"%";li.appendChild(bar)}
     rowsEl.appendChild(li);
   });
   if(bgN)bgUpdate(bgText());
+  progShow();
   goBtn.disabled=busy||(mode==="video"?vidOk===false||!items.some(function(x){return x.status==="wait"&&x.plan}):!items.some(function(x){return !x.scan}));
   goBtn.textContent=busy?t("going"):t("go");
   $("total").hidden=!done||busy;
@@ -2940,20 +2957,53 @@ function progFrac(kind){
   });
   return Math.min(1,f/P.tot);
 }
-function progEta(kind,f){
+/* tempo residuo come testo («4 min»), "" finché la stima non è affidabile; la media si aggiorna al massimo una volta al secondo */
+function progLeft(kind,f){
   var P=prog[kind];if(!P)return "";
-  var el=(performance.now()-P.t0)/1000;if(f<.02||el<4)return "";
-  var rem=el*(1-f)/f;P.eta=P.eta==null?rem:P.eta*.8+rem*.2;
+  var now=performance.now(),el=(now-P.t0)/1000;if(f<.02||el<4)return "";
+  if(!P.te||now-P.te>=1000){var rem=el*(1-f)/f;P.eta=P.eta==null?rem:P.eta*.8+rem*.2;P.te=now}
   var r=P.eta;
-  return t("bgEta",{t:r<60?t("timeSec",{n:nf(Math.max(5,Math.round(r/5)*5))}):t("timeMin",{n:nf(Math.round(r/60))})});
+  return r<60?t("timeSec",{n:nf(Math.max(5,Math.round(r/5)*5))}):t("timeMin",{n:nf(Math.round(r/60))});
+}
+function progEta(kind,f){var l=progLeft(kind,f);return l?t("bgEta",{t:l}):""}
+/* tipo di lavoro, posizione del file in corso e numero di file */
+function progNow(){
+  var list=items.filter(function(x){return !x.scan}),cur=null,i=0;
+  list.forEach(function(x,k){if(!cur&&(x.status==="work"||x.status==="probe")){cur=x;i=k+1}});
+  var kind=busy?"work":probing?"probe":"";
+  return kind&&cur?{kind:kind,i:i,n:list.length}:null;
 }
 function bgText(){
-  var list=items.filter(function(x){return !x.scan}),n=list.length,cur=null,i=0;
-  list.forEach(function(x,k){if(x.status==="work"||x.status==="probe"&&!cur){cur=x;i=k+1}});
-  var kind=busy?"work":probing?"probe":"";if(!kind||!cur)return "";
-  var f=progFrac(kind);
-  return t(kind==="work"?"bgWork":"bgProbe",{i:nf(i),n:nf(n),pct:nf(Math.round(f*100))})+progEta(kind,f);
+  var c=progNow();if(!c)return "";
+  var f=progFrac(c.kind);
+  return t(c.kind==="work"?"bgWork":"bgProbe",{i:nf(c.i),n:nf(c.n),pct:nf(Math.round(f*100))})+progEta(c.kind,f);
 }
+/* indicatore nell'app (R-UI-10): pillola sopra l'elenco che si stacca in cima quando la sezione esce dallo schermo */
+var progBox=$("prog"),progPill=$("progPill"),progSeen=-1,hotUntil=0;
+function progShow(){
+  if(!progBox)return;
+  var c=progNow();
+  progBox.hidden=!c;
+  if(!c){progPill.classList.remove("float");progSeen=-1;return}
+  var f=progFrac(c.kind),l=progLeft(c.kind,f),P=prog[c.kind],ended=0;
+  progPill.style.setProperty("--p",Math.round(f*100));
+  $("progPct").textContent=nf(Math.round(f*100))+"%";
+  $("progPos").textContent="· "+t(c.kind==="work"?"indPos":"indProbe",{i:nf(c.i),n:nf(c.n)});
+  $("progLeft").textContent=l?t("indLeft",{t:l}):t("indCalc");
+  if(P)items.forEach(function(x){if(P.ids[x.id]&&x.status!=="wait"&&x.status!=="work"&&x.status!=="probe")ended++});
+  if(progSeen>=0&&ended>progSeen&&!calm){progPill.classList.remove("bump");void progPill.offsetWidth;progPill.classList.add("bump")}
+  progSeen=ended;
+}
+if("IntersectionObserver" in window)new IntersectionObserver(function(es){
+  var e=es[es.length-1];
+  progPill.classList.toggle("float",!progBox.hidden&&!e.isIntersecting&&e.boundingClientRect.top<0);
+}).observe(progBox);
+progPill.addEventListener("click",function(){
+  var r=rowsEl.querySelector(".row.cur");if(!r)return;
+  hotUntil=performance.now()+1200;r.classList.add("hot");
+  r.scrollIntoView({behavior:calm?"auto":"smooth",block:"center"});
+  setTimeout(function(){var h=rowsEl.querySelector(".row.hot");if(h&&performance.now()>=hotUntil)h.classList.remove("hot")},1250);
+});
 
 /* ---------- condivisione: foglio di sistema se c'è, altrimenti copia il link ---------- */
 var toastT=0;
@@ -2991,13 +3041,18 @@ instBtn.addEventListener("click",async function(){
 })();
 </script>
 <script>
-/* cache offline. Quando arriva una versione nuova la pagina si ricarica da sola, ma solo se non c'è lavoro in corso. */
+/* cache offline (R-APP-03). Quando arriva una versione nuova mentre l'app è aperta da un po' la pagina si ricarica da sola,
+   ma solo se non c'è lavoro in corso. Nei primi 15 s no: la pagina è appena arrivata dalla rete (prima la rete, in sw.js),
+   quindi è già quella nuova. E al massimo una volta ogni 2 minuti, così due copie diverse di sw.js servite dalla CDN
+   subito dopo una pubblicazione non fanno ricaricare a ripetizione. */
 if("serviceWorker" in navigator&&location.protocol==="https:"){
   var hadSW=!!navigator.serviceWorker.controller,reloaded=false;
   navigator.serviceWorker.addEventListener("controllerchange",function(){
-    if(!hadSW||reloaded)return;
+    if(!hadSW||reloaded||performance.now()<15000)return;
+    var last=0;try{last=+sessionStorage.getItem("swReload")||0}catch(e){}
+    if(Date.now()-last<120000)return;
     var idle=!document.querySelector("#rows .row:not(.demo)")&&document.getElementById("loader").hidden&&document.getElementById("modal").hidden;
-    if(idle){reloaded=true;location.reload()}
+    if(idle){reloaded=true;try{sessionStorage.setItem("swReload",Date.now())}catch(e){}location.reload()}
   });
   navigator.serviceWorker.register("sw.js").catch(function(){});
 }
