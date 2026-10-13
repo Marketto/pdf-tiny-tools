@@ -338,18 +338,15 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     input.dispatchEvent(new Event("change", { bubbles: true }));
     return tgt.buffer.byteLength;
   });
-  await page.waitForFunction(() => !document.getElementById("go").disabled || document.querySelector("#rows .badge.same, #rows .badge.err"), null, { timeout: 240000 });
-  const est = await page.innerText("#rows .meta");
+  // niente fase di analisi a parte (R-VID-04): «Schiaccia!» subito, misura e ricodifica file per file
+  await page.waitForTimeout(400);
   const sumTxt = await page.evaluate(() => !document.getElementById("sum").hidden && document.getElementById("sum").innerText.replace(/\n/g, " "));
-  check(/Da schiacciare: 1 di 1/.test(sumTxt || ""), `Riepilogo: sopra l'elenco quanti file verranno schiacciati e il risparmio stimato (${sumTxt || "assente"})`);
-  check(/≈/.test(est) && /qualità 97/.test(est), `Video: analisi con stima e qualità (${est})`);
-  await page.click("#vlvlMid");
-  await page.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 240000 });
-  const est95 = await page.innerText("#rows .meta");
-  check(/qualità 95/.test(est95) && est95 !== est, `Video: cambiando livello la stima si aggiorna (${est95})`);
-  await page.click("#vlvlSoft");
+  check(await page.evaluate(() => !document.getElementById("go").disabled && document.getElementById("work").hidden), "Video: «Schiaccia!» si preme subito, senza analisi prima");
+  check(/Da schiacciare: 1 di 1/.test(sumTxt || ""), `Riepilogo: sopra l'elenco quanti file verranno schiacciati (${sumTxt || "assente"})`);
   await page.click("#go");
   await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && document.querySelector("#rows .badge:not(.wait):not(.work)"), null, { timeout: 240000 });
+  const est = await page.innerText("#rows .meta");
+  check(/qualità 9[7-9]/.test(est) && /−\d+%/.test(await page.innerText("#rows")), `Video: misurato e ricodificato in un giro, qualità sopra la soglia (${est})`);
   await page.click("#modeBtn");
   await page.waitForSelector("#modal:not([hidden])");
   check(/Cambi modalità/.test(await page.innerText("#modalTitle")), "Video: con un file pronto, cambiare modalità chiede conferma");
@@ -416,7 +413,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Tutto: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
-// --- memoria delle analisi (R-VID-19): riaprendo lo stesso video la stima arriva senza rianalizzare; salva man mano (R-VID-22)
+// --- memoria delle analisi (R-VID-19): ricomprimendo lo stesso video le misure arrivano dalla memoria
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 }, acceptDownloads: true });
   const page = await ctx.newPage();
@@ -438,21 +435,22 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     const dt = new DataTransfer(); dt.items.add(new File([new Uint8Array(b)], "memoria.mp4", { type: "video/mp4", lastModified: 1700000000000 }));
     const input = document.getElementById("pickFiles"); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true }));
   }, bytes);
-  await load();
-  await page.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 240000 });
-  const first = await page.innerText("#rows .meta");
-  await page.reload(); await page.waitForTimeout(800);
-  await load();
-  await page.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 60000 });
-  const again = await page.innerText("#rows .meta");
-  const probes = await page.evaluate(() => window.__perf.filter((x) => x[0] === "probe").length);
-  check(probes === 0 && again === first, `Video: riaprendo lo stesso video la stima arriva dalla memoria, senza rianalizzare (${again})`);
-  check(/: 1/.test(await page.innerText("#vMem")), `Video: si vede quante analisi sono salvate (${await page.innerText("#vMem")})`);
-  // a fine compressione i video si salvano con i pulsanti del passo 3 (R-VID-22 tolto)
-  check(await page.evaluate(() => !document.getElementById("saveNow")), "Video: niente più casella «Salva ogni video appena è pronto»");
-  await page.click("#go");
-  await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && document.getElementById("work").hidden, null, { timeout: 120000 });
+  const squash = async () => {
+    await load(); await page.waitForTimeout(300);
+    await page.click("#go");
+    await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && document.getElementById("work").hidden && document.querySelector("#rows .badge:not(.wait):not(.work)"), null, { timeout: 240000 });
+    return page.innerText("#rows .meta");
+  };
+  const first = await squash();
   check(await page.evaluate(() => !document.getElementById("total").hidden && !document.querySelector("#total .saveBtns").hidden), "Video: a fine compressione compaiono i pulsanti per salvare");
+  check(await page.evaluate(() => !document.getElementById("saveNow")), "Video: niente più casella «Salva ogni video appena è pronto»");
+  await page.reload(); await page.waitForTimeout(1500);
+  // il lavoro finito e non salvato resta da parte: alla riapertura si chiudono le finestre di avvio
+  for (let k = 0; k < 3 && await page.isVisible("#modal"); k++) { await page.click("#modalBtns button:last-child"); await page.waitForTimeout(400); }
+  const again = await squash();
+  const probes = await page.evaluate(() => window.__perf.filter((x) => x[0] === "probe").length);
+  check(probes === 0 && /qualità/.test(again), `Video: ricomprimendo lo stesso video le misure arrivano dalla memoria, senza rimisurare (${first} → ${again})`);
+  check(/: 1/.test(await page.innerText("#vMem")), `Video: si vede quante analisi sono salvate (${await page.innerText("#vMem")})`);
   await page.click("#vForget");
   check(await page.waitForFunction(() => document.getElementById("vForget").hidden, null, { timeout: 5000 }).then(() => true, () => false), "Video: «Dimentica le analisi salvate» le cancella");
   check(errors.length === 0, `Memoria delle analisi: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
@@ -480,9 +478,9 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     const input = document.getElementById("pickFiles"); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true }));
   });
   await page.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 240000 });
-  check(/da parte/.test(await page.innerText("#rows")), "Video grandi: la scheda dice che il risultato resta da parte finché non lo salvi");
   await page.click("#go");
   await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && !document.getElementById("total").hidden, null, { timeout: 240000 });
+  check(/da parte/.test(await page.innerText("#rows")), "Video grandi: la scheda dice che il risultato resta da parte finché non lo salvi");
   const tmp = await page.evaluate(async () => { const r = await navigator.storage.getDirectory(); let n = 0; for (const name of ["schiaccia-tmp", "schiaccia-jobs"]) { try { const walk = async (d) => { for await (const e of d.values()) { if (e.kind === "file") n++; else await walk(e); } }; await walk(await r.getDirectoryHandle(name)); } catch {} } return n; });
   check(tmp === 2, `Video grandi: risultati scritti su disco nella cartella privata, poi passati al lavoro salvato in automatico (${tmp} file)`);
   check(/uno alla volta/.test(await page.innerText("#saveElse")), `Video grandi: niente ZIP, «${await page.innerText("#saveElse")}»`);
