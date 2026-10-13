@@ -62,6 +62,13 @@ Libreria `vendor/mediabunny.min.mjs` (Mediabunny 1.59.1, MPL-2.0, licenza in `ve
 
 Misure sul video di prova (720p, 6 s): stima e risultato entro il 2%; SSIM su tutto il video misurato con ffmpeg 0,990 / 0,979 / 0,960 per le soglie 0,985 / 0,97 / 0,95.
 
+## Cattura (SCN-14…19), piano
+- Stato: `act` (`"squash"`/`"capture"`, classe `act-cap` su `<body>`), `cap = {pages:[{work, q, mids, rot, style, blob, url}], sel, style}`. Le sezioni della compressione hanno la classe `squash` e si nascondono in Cattura; la schermata `#capture` si nasconde in Schiaccia.
+- Titolo: `showTitle()` costruisce due rulli, `#actBtn` (verbo: testo di `h1` e di `h1C` fuori dallo `<span>`) e `#modeBtn`. In modalità video `#actBtn` è spento; in Cattura `#modeBtn` alterna solo PDF e JPG. `setAction()` chiede conferma come `setMode` (SCN-18).
+- `capRender()` disegna la proposta A o B secondo `matchMedia("(min-width:760px)")`. Ogni modifica (stile, rotazione, bordi) rifà la pagina con `capBuild(i)` → `makePage` + rotazione.
+- Scatto: `#camInput` → `scanFile` → `editCorners` → `capBuild`. Galleria: `#galInput` multiplo, bordi da `detectPage` senza editor. «Rifai» una pagina: `capTarget`.
+- Salvataggio: PDF con pdf-lib (`capPdf`) e `saveBlob`; JPG uno → `saveBlob`, più → cartella (`showDirectoryPicker`) o ZIP.
+
 ## Scansione (SCN)
 1. 📷 apre `<input id="camInput" capture="environment">`: fotocamera di sistema, nessun permesso.
 2. `scanFile` riduce la foto a 3000 px (`work`).

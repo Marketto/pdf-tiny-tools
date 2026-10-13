@@ -57,22 +57,23 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-VID-18 Dove non si può scrivere nelle cartelle e i video pronti superano insieme la soglia sicura, «Scarica tutto» non fa uno ZIP (andrebbe tutto in memoria) ma scarica i video uno alla volta.
 
 ## SCN · Scansione
-- R-SCN-01 Pulsante fotocamera in testata accanto a suoni e condivisione; apre la fotocamera del telefono (sul computer, scelta di una foto). In modalità video è nascosto (R-VID-11).
-- R-SCN-02 Dopo lo scatto, editor a tutto schermo: angoli trascinabili, lente sotto il dito, ruota, rifai, annulla.
-- R-SCN-03 Stili: Documento (fondo bianco uniforme, ombre e dominanti attenuate, contrasto), Bianco e nero, Foto (solo livelli). Ultimo stile ricordato.
+- R-SCN-01 Pulsante fotocamera in testata accanto a suoni e condivisione: porta a Cattura (R-SCN-14). In modalità video è nascosto (R-VID-11).
+- R-SCN-02 Dopo lo scatto, e con «Bordi» su una pagina, editor a tutto schermo: angoli trascinabili, lente sotto il dito, ruota, rifai, annulla. Lo stile non si sceglie qui ma nella schermata Cattura (R-SCN-17).
+- R-SCN-03 Stili: Documento (fondo bianco uniforme, ombre e dominanti attenuate, contrasto), Bianco e nero, Colore (solo livelli). Ultimo stile generale ricordato.
 - R-SCN-04 Raddrizzamento prospettico; proporzioni vicine ad A4 riportate ad A4.
-- R-SCN-05 Modalità PDF: dopo ogni pagina chiede sempre «un'altra pagina o finisci?», poi un unico PDF. Modalità JPG: ogni scatto è un JPG.
-- R-SCN-06 La scansione va in elenco con il numero di pagine e si salva con i pulsanti normali; non si ricomprime e non ha originali da sovrascrivere.
+- R-SCN-05 Modalità PDF: le pagine si raccolgono nella schermata Cattura e si salvano in un unico PDF. Modalità JPG: ogni pagina è un JPG. (Prima: domanda «un'altra pagina o finisci?» dopo ogni scatto, sostituita da R-SCN-16.)
+- R-SCN-06 (ritirato) Le scansioni non vanno più nell'elenco della compressione: si salvano dalla schermata Cattura.
 - R-SCN-07 Elaborazione con schermata dedicata (foglio che si raddrizza sotto una barra di luce) e variante musicale propria.
 - R-SCN-08 L'icona della fotocamera ha lo stesso stile delle altre icone di testata (disegno a tratto, non emoji).
 - R-SCN-09 Appena aperto l'editor, gli angoli sono già posizionati dove l'app trova il foglio; se non lo trova, partono da un rettangolo appena rientrato. L'utente può sempre correggerli.
 - R-SCN-10 Fogli curvi: oltre agli angoli c'è una maniglia a metà di ogni lato; un reticolato disegnato sul foglio mostra come verrà raddrizzato. Anche le maniglie dei lati vengono proposte seguendo il bordo trovato. Spostando un angolo, le maniglie dei lati lo seguono.
 - R-SCN-11 Le pieghe interne al foglio non vengono riconosciute in automatico: il reticolato corregge solo curvature che si vedono dai bordi.
-- R-SCN-12 Dopo l'elaborazione compare subito un'anteprima della pagina: in modalità PDF dentro la domanda «un'altra pagina?», che offre anche «Rifai questa pagina»; in modalità JPG con «Tienila» e «Rifai».
-- R-SCN-13 Le scansioni in elenco hanno un pulsante «Anteprima» che mostra tutte le pagine.
+- R-SCN-12 Dopo l'elaborazione la pagina compare subito tra le miniature della schermata Cattura, selezionata.
+- R-SCN-13 (ritirato) L'anteprima sta nelle miniature della schermata Cattura.
 - R-SCN-14 Due azioni, Schiaccia e Cattura: anche il verbo del titolo è un rullo («Schiaccia ⇄ Cattura»). Il pulsante della fotocamera porta a Cattura; in Cattura la sua icona diventa quella della compressione e riporta a Schiaccia.
 - R-SCN-15 Cattura esiste solo per PDF e JPG: in modalità video il rullo del verbo è spento (e la fotocamera nascosta, R-VID-11); in Cattura il rullo della modalità alterna solo PDF e JPG.
-- R-SCN-16 Cattura ha una schermata propria, non quella della compressione: si scatta (fotocamera o galleria), si sistemano le pagine (ruota, rifai i bordi, rifai lo scatto, stile, sposta, elimina, aggiungi) e si salva (PDF: un file con tutte le pagine; JPG: una foto per pagina). L'aspetto si sceglie tra proposte (in corso).
+- R-SCN-16 Cattura ha una schermata propria, non quella della compressione: si scatta (fotocamera, o galleria con più foto insieme e bordi proposti), si sistemano le pagine (ruota, bordi, rifai lo scatto, stile, sposta, elimina, aggiungi) e si salva (PDF: un file con tutte le pagine; JPG: una foto per pagina, in una cartella o in uno ZIP dove le cartelle non si scrivono). Dopo un salvataggio riuscito la schermata si svuota.
+- R-SCN-19 Aspetto scelto dal proprietario tra tre proposte. Telefono e finestre strette (proposta A): tre passi 1 · Scatta (pulsante grande e «Dalla galleria»), 2 · Sistema (stile per tutte, striscia di miniature con «+», strumenti della pagina selezionata: ruota, bordi, rifai, ‹ ›, elimina, stile di questa pagina), 3 · Salva. Computer, da 760 px di larghezza (proposta B): griglia di schede, ognuna con i suoi pulsanti e lo stile, spostabili trascinandole, e barra fissa in basso con Scatta, Galleria e Salva.
 - R-SCN-17 Stile (Documento, Bianco e nero, Colore; «Foto» diventa «Colore») scelto una volta per tutte le pagine; ogni pagina può poi averne uno suo.
 - R-SCN-18 Passare da Cattura a Schiaccia (e viceversa) con pagine o file non salvati chiede conferma, come il cambio di modalità (R-MOD-06).
 - Quando Cattura sarà pronta, R-SCN-05, R-SCN-06, R-SCN-12 e R-SCN-13 verranno riscritti di conseguenza (la domanda «un'altra pagina?» e le scansioni nell'elenco della compressione spariscono).
@@ -128,5 +129,6 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 
 ## Idee non ancora decise
 Non sono requisiti: diventano voci con codice solo quando il proprietario le approva.
+- Cattura, proposta C «pagina grande» (piaciuta, tenuta da parte): una pagina alla volta in grande con frecce e contatore «2 / 3», strumenti sotto, miniature piccole e barra fissa Scatta / Salva.
 - Scansione: mirino dal vivo con scatto automatico quando il foglio è fermo e ben inquadrato.
 - Icona dell'app in rosa invece che gialla (oggi resta gialla, R-UI-02).
