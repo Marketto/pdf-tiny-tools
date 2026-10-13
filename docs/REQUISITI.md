@@ -70,6 +70,12 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-SCN-11 Le pieghe interne al foglio non vengono riconosciute in automatico: il reticolato corregge solo curvature che si vedono dai bordi.
 - R-SCN-12 Dopo l'elaborazione compare subito un'anteprima della pagina: in modalità PDF dentro la domanda «un'altra pagina?», che offre anche «Rifai questa pagina»; in modalità JPG con «Tienila» e «Rifai».
 - R-SCN-13 Le scansioni in elenco hanno un pulsante «Anteprima» che mostra tutte le pagine.
+- R-SCN-14 Due azioni, Schiaccia e Cattura: anche il verbo del titolo è un rullo («Schiaccia ⇄ Cattura»). Il pulsante della fotocamera porta a Cattura; in Cattura la sua icona diventa quella della compressione e riporta a Schiaccia.
+- R-SCN-15 Cattura esiste solo per PDF e JPG: in modalità video il rullo del verbo è spento (e la fotocamera nascosta, R-VID-11); in Cattura il rullo della modalità alterna solo PDF e JPG.
+- R-SCN-16 Cattura ha una schermata propria, non quella della compressione: si scatta (fotocamera o galleria), si sistemano le pagine (ruota, rifai i bordi, rifai lo scatto, stile, sposta, elimina, aggiungi) e si salva (PDF: un file con tutte le pagine; JPG: una foto per pagina). L'aspetto si sceglie tra proposte (in corso).
+- R-SCN-17 Stile (Documento, Bianco e nero, Colore; «Foto» diventa «Colore») scelto una volta per tutte le pagine; ogni pagina può poi averne uno suo.
+- R-SCN-18 Passare da Cattura a Schiaccia (e viceversa) con pagine o file non salvati chiede conferma, come il cambio di modalità (R-MOD-06).
+- Quando Cattura sarà pronta, R-SCN-05, R-SCN-06, R-SCN-12 e R-SCN-13 verranno riscritti di conseguenza (la domanda «un'altra pagina?» e le scansioni nell'elenco della compressione spariscono).
 
 ## LST · Elenco
 - R-LST-01 Ogni scheda: nome, dimensioni prima e dopo, percentuale, stato.
