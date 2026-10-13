@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, extname, normalize } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const types = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".json": "application/json", ".webmanifest": "application/manifest+json", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon" };
+const types = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".wasm": "application/wasm", ".json": "application/json", ".webmanifest": "application/manifest+json", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon" };
 const server = createServer(async (req, res) => {
   const path = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)).replace(/^([/\\])+/, "") || "index.html";
   try {
@@ -284,6 +284,60 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.click("#actBtn", { force: true });
   check(await page.evaluate(() => document.body.classList.contains("mode-video") && !document.body.classList.contains("act-cap")), "Cattura: in modalità video il verbo non cambia");
   check(errors.length === 0, `Cattura: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
+// --- Cattura: orientamento (Tesseract), raddrizzamento del testo, calamita e controllo dei bordi (R-SCN-20…24)
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 500, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url);
+  // foto: foglio con il testo capovolto e stampato storto di 3°, in prospettiva su un tavolo scuro
+  const photo = Buffer.from(await page.evaluate(async () => {
+    const d = I18N.it, PW = 840, PH = 1188, pg = document.createElement("canvas"); pg.width = PW; pg.height = PH; const g = pg.getContext("2d");
+    g.fillStyle = "#f4f0e6"; g.fillRect(0, 0, PW, PH);
+    const tx = document.createElement("canvas"); tx.width = PW; tx.height = PH; const t = tx.getContext("2d"); t.fillStyle = "#1a1a1a"; t.font = "24px serif";
+    const words = [d.whatBody, d.whatBodyJ, d.whatBodyV, d.whatBody].join(" ").replace(/<[^>]+>/g, "").split(/\s+/); let line = "", y = 90;
+    for (const w of words) { const s = line ? line + " " + w : w; if (t.measureText(s).width > PW - 160) { t.fillText(line, 80, y); y += 38; line = w; if (y > PH - 90) break } else line = s }
+    g.save(); g.translate(PW / 2, PH / 2); g.rotate(183 * Math.PI / 180); g.drawImage(tx, -PW / 2, -PH / 2); g.restore();
+    const c = document.createElement("canvas"); c.width = 1500; c.height = 2000; const G = c.getContext("2d"); G.fillStyle = "#4b3a2a"; G.fillRect(0, 0, 1500, 2000);
+    const Q = [[230, 260], [1270, 300], [1310, 1760], [170, 1720]];
+    for (let r = 0; r < PH; r++) { const v = r / PH, L = [Q[0][0] + (Q[3][0] - Q[0][0]) * v, Q[0][1] + (Q[3][1] - Q[0][1]) * v], R = [Q[1][0] + (Q[2][0] - Q[1][0]) * v, Q[1][1] + (Q[2][1] - Q[1][1]) * v]; G.save(); G.translate(L[0], L[1]); G.rotate(Math.atan2(R[1] - L[1], R[0] - L[0])); G.drawImage(pg, 0, r, PW, 1, 0, 0, Math.hypot(R[0] - L[0], R[1] - L[1]), 2.2); G.restore(); }
+    return [...new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/jpeg", .9))).arrayBuffer())];
+  }));
+  await page.click("#camBtn");
+  const [fc] = await Promise.all([page.waitForEvent("filechooser"), page.click("#capture .capBig .btn.go")]);
+  await fc.setFiles({ name: "foglio.jpg", mimeType: "image/jpeg", buffer: photo });
+  await page.waitForSelector("#scanner:not([hidden])");
+  const W = 1500, H = 2000;
+  const corner = (i) => page.evaluate((i) => { const c = document.querySelectorAll("#scanSvg circle.handle")[i]; return [+c.getAttribute("cx"), +c.getAttribute("cy")]; }, i);
+  async function drag(i, x, y) {
+    const r = await page.evaluate(() => { const b = document.getElementById("scanSvg").getBoundingClientRect(); return [b.left, b.top, b.width, b.height]; });
+    const [cx, cy] = await corner(i), sx = (v) => r[0] + v / W * r[2], sy = (v) => r[1] + v / H * r[3];
+    await page.mouse.move(sx(cx), sy(cy)); await page.mouse.down(); await page.mouse.move(sx(x), sy(y), { steps: 8 }); await page.mouse.up();
+    return corner(i);
+  }
+  const snapped = await drag(0, 262, 238);
+  check(Math.hypot(snapped[0] - 230, snapped[1] - 260) < 15, `Bordi: calamita, angolo lasciato a 39 px dal vero e agganciato a ${snapped.map((v) => v.toFixed(0))} (vero 230,260)`);
+  await drag(1, 1420, 190);
+  await page.click("#scanOk");
+  await page.waitForFunction(() => document.querySelectorAll("#capture .thumb").length === 1 && document.getElementById("loader").hidden, null, { timeout: 120000 });
+  const out = await page.evaluate(async () => {
+    const im = document.querySelector("#capture .thumb img"); await new Promise((r) => (im.complete && im.naturalWidth ? r() : (im.onload = r)));
+    const bmp = await createImageBitmap(await (await fetch(im.src)).blob()), c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height;
+    const g = c.getContext("2d"); g.drawImage(bmp, 0, 0); const d = g.getImageData(0, 0, c.width, c.height).data; let n = 0, dark = 0;
+    const bw = Math.round(c.width * .03), bh = Math.round(c.height * .03);
+    for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) if (x < bw || y < bh || x >= c.width - bw || y >= c.height - bh) { n++; if (d[(y * c.width + x) * 4] < 110) dark++; }
+    const base = new URL("vendor/tesseract/", location.href).href;
+    const w = await Tesseract.createWorker("osd", 0, { workerPath: base + "worker.min.js", corePath: base + "tesseract-core-simd.wasm.js", langPath: base.replace(/\/$/, ""), legacyCore: true, legacyLang: true, cacheMethod: "none", workerBlobURL: false });
+    const r = (await w.detect(c)).data; await w.terminate();
+    return { dark: dark / n * 100, deg: r.orientation_degrees, conf: r.orientation_confidence };
+  });
+  check(out.dark < 10, `Bordi: angolo lasciato nello sfondo corretto dal controllo (sfondo nel bordo della pagina: ${out.dark.toFixed(1)}%)`);
+  check(out.deg === 0 && out.conf > 2, `Orientamento: foglio capovolto girato dritto (residuo ${out.deg}°, fiducia ${out.conf && out.conf.toFixed(1)})`);
+  check(errors.length === 0, `Orientamento e bordi: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
 await browser.close(); server.close();

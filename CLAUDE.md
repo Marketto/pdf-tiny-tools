@@ -10,7 +10,7 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 | `i18n.js` | Tutti i testi, 13 lingue (`window.I18N`) |
 | `sw.js` | Cache offline (service worker) |
 | `manifest.webmanifest`, `icons/`, `favicon.ico` | Installazione come app |
-| `vendor/` | pdf-lib, JSZip e Mediabunny (video), copiati così come sono: non modificarli |
+| `vendor/` | pdf-lib, JSZip, Mediabunny (video) e Tesseract (orientamento delle scansioni), copiati così come sono: non modificarli |
 | `tools/` | Strumenti di sviluppo (controlli, prova nel browser, icone) |
 | `.claude/` | Skill e agenti descritti sotto |
 | `docs/` | Requisiti, architettura e guida al lavoro con gli agenti |

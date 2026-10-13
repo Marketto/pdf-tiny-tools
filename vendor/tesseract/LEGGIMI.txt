@@ -1,0 +1,6 @@
+Tesseract nel browser, usato solo per capire l'orientamento delle pagine scansionate (R-SCN-20…22).
+Copiati così come sono dai pacchetti npm:
+- tesseract.js 7.0.0 (Apache-2.0): tesseract.min.js, worker.min.js — LICENSE-tesseract.js.md
+- tesseract.js-core 6.1.2 (Apache-2.0): tesseract-core-simd.wasm.js (motore con modello «legacy», serve per l'orientamento) — LICENSE-tesseract-core.txt
+- @tesseract.js-data/osd 1.0.0: 4.0.0_best_int/osd.traineddata.gz (dati di Tesseract, Apache-2.0)
+Si scaricano solo al primo uso di Cattura; poi li tiene la cache offline (sw.js, «cache prima» per vendor/).
