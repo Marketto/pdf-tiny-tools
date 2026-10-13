@@ -153,6 +153,8 @@ h1 .f-pdf2{transform:rotateX(-270deg) translateZ(.5em);color:#ffb3c7}
 .sure{border:var(--line);border-radius:14px;background:var(--acc);padding:14px;margin-top:14px;text-align:center}
 .sure p{margin:0 0 12px;font-weight:700}
 .btn.sm{font-size:16px;padding:5px 12px;box-shadow:3px 3px 0 var(--ink)}
+.linkish{background:none;border:0;padding:0;font:inherit;color:var(--ink);text-decoration:underline;cursor:pointer;font-weight:700}
+.vMemRow:has(#vForget[hidden]){display:none}
 .btn.off{opacity:.45;cursor:not-allowed;pointer-events:none}
 .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:4px 4px 0 var(--ink)}
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
@@ -387,6 +389,7 @@ details p{margin:8px 0 0;max-width:65ch}
       <label class="lvl"><input type="radio" name="vlvl" id="vlvlMid" value="0.97" checked><span><b data-i18n="mid">Stretta</b><small data-i18n="vMidD">Qualità ≥ 97%</small></span></label>
       <label class="lvl"><input type="radio" name="vlvl" id="vlvlMin" value="0.95"><span><b data-i18n="hard">Martellata</b><small data-i18n="vMinD">Qualità ≥ 95%</small></span></label>
     </div>
+    <p class="hint vMemRow"><span id="vMem"></span> <button type="button" class="linkish" id="vForget" hidden data-i18n="vForget">Dimentica le analisi salvate</button></p>
     <p class="hint" id="vidOff" hidden data-i18n="vidOff">Questo browser non sa codificare video in HEVC o H.264: prova con Chrome, Edge o Safari aggiornati.</p>
     </div>
   </section>
@@ -812,7 +815,7 @@ function render(){
     rowsEl.appendChild(li);
   });
   if(bgN)bgUpdate(bgText());
-  goBtn.disabled=busy||(mode==="video"?probing||vidOk===false||!items.some(function(x){return x.status==="wait"&&x.plan}):!items.some(function(x){return !x.scan}));
+  goBtn.disabled=busy||(mode==="video"?vidOk===false||!items.some(function(x){return x.status==="wait"&&x.plan}):!items.some(function(x){return !x.scan}));
   goBtn.textContent=busy?t("going"):t("go");
   $("total").hidden=!done||busy;
   if(done){
@@ -976,7 +979,7 @@ async function squeezePdf0(it,preset,onPct){
 
 goBtn.addEventListener("click",async function(){
   if(busy||!items.length)return;
-  if(mode==="video"){if(!probing)goVideo();return}
+  if(mode==="video"){goVideo();return}
   var jpg=mode==="jpg";
   if(!jpg&&!L.PDFDocument){say(t("engine"),true);return}
   var preset=jpg?jpgOpts():PRESETS[document.querySelector('input[name="lvl"]:checked').value];
@@ -1054,11 +1057,53 @@ async function videoCodec(M,w,h){
   var f=forcedCodec();
   return M.getFirstEncodableVideoCodec(f?[f]:["hevc","avc"],{width:w,height:h});
 }
+/* ---------- memoria delle analisi (R-VID-19): solo i numeri dell'analisi, sul dispositivo (IndexedDB) ---------- */
+var VPV="2",vidCodec=null,idbP=null;
+function idb(){
+  return idbP||(idbP=new Promise(function(res,rej){
+    var r=indexedDB.open("schiaccia",1);
+    r.onupgradeneeded=function(){r.result.createObjectStore("vprobe")};
+    r.onsuccess=function(){res(r.result)};r.onerror=function(){idbP=null;rej(r.error)};
+  }));
+}
+async function idbDo(rw,fn){
+  var db=await idb();
+  return new Promise(function(res,rej){
+    var tx=db.transaction("vprobe",rw?"readwrite":"readonly"),rq=fn(tx.objectStore("vprobe"));
+    tx.oncomplete=function(){res(rq&&rq.result)};tx.onerror=tx.onabort=function(){rej(tx.error)};
+  });
+}
+/* impronta: percorso, dimensione, data di modifica e hash dei primi e ultimi 64 KB */
+async function vFingerprint(it){
+  if(it.fp)return it.fp;
+  var f=it.file,a=new Uint8Array(await f.slice(0,65536).arrayBuffer()),b=new Uint8Array(await f.slice(Math.max(0,f.size-65536)).arrayBuffer());
+  var buf=new Uint8Array(a.length+b.length),hex="",i;buf.set(a);buf.set(b,a.length);
+  if(window.crypto&&crypto.subtle){var h=new Uint8Array(await crypto.subtle.digest("SHA-256",buf));for(i=0;i<12;i++)hex+=(h[i]+256).toString(16).slice(1)}
+  else{var x=2166136261;for(i=0;i<buf.length;i++){x^=buf[i];x=Math.imul(x,16777619)>>>0}hex=x.toString(16)}
+  return (it.fp=[it.rel,f.size,f.lastModified,hex].join("|"));
+}
+async function vRecall(it){
+  try{var fp=await vFingerprint(it),r=await idbDo(false,function(st){return st.get(fp)});if(r&&r.ver===VPV&&r.dev===vidCodec)return r}catch(e){}
+  return null;
+}
+async function vRemember(it,rec){
+  try{rec.ver=VPV;rec.dev=vidCodec;rec.t=Date.now();var fp=await vFingerprint(it);await idbDo(true,function(st){return st.put(rec,fp)});vMemShow()}catch(e){}
+}
+async function vMemShow(){
+  var n=0;try{n=await idbDo(false,function(st){return st.count()})}catch(e){}
+  $("vMem").textContent=n?t("vMem",{n:nf(n)}):"";$("vForget").hidden=!n;
+}
+$("vForget").addEventListener("click",async function(){
+  try{await idbDo(true,function(st){return st.clear()})}catch(e){}
+  vMemShow();toast(t("vForgot"));
+});
+
 /* la modalità resta visibile; se il browser non sa codificare né HEVC né H.264 è spenta con una riga di spiegazione */
 async function checkVideo(){
   if(vidOk===null){
-    try{var M=await loadMB();vidOk=!!(window.VideoEncoder&&await videoCodec(M,1920,1080))}catch(e){vidOk=false}
+    try{var M=await loadMB();vidCodec=window.VideoEncoder?await videoCodec(M,1920,1080):null;vidOk=!!vidCodec}catch(e){vidOk=false}
   }
+  vMemShow();
   $("vidOff").hidden=vidOk!==false;
   $("pickFiles").disabled=$("pickDir").disabled=mode==="video"&&vidOk===false;
   document.querySelector('label[for="pickFiles"]').classList.toggle("off",mode==="video"&&vidOk===false);
@@ -1099,6 +1144,9 @@ async function probeVideo0(it,onPct,stale){
   if(await vt.hasHighDynamicRange())return {hdr:true};
   var at=await input.getPrimaryAudioTrack(),dur=await input.computeDuration();
   var vs=await vt.computePacketStats(400),as=at?await at.computePacketStats(400):null;
+  /* scarto rapido (R-VID-21): già molto compresso, nessun margine */
+  var bpp=vs.averageBitrate/(vt.codedWidth*vt.codedHeight*(vs.averagePacketRate||30));
+  if(bpp<(vt.codec==="avc"?.035:.05))return {light:true};
   var codec=await videoCodec(M,vt.codedWidth,vt.codedHeight);if(!codec)throw new Error("nocodec");
   var aac=false;
   if(at&&as){
@@ -1149,8 +1197,10 @@ async function refineCurve(it,v,thr,onPct,stale){
     if(stale())throw new Error("stale");
     var cx=await vRefs(it,v,M),b=Math.round(v.src*f),parts;
     /* gli spezzoni in parallelo; se il codificatore non regge più sessioni, uno alla volta */
-    try{parts=await Promise.all(v.clips.map(function(cl,j){return clipScore(M,cx,v.codec,cl,cx.ref[j],b)}))}
-    catch(e){parts=[];for(var j=0;j<v.clips.length;j++)parts.push(await clipScore(M,cx,v.codec,v.clips[j],cx.ref[j],b))}
+    try{
+      if(busy)throw 0;/* durante la compressione: uno alla volta (R-VID-20) */
+      parts=await Promise.all(v.clips.map(function(cl,j){return clipScore(M,cx,v.codec,cl,cx.ref[j],b)}));
+    }catch(e){parts=[];for(var j=0;j<v.clips.length;j++)parts.push(await clipScore(M,cx,v.codec,v.clips[j],cx.ref[j],b))}
     var qs=0,qn=0,bytes=0,secs=0;parts.forEach(function(p){qs+=p.qs;qn+=p.qn;bytes+=p.bytes;secs+=p.secs});
     v.curve.push({f:f,b:b,q:qn?qs/qn:0,rate:bytes*8/secs});sortCurve(v);
     onPct(Math.min(95,Math.round(++steps/6*100)));
@@ -1193,16 +1243,26 @@ async function probeLoop(gen){
   for(var i=0;i<items.length;i++){
     var it=items[i];if(it.status!=="probe")continue;
     var last=-1;
+    if(vidCodec===null)await checkVideo();
+    /* già analizzato in passato? (R-VID-19) */
+    if(!it.vp){
+      var rec=await vRecall(it);if(gen!==probeGen)return;
+      if(rec&&(rec.hdr||rec.light)){it.status="same";it.note=rec.hdr?"hdr":"noGainV";render();continue}
+      if(rec&&rec.v)it.vp=rec.v;
+    }
     if(it.vp){
-      try{await refineCurve(it,it.vp,vThr(),function(p){if(gen===probeGen&&p-last>=5){last=p;it.pct=p;render()}},function(){return gen!==probeGen})}
-      catch(e){if(gen!==probeGen)return}
+      if(!vCovered(it.vp,vThr())){
+        try{await refineCurve(it,it.vp,vThr(),function(p){if(gen===probeGen&&p-last>=5){last=p;it.pct=p;render()}},function(){return gen!==probeGen})}
+        catch(e){if(gen!==probeGen)return}
+        await vRemember(it,{v:it.vp});
+      }
       it.status="wait";planAll();render();continue;
     }
     try{
       var v=await probeVideo(it,function(p){if(gen===probeGen&&p-last>=5){last=p;it.pct=p;render()}},function(){return gen!==probeGen});
       if(gen!==probeGen)return;
-      if(v.hdr){it.status="same";it.note="hdr";render();continue}
-      it.vp=v;
+      if(v.hdr||v.light){it.status="same";it.note=v.hdr?"hdr":"noGainV";await vRemember(it,v.hdr?{hdr:true}:{light:true});render();continue}
+      it.vp=v;await vRemember(it,{v:v});
     }catch(e){
       if(gen!==probeGen)return;
       it.status="err";it.note=/novideo/.test(String(e&&e.message))?"noVideo":"unreadable";render();continue;
@@ -1247,9 +1307,10 @@ async function goVideo(){
   var lock=await wakeLock();
   render();
   abortWork=false;
-  for(var i=0;i<items.length;i++){
-    if(abortWork)break;
-    var it=items[i];if(it.status!=="wait"||!it.plan)continue;
+  /* il primo video pronto; se non ce n'è e l'analisi va avanti, si aspetta (R-VID-20) */
+  while(!abortWork){
+    var it=null;for(var i=0;i<items.length;i++)if(items[i].status==="wait"&&items[i].plan){it=items[i];break}
+    if(!it){if(probing||items.some(function(x){return x.status==="probe"})){await new Promise(function(r){setTimeout(r,400)});continue}break}
     if(isBig(it)&&!await canDisk(it.plan.bytes)){it.status="same";it.note="tooBig";render();continue}
     it.status="work";it.pct=0;render();squashSound();
     try{

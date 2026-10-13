@@ -55,6 +55,9 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-VID-16 Pulizia della cartella privata: si svuota all'apertura dell'app (garanzia principale: l'app non riprende lavori a metà), dopo un salvataggio riuscito, a ogni nuova selezione o cambio di modalità, quando un risultato viene scartato, e si prova anche alla chiusura. Se si chiude senza salvare, il risultato si perde e lo spazio si libera alla prossima apertura.
 - R-VID-17 Le schede dei video grandi lo dicono: «se chiudi senza salvare, il risultato si perde».
 - R-VID-18 Dove non si può scrivere nelle cartelle e i video pronti superano insieme la soglia sicura, «Scarica tutto» non fa uno ZIP (andrebbe tutto in memoria) ma scarica i video uno alla volta.
+- R-VID-19 Memoria delle analisi: ogni video analizzato si registra sul dispositivo (archivio del browser; solo i numeri dell'analisi, mai il video), riconosciuto da percorso, nome, dimensione, data di modifica e un'impronta dei primi e ultimi 64 KB. Riaprendo la stessa cartella i video già analizzati mostrano subito la stima e l'analisi riprende dal primo mancante, anche dopo una chiusura a metà. Le analisi si scartano se cambia il metodo di analisi o il formato di uscita del dispositivo. Un comando «Dimentica le analisi salvate» le cancella.
+- R-VID-20 «Schiaccia!» si può premere appena c'è un video analizzato: la compressione procede sui video pronti mentre l'analisi continua sugli altri, e aspetta i nuovi finché l'analisi non è finita.
+- R-VID-21 Scarto rapido: un video già molto compresso (pochi dati per pixel e fotogramma: sotto 0,05 bit con HEVC, VP9 o AV1, sotto 0,035 con H.264) viene segnato «già leggero» senza codifiche di prova.
 
 ## SCN · Scansione
 - R-SCN-01 Pulsante fotocamera in testata accanto a suoni e condivisione: porta a Cattura (R-SCN-14). In modalità video è nascosto (R-VID-11).

@@ -234,6 +234,43 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Video: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- memoria delle analisi (R-VID-19): riaprendo lo stesso video la stima arriva senza rianalizzare
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url + "?vcodec=vp9&perf=1#video");
+  const bytes = await page.evaluate(async () => {
+    const M = await import("./vendor/mediabunny.min.mjs");
+    const c = document.createElement("canvas"); c.width = 320; c.height = 240;
+    const g = c.getContext("2d"), tgt = new M.BufferTarget(), out = new M.Output({ format: new M.Mp4OutputFormat(), target: tgt });
+    const src = new M.CanvasSource(c, { codec: "vp9", bitrate: 3e6 }); out.addVideoTrack(src, { frameRate: 25 });
+    await out.start();
+    for (let i = 0; i < 50; i++) { g.fillStyle = `hsl(${i * 7},60%,50%)`; g.fillRect(0, 0, 320, 240); for (let k = 0; k < 200; k++) { g.fillStyle = `rgba(0,0,0,${(k % 7) / 18})`; g.fillRect((k * 37 + i * 5) % 320, (k * 53) % 240, 5, 5); } await src.add(i / 25, 1 / 25); }
+    await out.finalize();
+    return [...new Uint8Array(tgt.buffer)];
+  });
+  const load = () => page.evaluate((b) => {
+    const dt = new DataTransfer(); dt.items.add(new File([new Uint8Array(b)], "memoria.mp4", { type: "video/mp4", lastModified: 1700000000000 }));
+    const input = document.getElementById("pickFiles"); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true }));
+  }, bytes);
+  await load();
+  await page.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 240000 });
+  const first = await page.innerText("#rows .meta");
+  await page.reload(); await page.waitForTimeout(800);
+  await load();
+  await page.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 60000 });
+  const again = await page.innerText("#rows .meta");
+  const probes = await page.evaluate(() => window.__perf.filter((x) => x[0] === "probe").length);
+  check(probes === 0 && again === first, `Video: riaprendo lo stesso video la stima arriva dalla memoria, senza rianalizzare (${again})`);
+  check(/: 1/.test(await page.innerText("#vMem")), `Video: si vede quante analisi sono salvate (${await page.innerText("#vMem")})`);
+  await page.click("#vForget");
+  check(await page.waitForFunction(() => document.getElementById("vForget").hidden, null, { timeout: 5000 }).then(() => true, () => false), "Video: «Dimentica le analisi salvate» le cancella");
+  check(errors.length === 0, `Memoria delle analisi: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
 // --- video grandi: con ?safe=1 ogni video è «grande» e va su disco (cartella privata), download uno alla volta, pulizia all'avvio
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 }, acceptDownloads: true });
