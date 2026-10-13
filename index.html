@@ -386,15 +386,11 @@ details p{margin:8px 0 0;max-width:65ch}
 .work .op[hidden]{display:none}
 .work .op .loaderScene{width:min(340px,100%)}
 .work .press{flex:none;min-width:0;width:min(170px,42vw)}.work .press svg{max-width:none}
-.work.two .op .loaderScene{width:min(250px,70%)}.work.two .press{width:min(120px,30vw)}
 .work .ind{max-width:440px;cursor:default;text-align:start;white-space:normal}
 .work .ind .txt{overflow:visible}
 /* pulsante dei suoni nelle schermate a tutto schermo (R-APP-14) */
 .scrSnd{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));inset-inline-end:12px;z-index:1}
 .loader.work .acts{position:static;width:100%;max-width:520px}
-@media (min-width:760px){.work.two .ops{flex-direction:row;align-items:center;justify-content:center}.work.two .op{flex:1}
-  .work.two .op+.op{border-inline-start:3px dashed color-mix(in srgb,var(--ink) 35%,transparent);padding-inline-start:18px}
-  .work.two .op .loaderScene{width:min(340px,100%)}.work.two .press{width:min(170px,40%)}}
 .ind .sv{margin-inline-start:auto;flex:none;font:400 18px/1 var(--display);background:var(--acc);color:var(--ink);border:3px solid var(--ink);border-radius:999px;padding:6px 10px;transform:rotate(3deg);box-shadow:2px 2px 0 var(--ink)}
 .mode-all .ind .sv{background:var(--holo-marea);background-size:400% 400%;animation:holoA 8s ease-in-out infinite alternate}
 @media (prefers-reduced-motion:reduce){.drum,.m-skin,.press .m-glasses,.press .m-camera,.press .m-flash{transition:none}.act-cap.snap .press .m-flash{animation:none}.roll.wiggle .wob,.roll.nudge .wob{animation:none}.loader .pg,.loader .beam,.loader .beamLine,.loader .tw,.press.busy .p-head,.press.busy .p-sheets,.press .p-spark,.loader .p-head,.loader .p-hand,.loader .drawer,.loader .p-spark{animation:none}.loader .fly{animation-duration:3s}.btn,.tray{transition:none}.mode-all .tag,.mode-all .btn,.mode-all .lvl span,.mode-all .tag::before,.mode-all .btn::before,.mode-all .lvl span::before,.mode-all h1 .f-all{animation:none!important}.ind,.ind.float,.ind .ring,.ind .ring::after{animation:none}}
@@ -523,10 +519,9 @@ details p{margin:8px 0 0;max-width:65ch}
   <div class="acts"><button class="btn alt" type="button" id="loaderCancel" data-i18n="cancel">Annulla</button></div>
 </div>
 
-<div class="loader work" id="work" role="dialog" aria-modal="true" aria-labelledby="workAnT" hidden>
+<div class="loader work" id="work" role="dialog" aria-modal="true" aria-labelledby="workSqT" hidden>
   <button class="btn sm alt snd scrSnd" type="button" aria-label="Suoni e musica"></button>
   <div class="ops">
-    <div class="op" id="opAn"><div class="loaderScene fileScene" aria-hidden="true"><!-- mascot:work --><svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"><rect x="30" y="96" width="160" height="184" rx="14" fill="#cdb8ff"/><rect x="42" y="156" width="136" height="52" rx="8" fill="#e3d6ff"/><rect x="92" y="174" width="36" height="14" rx="7" fill="#fff"/><rect x="42" y="216" width="136" height="52" rx="8" fill="#e3d6ff"/><rect x="92" y="234" width="36" height="14" rx="7" fill="#fff"/><g class="drawer"><path d="M48 70h124l10 22H38z" fill="#fff"/><path d="M60 70v-8h34v8M104 70v-12h34v12" fill="#fff6a8"/><rect x="26" y="92" width="168" height="54" rx="10" fill="#e3d6ff"/><rect x="92" y="112" width="36" height="14" rx="7" fill="#fff"/></g></g><g transform="translate(250 50) scale(.52)"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"><rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><g class="p-sheets"><g class="s-pdf"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g><g class="s-jpg"><rect x="176" y="326" width="160" height="74" rx="8" fill="#fff"/><rect x="190" y="336" width="132" height="54" rx="3" fill="#9ad7ff" stroke="none"/><circle cx="300" cy="352" r="9" fill="#ffd23f" stroke="none"/><path d="M190 390l36-30l22 18l18-14l56 26z" fill="#3ddc97" stroke="none"/><rect x="190" y="336" width="132" height="54" rx="3" fill="none" stroke-width="5"/></g><g class="s-vid"><rect x="180" y="348" width="152" height="52" rx="8" fill="#3b2a4a"/><path d="M176 330l150 -14l4 22l-150 14z" fill="#fff"/><path d="M204 328l12 18M236 325l12 18M268 322l12 18M300 319l12 18" fill="none"/><path d="M200 366h90M200 382h56" stroke="#fff" stroke-width="7" fill="none"/><circle cx="312" cy="386" r="7" fill="#ff5a4e" stroke="none"/></g></g><rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g><defs><linearGradient id="whm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8fd1"/><stop offset="0.35" stop-color="#9ef0ff"/><stop offset="0.65" stop-color="#c9a6ff"/><stop offset="1" stop-color="#ffd36b"/><animateTransform attributeName="gradientTransform" type="rotate" values="0 .5 .5;360 .5 .5" dur="16s" repeatCount="indefinite"/></linearGradient><radialGradient id="whb0" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#ff8fd1"/><stop offset="1" stop-color="#ff8fd1" stop-opacity="0"/><animate attributeName="cx" values="150;330;200;150" dur="9s" repeatCount="indefinite"/><animate attributeName="cy" values="130;280;240;130" dur="9s" repeatCount="indefinite"/></radialGradient><radialGradient id="whb1" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#9ef0ff"/><stop offset="1" stop-color="#9ef0ff" stop-opacity="0"/><animate attributeName="cx" values="350;180;300;350" dur="11s" repeatCount="indefinite"/><animate attributeName="cy" values="290;150;130;290" dur="11s" repeatCount="indefinite"/></radialGradient><radialGradient id="whb2" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#ffd36b"/><stop offset="1" stop-color="#ffd36b" stop-opacity="0"/><animate attributeName="cx" values="260;360;150;260" dur="13s" repeatCount="indefinite"/><animate attributeName="cy" values="300;200;150;300" dur="13s" repeatCount="indefinite"/></radialGradient><radialGradient id="whb3" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#b98cff"/><stop offset="1" stop-color="#b98cff" stop-opacity="0"/><animate attributeName="cx" values="180;260;360;180" dur="10s" repeatCount="indefinite"/><animate attributeName="cy" values="150;300;260;150" dur="10s" repeatCount="indefinite"/></radialGradient></defs><g class="p-head"><g class="m-horn" display="none" stroke="#3b2a4a" stroke-width="8" stroke-linejoin="round"><path d="M228 132L256 56L284 132Z" fill="#ffe14d"/><path d="M243 98l24 -8M237 116l32 -10" fill="none" stroke="#e8a400" stroke-width="6" stroke-linecap="round"/></g><rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><g class="m-gas" display="none" stroke="none"><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#whm)"/><g class="m-neb" opacity="0"><rect x="133" y="117" width="246" height="196" rx="83" fill="#e6d8ff"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#whb0)"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#whb1)"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#whb2)"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#whb3)"/><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;.4;.5;.9;1" dur="30s" repeatCount="indefinite"/></g></g><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/><g class="e-open"><ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/></g><g class="e-c" display="none"><path d="M178 200l40 22l-40 22M334 200l-40 22l40 22" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="e-d" display="none"><path d="M168 234q30 -32 60 0M284 234q30 -32 60 0" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="blush"><ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/></g><path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><circle class="p-hand m-skin" cx="112" cy="250" r="24" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></g><g class="fly f1 k-pdf"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g><g class="fly f1 k-jpg"><rect x="86" y="72" width="48" height="60" rx="5" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><rect x="92" y="78" width="36" height="36" rx="2" fill="#9ad7ff"/><circle cx="119" cy="87" r="5" fill="#ffd23f"/><path d="M92 114l11-14l8 8l6-6l11 12z" fill="#3ddc97"/><path d="M92 78h36v36h-36z" fill="none" stroke="#3b2a4a" stroke-width="3"/></g><g class="fly f1 k-vid"><g stroke="#3b2a4a" stroke-width="5" stroke-linejoin="round"><rect x="82" y="92" width="56" height="40" rx="5" fill="#3b2a4a"/><path d="M80 78l54-10l4 14l-54 10z" fill="#fff"/></g><path d="M92 76l8 12M106 73l8 12M120 71l8 12" stroke="#3b2a4a" stroke-width="6"/><path d="M92 104h36M92 114h24" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="128" cy="122" r="4" fill="#ff5a4e"/></g><g class="fly f2 k-pdf"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g><g class="fly f2 k-jpg"><rect x="86" y="72" width="48" height="60" rx="5" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><rect x="92" y="78" width="36" height="36" rx="2" fill="#9ad7ff"/><circle cx="119" cy="87" r="5" fill="#ffd23f"/><path d="M92 114l11-14l8 8l6-6l11 12z" fill="#3ddc97"/><path d="M92 78h36v36h-36z" fill="none" stroke="#3b2a4a" stroke-width="3"/></g><g class="fly f2 k-vid"><g stroke="#3b2a4a" stroke-width="5" stroke-linejoin="round"><rect x="82" y="92" width="56" height="40" rx="5" fill="#3b2a4a"/><path d="M80 78l54-10l4 14l-54 10z" fill="#fff"/></g><path d="M92 76l8 12M106 73l8 12M120 71l8 12" stroke="#3b2a4a" stroke-width="6"/><path d="M92 104h36M92 114h24" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="128" cy="122" r="4" fill="#ff5a4e"/></g><g class="fly f3 k-pdf"><rect x="86" y="74" width="46" height="58" rx="6" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><path d="M96 92h26M96 106h26M96 120h16" stroke="#f0b6c8" stroke-width="4" stroke-linecap="round"/></g><g class="fly f3 k-jpg"><rect x="86" y="72" width="48" height="60" rx="5" fill="#fff" stroke="#3b2a4a" stroke-width="5"/><rect x="92" y="78" width="36" height="36" rx="2" fill="#9ad7ff"/><circle cx="119" cy="87" r="5" fill="#ffd23f"/><path d="M92 114l11-14l8 8l6-6l11 12z" fill="#3ddc97"/><path d="M92 78h36v36h-36z" fill="none" stroke="#3b2a4a" stroke-width="3"/></g><g class="fly f3 k-vid"><g stroke="#3b2a4a" stroke-width="5" stroke-linejoin="round"><rect x="82" y="92" width="56" height="40" rx="5" fill="#3b2a4a"/><path d="M80 78l54-10l4 14l-54 10z" fill="#fff"/></g><path d="M92 76l8 12M106 73l8 12M120 71l8 12" stroke="#3b2a4a" stroke-width="6"/><path d="M92 104h36M92 114h24" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="128" cy="122" r="4" fill="#ff5a4e"/></g></svg><!-- /mascot:work --></div><h2 id="workAnT">Guardo i video…</h2><div class="ind" id="pillAn" role="status"></div></div>
     <div class="op" id="opSq"><div class="press busy" aria-hidden="true"><!-- mascot:workpress --><svg viewBox="70 48 400 404" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"><rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><g class="p-sheets"><g class="s-pdf"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g><g class="s-jpg"><rect x="176" y="326" width="160" height="74" rx="8" fill="#fff"/><rect x="190" y="336" width="132" height="54" rx="3" fill="#9ad7ff" stroke="none"/><circle cx="300" cy="352" r="9" fill="#ffd23f" stroke="none"/><path d="M190 390l36-30l22 18l18-14l56 26z" fill="#3ddc97" stroke="none"/><rect x="190" y="336" width="132" height="54" rx="3" fill="none" stroke-width="5"/></g><g class="s-vid"><rect x="180" y="348" width="152" height="52" rx="8" fill="#3b2a4a"/><path d="M176 330l150 -14l4 22l-150 14z" fill="#fff"/><path d="M204 328l12 18M236 325l12 18M268 322l12 18M300 319l12 18" fill="none"/><path d="M200 366h90M200 382h56" stroke="#fff" stroke-width="7" fill="none"/><circle cx="312" cy="386" r="7" fill="#ff5a4e" stroke="none"/></g></g><rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g><defs><linearGradient id="qhm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8fd1"/><stop offset="0.35" stop-color="#9ef0ff"/><stop offset="0.65" stop-color="#c9a6ff"/><stop offset="1" stop-color="#ffd36b"/><animateTransform attributeName="gradientTransform" type="rotate" values="0 .5 .5;360 .5 .5" dur="16s" repeatCount="indefinite"/></linearGradient><radialGradient id="qhb0" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#ff8fd1"/><stop offset="1" stop-color="#ff8fd1" stop-opacity="0"/><animate attributeName="cx" values="150;330;200;150" dur="9s" repeatCount="indefinite"/><animate attributeName="cy" values="130;280;240;130" dur="9s" repeatCount="indefinite"/></radialGradient><radialGradient id="qhb1" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#9ef0ff"/><stop offset="1" stop-color="#9ef0ff" stop-opacity="0"/><animate attributeName="cx" values="350;180;300;350" dur="11s" repeatCount="indefinite"/><animate attributeName="cy" values="290;150;130;290" dur="11s" repeatCount="indefinite"/></radialGradient><radialGradient id="qhb2" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#ffd36b"/><stop offset="1" stop-color="#ffd36b" stop-opacity="0"/><animate attributeName="cx" values="260;360;150;260" dur="13s" repeatCount="indefinite"/><animate attributeName="cy" values="300;200;150;300" dur="13s" repeatCount="indefinite"/></radialGradient><radialGradient id="qhb3" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#b98cff"/><stop offset="1" stop-color="#b98cff" stop-opacity="0"/><animate attributeName="cx" values="180;260;360;180" dur="10s" repeatCount="indefinite"/><animate attributeName="cy" values="150;300;260;150" dur="10s" repeatCount="indefinite"/></radialGradient></defs><g class="p-head"><g class="m-horn" display="none" stroke="#3b2a4a" stroke-width="8" stroke-linejoin="round"><path d="M228 132L256 56L284 132Z" fill="#ffe14d"/><path d="M243 98l24 -8M237 116l32 -10" fill="none" stroke="#e8a400" stroke-width="6" stroke-linecap="round"/></g><rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><g class="m-gas" display="none" stroke="none"><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#qhm)"/><g class="m-neb" opacity="0"><rect x="133" y="117" width="246" height="196" rx="83" fill="#e6d8ff"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#qhb0)"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#qhb1)"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#qhb2)"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#qhb3)"/><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;.4;.5;.9;1" dur="30s" repeatCount="indefinite"/></g></g><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/><g class="e-open"><ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/></g><g class="e-c" display="none"><path d="M178 200l40 22l-40 22M334 200l-40 22l40 22" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="e-d" display="none"><path d="M168 234q30 -32 60 0M284 234q30 -32 60 0" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="blush"><ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/></g><path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></svg><!-- /mascot:workpress --></div><h2 id="workSqT">Schiaccio…</h2><div class="ind" id="pillSq" role="status"></div></div>
   </div>
   <div class="acts" id="workActs">
@@ -726,11 +721,11 @@ function fitTitle(){
 }
 /* lavoro che andrebbe perso cambiando modalità (R-MOD-06) */
 var abortWork=false,curConv=null;
-function unsavedSquash(){return busy||probing||items.some(function(x){return x.status==="done"})}
+function unsavedSquash(){return busy||items.some(function(x){return x.status==="done"})}
 /* in Cattura le pagine restano passando tra PDF e JPG: cambia solo come si salvano */
 function unsaved(){return act==="capture"?false:unsavedSquash()}
 async function stopWork(){
-  abortWork=true;probeGen++;probing=false;
+  abortWork=true;probeGen++;
   if(curConv)try{await curConv.cancel()}catch(e){}
   while(busy)await new Promise(function(r){setTimeout(r,100)});
 }
@@ -822,7 +817,7 @@ async function loaded(n){
   render();
   if(mode==="video"||mode==="all"&&items.some(function(x){return x.kind==="video"}))checkVideo();
 }
-function reset(){items=[];rootDir=null;readOnlyDir=false;probeGen++;probing=false;ignored=0;jobId=null;srcName=""}
+function reset(){items=[];rootDir=null;readOnlyDir=false;probeGen++;ignored=0;jobId=null;srcName=""}
 
 /* dove il browser lo permette, i file scelti arrivano con il permesso di riscriverli (serve per «Sovrascrivi») */
 document.querySelector('label[for="pickFiles"]').addEventListener("click",async function(e){
@@ -960,7 +955,6 @@ function render(){
     if(isBig(it)&&(it.status==="wait"||it.status==="work"||it.status==="done"))meta+=" · "+t("bigNote");
     li.appendChild(el("div","meta",meta));
     var side=el("div","side");
-    if(it.status==="probe")side.appendChild(el("span","badge work",t("probing",{pct:nf(it.pct)})));
     if(it.status==="wait")side.appendChild(el("span","badge wait",it.plan?"≈ −"+nf(Math.round((1-it.plan.bytes/it.size)*100))+"%":t("queued")));
     if(it.status==="work")side.appendChild(el("span","badge work",nf(it.pct)+"%"));
     if(it.status==="err")side.appendChild(el("span","badge err",t("skipped")));
@@ -976,8 +970,8 @@ function render(){
       kept++;inB+=it.size;outB+=it.outSize;
     }
     li.appendChild(side);
-    if((it.status==="work"||it.status==="probe")&&!rowsEl.querySelector(".row.cur")){li.classList.add("cur");if(performance.now()<hotUntil)li.classList.add("hot")}
-    if(it.status==="work"||it.status==="probe"){var bar=el("div","bar");bar.style.width=it.pct+"%";li.appendChild(bar)}
+    if(it.status==="work"&&!rowsEl.querySelector(".row.cur")){li.classList.add("cur");if(performance.now()<hotUntil)li.classList.add("hot")}
+    if(it.status==="work"){var bar=el("div","bar");bar.style.width=it.pct+"%";li.appendChild(bar)}
     rowsEl.appendChild(li);
   });
   if(bgN)bgUpdate(bgText());
@@ -1199,7 +1193,7 @@ goBtn.addEventListener("click",goNow);
 
 /* ---------- video: analisi a spezzoni (primo passaggio) e ricodifica (secondo), R-VID ----------
    Mediabunny si carica solo qui, la prima volta. Qualità = SSIM sulla luminosità; vedi docs/ARCHITETTURA.md. */
-var MB=null,vidOk=null,probeGen=0,probing=false;
+var MB=null,vidOk=null,probeGen=0;
 var AAC=CFG.video.aacBitrate;
 /* oltre questa stima il risultato va su disco, nella cartella privata del browser (R-VID-14) */
 var SAFE=(navigator.deviceMemory?Math.min(CFG.video.safe.maxMB,navigator.deviceMemory*CFG.video.safe.memPerGbMB):CFG.video.safe.defaultMB)*1048576,TMP="schiaccia-tmp";
@@ -2834,7 +2828,7 @@ setTimeout(async function(){if(items.length||loading)return;await tidyDialog();i
 /* ogni 9 s circa uno dei due rulli accenna mezzo giro, a turno (R-UI-12) */
 var nudgeTurn=0;
 setInterval(function(){
-  if(calm||document.hidden||busy||probing||loading)return;
+  if(calm||document.hidden||busy||loading)return;
   var r=[$("modeBtn"),$("actBtn")].filter(function(x){return x&&x.getAttribute("aria-disabled")!=="true"});
   if(!r.length)return;
   var b=r[nudgeTurn++%r.length];b.classList.remove("wiggle","nudge");void b.offsetWidth;b.classList.add("nudge");
@@ -3228,7 +3222,7 @@ document.addEventListener("visibilitychange",function(){
   else if(bgN)bgProgNote(bgText()||t("reading"));
 });
 /* «Pausa» e «Stop» del riquadro del lettore: il lavoro va in pausa (R-APP-12) */
-function bgStop(){cancelLoad=true;if(busy||probing)pauseJob();else{abortWork=true;if(curConv)try{curConv.cancel()}catch(e){}}}
+function bgStop(){cancelLoad=true;if(busy)pauseJob();else{abortWork=true;if(curConv)try{curConv.cancel()}catch(e){}}}
 /* notifica a lavoro finito, solo se l'app è in secondo piano (R-APP-08) */
 function bgNotify(body){
   if(!document.hidden||!bgOn()||!window.Notification||Notification.permission!=="granted")return;
@@ -3241,10 +3235,10 @@ function bgNotify(body){
 }
 /* testo dell'avanzamento secondo il lavoro in corso */
 /* avanzamento complessivo e tempo residuo (R-APP-07): i file del giro pesano per dimensione */
-var prog={probe:null,work:null};
+var prog={work:null};
 function progStart(kind){
   var ids={},tot=0;
-  items.forEach(function(x){if(!x.scan&&(kind==="work"?x.status==="wait"||x.status==="probe":x.status==="probe")){ids[x.id]=1;tot+=x.size||1}});
+  items.forEach(function(x){if(!x.scan&&x.status==="wait"){ids[x.id]=1;tot+=x.size||1}});
   prog[kind]={ids:ids,tot:tot||1,t0:performance.now(),eta:null};
 }
 function progFrac(kind){
@@ -3252,7 +3246,7 @@ function progFrac(kind){
   var f=0;
   items.forEach(function(x){
     if(!P.ids[x.id])return;
-    var st=x.status,p=kind==="work"?(st==="work"?(x.pct||0)/100:st==="wait"||st==="probe"?0:1):(st==="probe"?(x.pct||0)/100:1);
+    var st=x.status,p=st==="work"?(x.pct||0)/100:st==="wait"?0:1;
     f+=(x.size||1)*p;
   });
   return Math.min(1,f/P.tot);
@@ -3269,14 +3263,14 @@ function progEta(kind,f){var l=progLeft(kind,f);return l?t("bgEta",{t:l}):""}
 /* tipo di lavoro, posizione del file in corso e numero di file */
 function progNow(){
   var list=items.filter(function(x){return !x.scan}),cur=null,i=0;
-  list.forEach(function(x,k){if(!cur&&(x.status==="work"||x.status==="probe")){cur=x;i=k+1}});
-  var kind=busy?"work":probing?"probe":"";
+  list.forEach(function(x,k){if(!cur&&x.status==="work"){cur=x;i=k+1}});
+  var kind=busy?"work":"";
   return kind&&cur?{kind:kind,i:i,n:list.length}:null;
 }
 function bgText(){
   var c=progNow();if(!c)return "";
   var f=progFrac(c.kind);
-  return t(c.kind==="work"?"bgWork":"bgProbe",{i:nf(c.i),n:nf(c.n),pct:nf(Math.round(f*100))})+progEta(c.kind,f);
+  return t("bgWork",{i:nf(c.i),n:nf(c.n),pct:nf(Math.round(f*100))})+progEta(c.kind,f);
 }
 /* risparmio stimato (R-UI-10): vero per i finiti, dalla stima per i video analizzati, dalla media del tipo per gli altri */
 function progSaving(){
@@ -3317,22 +3311,19 @@ async function suggestStill(){
 }
 
 /* riepilogo sopra l'elenco (R-LST-04): cosa verrà schiacciato e quanto si risparmia */
-var sumWasProbing=false;
 function sumShow(){
   var box=$("sum");if(!box)return;
   var list=items.filter(function(x){return !x.scan}),tot=list.length,todo=0,same=0,err=0,pr=0,sv=0;
   list.forEach(function(x){
     if(x.status==="wait"){todo++;if(x.plan)sv+=Math.max(0,x.size-x.plan.bytes)}
-    else if(x.status==="same")same++;else if(x.status==="err")err++;else if(x.status==="probe")pr++;
+    else if(x.status==="same")same++;else if(x.status==="err")err++;
   });
   var anyDone=list.some(function(x){return x.status==="done"||x.status==="kept"||x.status==="over"});
   box.hidden=!tot||busy||anyDone;
-  if(box.hidden){sumWasProbing=probing;return}
+  if(box.hidden)return;
   $("sumMain").textContent=t("sumReady",{n:nf(todo),tot:nf(tot)})+(sv>=1048576?" · ≈ −"+fmt(sv):"");
-  var bits=[];if(same)bits.push(t("sumSame",{n:nf(same)}));if(err)bits.push(t("sumErr",{n:nf(err)}));if(pr)bits.push(t("sumProbe",{n:nf(pr)}));
+  var bits=[];if(same)bits.push(t("sumSame",{n:nf(same)}));if(err)bits.push(t("sumErr",{n:nf(err)}));
   $("sumSub").textContent=bits.join(" · ");$("sumSub").hidden=!bits.length;
-  if(sumWasProbing&&!probing)setTimeout(function(){try{box.scrollIntoView({behavior:calm?"auto":"smooth",block:"start"})}catch(e){}},300);
-  sumWasProbing=probing;
 }
 
 /* ---------- lavoro e pausa (R-APP-10…13) ---------- */
@@ -3343,34 +3334,30 @@ each("#work .ind",function(p){p.innerHTML=pillHtml()});
 function savedSoFar(){
   var s=0;items.forEach(function(x){if(x.status==="done"&&x.out)s+=Math.max(0,x.size-x.out.size);else if(x.status==="kept")s+=Math.max(0,x.size-(x.outSize||x.size))});return s;
 }
-/* Caramella di un'operazione (R-UI-10): analisi → risparmio stimato di tutto l'elenco; compressione → risparmio già ottenuto */
+/* Caramella (R-UI-10): avanzamento della compressione e risparmio già ottenuto */
 function fillPill(el,kind){
   var P=prog[kind];if(!P)return;
-  var f=progFrac(kind),l=progLeft(kind,f),n=0,e=0,w=0;
+  var f=progFrac(kind),l=progLeft(kind,f),n=0,e=0;
   items.forEach(function(x){
     if(!P.ids[x.id])return;n++;var st=x.status;
-    if(kind==="work"?(st!=="wait"&&st!=="work"&&st!=="probe"):st!=="probe")e++;
-    if(st===(kind==="work"?"work":"probe"))w=1;
+    if(st!=="wait"&&st!=="work")e++;
   });
   el.style.setProperty("--p",Math.round(f*100));
   el.querySelector(".pp").textContent=nf(Math.round(f*100))+"%";
-  el.querySelector(".ps").textContent="· "+(kind==="work"?t("indDone",{i:nf(e),n:nf(n)}):t("indProbe",{i:nf(Math.min(n,e+w)),n:nf(n)}));
+  el.querySelector(".ps").textContent="· "+t("indDone",{i:nf(e),n:nf(n)});
   el.querySelector(".pl").textContent=l?t("indLeft",{t:l}):t("indCalc");
-  var sv=kind==="probe"?progSaving():savedSoFar(),se=el.querySelector(".sv");se.hidden=sv<1048576;
+  var sv=savedSoFar(),se=el.querySelector(".sv");se.hidden=sv<1048576;
   if(!se.hidden){se.textContent="−"+fmt(sv);se.title=t("indSave")}
 }
 /* chiamata da render: mostra o nasconde la schermata di lavoro e la aggiorna */
 function progShow(){
   if(!workEl)return;
-  var an=probing&&items.some(function(x){return x.status==="probe"}),sq=busy,on=an||sq;
+  var on=busy;
   if(on!==workWas){workWas=on;workEl.hidden=!on;$("app").inert=appBusyScreen()||!$("modal").hidden}
   if(!on)return;
-  var two=an&&sq,ch=$("opAn").hidden===an||$("opSq").hidden===sq;
-  $("opAn").hidden=!an;$("opSq").hidden=!sq;workEl.classList.toggle("two",two);
-  $("workAnT").textContent=t("workProbe");$("workSqT").textContent=t("going");
-  if(an)fillPill($("pillAn"),"probe");
-  if(sq)fillPill($("pillSq"),"work");
-  if(ch||!workEl._fit){workEl._fit=1;fitBtns($("workActs"))}
+  $("workSqT").textContent=t("going");
+  fillPill($("pillSq"),"work");
+  if(!workEl._fit){workEl._fit=1;fitBtns($("workActs"))}
 }
 $("workPause").addEventListener("click",function(){pauseJob()});
 /* «Annulla»: ferma e svuota; conferma solo se si perdono file già schiacciati (R-APP-11) */
@@ -3453,7 +3440,7 @@ async function jobKeep(dir,it){
 /* record del lavoro: stato di ogni file, opzioni, cartella; i file pronti stanno già nella cartella privata del lavoro */
 function jobRec(paused){
   var list=items.filter(function(x){return !x.scan}),files=list.map(function(it){
-    var st=it.status==="work"||it.status==="probe"?"wait":it.status;
+    var st=it.status==="work"?"wait":it.status;
     var f={rel:it.rel0||it.rel,size:it.size,lm:it.file?it.file.lastModified:0,kind:it.kind,status:st,note:it.note||"",outSize:it.outSize||0,an:!!it.vp};
     if(st==="done"){if(it.jobOut&&it.out){f.relOut=it.rel;f.out=it.jobOut;f.outSize=it.out.size}else f.status="wait"}
     return f;
