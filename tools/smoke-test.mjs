@@ -302,6 +302,8 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   });
   await page.waitForFunction(() => !document.getElementById("go").disabled || document.querySelector("#rows .badge.same, #rows .badge.err"), null, { timeout: 240000 });
   const est = await page.innerText("#rows .meta");
+  const sumTxt = await page.evaluate(() => !document.getElementById("sum").hidden && document.getElementById("sum").innerText.replace(/\n/g, " "));
+  check(/Da schiacciare: 1 di 1/.test(sumTxt || ""), `Riepilogo: sopra l'elenco quanti file verranno schiacciati e il risparmio stimato (${sumTxt || "assente"})`);
   check(/≈/.test(est) && /qualità 97/.test(est), `Video: analisi con stima e qualità (${est})`);
   await page.click("#vlvlMin");
   await page.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 240000 });

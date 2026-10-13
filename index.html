@@ -339,6 +339,10 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
   .row{grid-template-columns:minmax(0,1fr);gap:4px}
   .row .side{grid-row:auto;grid-column:1;justify-content:flex-start;margin-top:6px}
 }
+/* riepilogo sopra l'elenco (R-LST-04) */
+.sum{display:flex;flex-direction:column;gap:2px;border:var(--line);border-radius:16px;background:var(--acc-l);padding:10px 14px;margin:0 0 14px;box-shadow:3px 3px 0 var(--ink)}
+.sum strong{font-family:var(--display);font-weight:400;font-size:21px;line-height:1.15}
+.sum small{font-weight:700;color:var(--muted)}
 .total{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:16px}
 .total strong{font-family:var(--display);font-weight:400;font-size:22px}
 #msg{font-weight:700;min-height:1.4em;margin:12px 0 0}
@@ -494,6 +498,7 @@ details p{margin:8px 0 0;max-width:65ch}
 
   <section class="panel squash">
     <div class="tag" data-i18n="s3">3 · Salva</div>
+    <div class="sum" id="sum" role="status" hidden><strong id="sumMain"></strong><small id="sumSub"></small></div>
     <ul class="rows" id="rows">
       <li class="row demo" id="demo">
         <div class="name" data-i18n="demoName">vacanze-sardegna.pdf</div>
@@ -971,7 +976,7 @@ function render(){
     rowsEl.appendChild(li);
   });
   if(bgN)bgUpdate(bgText());
-  progShow();jobSaveSoon();
+  progShow();jobSaveSoon();sumShow();
   var vReady=items.some(function(x){return x.kind==="video"&&x.status==="wait"&&x.plan});
   goBtn.disabled=busy||(mode==="video"?vidOk===false||!vReady:mode==="all"?!vReady&&!items.some(function(x){return x.kind!=="video"&&!x.scan}):!items.some(function(x){return !x.scan}));
   goBtn.textContent=busy?t("going"):t("go");
@@ -3252,6 +3257,25 @@ function progSaving(){
   /* niente stime per i file non ancora analizzati: il numero parte da zero e cresce solo con risparmi misurati (R-UI-10) */
   return sum;
 }
+/* riepilogo sopra l'elenco (R-LST-04): cosa verrà schiacciato e quanto si risparmia */
+var sumWasProbing=false;
+function sumShow(){
+  var box=$("sum");if(!box)return;
+  var list=items.filter(function(x){return !x.scan}),tot=list.length,todo=0,same=0,err=0,pr=0,sv=0;
+  list.forEach(function(x){
+    if(x.status==="wait"&&(x.kind!=="video"||x.plan)){todo++;if(x.plan)sv+=Math.max(0,x.size-x.plan.bytes)}
+    else if(x.status==="same")same++;else if(x.status==="err")err++;else if(x.status==="probe")pr++;
+  });
+  var anyDone=list.some(function(x){return x.status==="done"||x.status==="kept"||x.status==="over"});
+  box.hidden=!tot||busy||anyDone;
+  if(box.hidden){sumWasProbing=probing;return}
+  $("sumMain").textContent=t("sumReady",{n:nf(todo),tot:nf(tot)})+(sv>=1048576?" · ≈ −"+fmt(sv):"");
+  var bits=[];if(same)bits.push(t("sumSame",{n:nf(same)}));if(err)bits.push(t("sumErr",{n:nf(err)}));if(pr)bits.push(t("sumProbe",{n:nf(pr)}));
+  $("sumSub").textContent=bits.join(" · ");$("sumSub").hidden=!bits.length;
+  if(sumWasProbing&&!probing)setTimeout(function(){try{box.scrollIntoView({behavior:calm?"auto":"smooth",block:"start"})}catch(e){}},300);
+  sumWasProbing=probing;
+}
+
 /* ---------- lavoro e pausa (R-APP-10…13) ---------- */
 var workEl=$("work"),workWas=false,hotUntil=0,jobId=null,srcName="",pendingJob=null;
 function appBusyScreen(){return !!(workEl&&!workEl.hidden)||loading}

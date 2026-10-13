@@ -101,6 +101,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video--tutto) · [C
 - R-LST-01 Ogni scheda: nome, dimensioni prima e dopo, percentuale, stato.
 - R-LST-02 Telefono e tablet in verticale: questi elementi uno sotto l'altro, in quest'ordine.
 - R-LST-03 Niente pulsanti di salvataggio nelle schede (l'anteprima delle scansioni sì, R-SCN-13).
+- R-LST-04 Riepilogo in cima all'elenco del passo 3, finché non c'è niente di schiacciato: quanti file verranno schiacciati su quanti, il risparmio stimato (somma delle stime dei video analizzati; per PDF e foto la stima arriva solo dopo), quanti sono già al minimo, quanti non leggibili e quanti ancora da analizzare. A fine analisi la pagina scorre fino al riepilogo.
 
 ## SAV · Salvataggio
 - R-SAV-01 Un file: «Salva con nome» o «Sovrascrivi l'originale».

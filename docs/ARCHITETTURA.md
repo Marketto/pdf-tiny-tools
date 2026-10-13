@@ -10,7 +10,7 @@ Tutto il JavaScript è in `index.html`, dentro un'unica funzione, diviso da comm
 |---|---|---|
 | `lingue` | `pickLang`, `t`, `applyLang`, `showTitle`, `turnDrum`, `fitTitle`, `unsaved`, `stopWork`, `capOff`, `placeOpts`, `allLevel`, `setMode`, `isPdf`, `kindOf`, `wants` | I18N, MOD, TUT |
 | `carico` | `addFile`, `walkHandle`, `walkEntry`, `loaderOn`, `loaderOff` | CAR |
-| `vista` | `render` | LST, SAV-08 |
+| `vista` | `render`, `sumShow` (riepilogo, LST-04) | LST, SAV-08 |
 | `motore` | `squeezePdf` (immagini in parallelo), `squeezeImage` (controlli e sostituzione nel PDF), `squeezeJpg`, `jpgOpts`, `squashList`, `workEnd`, gestore di `goBtn` | CMP, JPG, TUT-04 |
 | `worker` | `startPool`, `poolSize`, `runTask`, `poolWidth` | APP-09 |
 | `video` | `loadMB`, `checkVideo`, `vRecall`, `vRemember`, `vFingerprint`, `vMemShow`, `probeAll`, `refineCurve`, `probeVideo`, `ssim`, `planVideo`, `planAll`, `goVideo`, `videoLoop`, `squeezeVideo` | VID |
