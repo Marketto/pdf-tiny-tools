@@ -748,7 +748,7 @@ async function setMode(m,quiet,sure){
       if(location.hash!==(mode==="pdf"?"":"#"+mode))try{history.replaceState(null,"",mode==="pdf"?location.pathname+location.search:"#"+mode)}catch(e){}
       return;
     }
-    if(lv==="pause")await pauseJob();else await stopWork();
+    if(lv==="pause")await pauseJob();else{await stopWork();if(jobId)jobDrop(jobId)}
   }
   if(busy)return;
   if(m!==mode&&items.length){reset();tmpClean()}
@@ -809,6 +809,7 @@ async function loaded(n){
   if(mode==="all")items=items.filter(function(x){return x.kind!=="video"}).concat(items.filter(function(x){return x.kind==="video"}));
   say(t("ready",{n:nf(n)})+ig);
   if(pendingJob)await restoreJob(pendingJob);
+  if(!jobId)jobId="j"+Date.now();
   render();
   if(mode==="video"||mode==="all"&&items.some(function(x){return x.kind==="video"}))probeAll();
 }
@@ -970,7 +971,7 @@ function render(){
     rowsEl.appendChild(li);
   });
   if(bgN)bgUpdate(bgText());
-  progShow();
+  progShow();jobSaveSoon();
   var vReady=items.some(function(x){return x.kind==="video"&&x.status==="wait"&&x.plan});
   goBtn.disabled=busy||(mode==="video"?vidOk===false||!vReady:mode==="all"?!vReady&&!items.some(function(x){return x.kind!=="video"&&!x.scan}):!items.some(function(x){return !x.scan}));
   goBtn.textContent=busy?t("going"):t("go");
@@ -1148,7 +1149,7 @@ async function squashList(list,jpg){
       try{
         var last=-1;
         var r=await (jpg?squeezeJpg:squeezePdf)(it,preset,function(p){if(p-last>=5){last=p;it.pct=p;render()}});
-        if(r.blob.size<it.size*.98){it.out=r.blob;it.status="done"}
+        if(r.blob.size<it.size*.98){it.out=r.blob;it.status="done";await keepDone(it)}
         else{it.status="same";it.note=r.images?"noGain":"noImages"}
       }catch(e){
         it.status="err";
@@ -1503,6 +1504,7 @@ async function videoLoop(){
         it.out=blob;it.status="done";
         var nn=vidExt(it.name);if(nn!==it.name){it.rel=it.rel.slice(0,it.rel.length-it.name.length)+nn;it.name=nn;it.handle=null}
         if($("saveNow").checked){render();await keepNow(it)}
+        if(it.status==="done")await keepDone(it);
       }else{it.status="same";it.note="noGainV";await dropTmp(it)}
     }catch(e){it.status="err";it.note="unreadable";await dropTmp(it)}
     render();
@@ -1636,7 +1638,7 @@ async function okToReplace(hits){
 }
 
 /* salvataggio riuscito: l'app torna come appena aperta, con l'elenco vuoto, e resta solo il messaggio di conferma */
-function finish(msg){if(jobId)jobDrop(jobId);reset();tmpClean(90000);render();say(msg);music.festa();bgNotify(msg)}
+function finish(msg){if(jobId)jobDrop(jobId,true);reset();tmpClean(90000);render();say(msg);music.festa();bgNotify(msg)}
 
 /* un solo file: salva con nome */
 $("saveAs").addEventListener("click",async function(){
@@ -2768,7 +2770,7 @@ async function setAction(a,sure){
     lv=await ask({title:t("leaveTitle"),text:t(sq?"leaveBodyP":"leaveBody"),buttons:(sq?[{label:t("pauseChange"),cls:"ok",value:"pause"}]:[]).concat([{label:t("leaveYes"),cls:"danger",value:1}])});
     if(!lv)return;
   }
-  if(act==="squash"){if(lv==="pause")await pauseJob();else if(lose)await stopWork();if(items.length){reset();tmpClean()}}
+  if(act==="squash"){if(lv==="pause")await pauseJob();else if(lose){await stopWork();if(jobId)jobDrop(jobId)}if(items.length){reset();tmpClean()}}
   else capClear();
   act=a;document.body.classList.toggle("act-cap",a==="capture");
   say("");applyLang();turnVerb();
@@ -3160,7 +3162,8 @@ function bgEnd(){
 /* avanzamento nel riquadro del lettore (R-APP-07) */
 function bgUpdate(text,now){
   if(!bgN||!bgOn()||!text||!navigator.mediaSession||!window.MediaMetadata)return;
-  var tm=Date.now();if(!now&&tm-bgLast<800)return;bgLast=tm;
+  /* al massimo ogni 20 s: su alcuni telefoni ogni aggiornamento del riquadro del lettore fa vibrare */
+  var tm=Date.now();if(!now&&tm-bgLast<20000)return;bgLast=tm;
   try{navigator.mediaSession.metadata=new MediaMetadata({title:text,artist:t("title"),artwork:[{src:"icons/icon-192.png",sizes:"192x192",type:"image/png"},{src:"icons/icon-512.png",sizes:"512x512",type:"image/png"}]})}catch(e){}
   bgProgNote(text);
 }
@@ -3309,9 +3312,11 @@ function applySettings(o){
   if("exif" in o)$("keepExif").checked=!!o.exif;
 }
 async function jobsDir(create){var r=await navigator.storage.getDirectory();return r.getDirectoryHandle("schiaccia-jobs",{create:!!create})}
-async function jobDrop(id){
+/* later: i file si cancellano dopo un po', perché uno scaricamento appena partito potrebbe ancora leggerli */
+async function jobDrop(id,later){
   try{await idbDo(true,function(st){return st.delete(id)},"jobs")}catch(e){}
-  try{await (await jobsDir()).removeEntry(id,{recursive:true})}catch(e){}
+  var rm=async function(){try{await (await jobsDir()).removeEntry(id,{recursive:true})}catch(e){}};
+  if(later)setTimeout(rm,90000);else await rm();
 }
 async function jobsAll(){try{return ((await idbDo(false,function(st){return st.getAll()},"jobs"))||[]).filter(function(r){return (r.v||"1")===JOBV})}catch(e){return []}}
 /* ---------- pulizia dei dati che questa versione non sa più usare (R-APP-15) ---------- */
@@ -3360,32 +3365,49 @@ async function tidyDialog(){
 /* un file schiacciato e non salvato va nella cartella privata del lavoro: spostato se è già su disco, copiato se è in memoria */
 async function jobKeep(dir,it){
   var nm="o"+it.id+"-"+Date.now();
-  if(it.tmpName){try{var h=await (await tmpDir()).getFileHandle(it.tmpName);if(h.move){await h.move(dir,nm);it.tmpName=null;return nm}}catch(e){}}
+  if(it.tmpName){try{var h=await (await tmpDir()).getFileHandle(it.tmpName);if(h.move){await h.move(dir,nm);it.tmpName=null;it.out=await h.getFile();return nm}}catch(e){}}
   var fh=await dir.getFileHandle(nm,{create:true}),w=await fh.createWritable();
   try{await w.write(it.out);await w.close()}catch(e){try{await w.abort()}catch(x){}throw e}
   return nm;
 }
-/* «Metti in pausa» (R-APP-12): ferma, mette da parte elenco, opzioni, cartella e file pronti, poi svuota */
+/* record del lavoro: stato di ogni file, opzioni, cartella; i file pronti stanno già nella cartella privata del lavoro */
+function jobRec(paused){
+  var list=items.filter(function(x){return !x.scan}),files=list.map(function(it){
+    var st=it.status==="work"||it.status==="probe"?"wait":it.status;
+    var f={rel:it.rel0||it.rel,size:it.size,lm:it.file?it.file.lastModified:0,kind:it.kind,status:st,note:it.note||"",outSize:it.outSize||0,an:!!it.vp};
+    if(st==="done"){if(it.jobOut&&it.out){f.relOut=it.rel;f.out=it.jobOut;f.outSize=it.out.size}else f.status="wait"}
+    return f;
+  });
+  return {id:jobId,v:JOBV,t:Date.now(),paused:!!paused,mode:mode,name:rootDir?rootDir.name:(srcName||(list[0]&&list[0].name)||""),root:rootDir||null,set:readSettings(),files:files,save:progSaving()};
+}
+async function jobPut(rec){
+  try{await idbDo(true,function(st){return st.put(rec,rec.id)},"jobs")}
+  catch(e){try{rec.root=null;await idbDo(true,function(st){return st.put(rec,rec.id)},"jobs")}catch(x){}}
+}
+/* salvataggio automatico (R-APP-12): appena il lavoro è partito, ogni pochi secondi e quando l'app va in secondo piano,
+   così un'interruzione (app chiusa, telefono che la uccide) si ritrova all'avvio come un lavoro in pausa */
+var jobT=0;
+function jobStarted(){return !!jobId&&act!=="capture"&&items.some(function(x){return !x.scan&&(x.status!=="wait"||x.vp)})}
+function jobSaveSoon(){if(jobT||!jobStarted())return;jobT=setTimeout(function(){jobT=0;if(jobStarted())jobPut(jobRec(false))},4000)}
+function jobSaveNow(){clearTimeout(jobT);jobT=0;if(jobStarted())jobPut(jobRec(false))}
+document.addEventListener("visibilitychange",function(){if(document.hidden)jobSaveNow()});
+window.addEventListener("pagehide",jobSaveNow);
+/* un file appena pronto va subito nella cartella privata del lavoro (spostato se è già su disco) */
+async function keepDone(it){
+  if(!jobId||!it.out||it.jobOut)return;
+  try{
+    var dir=await (await jobsDir(true)).getDirectoryHandle(jobId,{create:true}),nm=await jobKeep(dir,it);
+    it.jobOut=nm;
+  }catch(e){}
+}
+/* «Metti in pausa» (R-APP-12): ferma, salva il lavoro, svuota */
 async function pauseJob(){
   var list=items.filter(function(x){return !x.scan});if(!list.length)return;
   await stopWork();
-  var id=jobId||("j"+Date.now()),dir=null,files=[],save=progSaving();
-  try{dir=await (await jobsDir(true)).getDirectoryHandle(id,{create:true})}catch(e){}
-  for(var i=0;i<list.length;i++){
-    var it=list[i],st=it.status==="work"||it.status==="probe"?"wait":it.status;
-    var f={rel:it.rel0||it.rel,size:it.size,lm:it.file?it.file.lastModified:0,kind:it.kind,status:st,note:it.note||"",outSize:it.outSize||0,an:!!it.vp};
-    if(st==="done"){
-      f.relOut=it.rel;
-      if(it.jobOut&&it.out){f.out=it.jobOut;f.outSize=it.out.size}
-      else if(dir&&it.out){try{f.out=await jobKeep(dir,it);f.outSize=it.out.size}catch(e){f.status="wait"}}
-      else f.status="wait";
-    }
-    files.push(f);
-  }
-  var rec={id:id,v:JOBV,t:Date.now(),mode:mode,name:rootDir?rootDir.name:(srcName||list[0].name),root:rootDir||null,set:readSettings(),files:files,save:save};
-  try{await idbDo(true,function(st){return st.put(rec,id)},"jobs")}
-  catch(e){try{rec.root=null;await idbDo(true,function(st){return st.put(rec,id)},"jobs")}catch(x){}}
-  reset();tmpClean();render();say(t("pausedMsg"));
+  if(!jobId)jobId="j"+Date.now();
+  for(var i=0;i<list.length;i++)if(list[i].status==="done")await keepDone(list[i]);
+  await jobPut(jobRec(true));
+  jobId=null;reset();tmpClean();render();say(t("pausedMsg"));
 }
 /* «Riprendi» (R-APP-13): modalità e opzioni, poi la cartella (permesso se ricordata, altrimenti da riscegliere) */
 async function resumeJob(rec){
@@ -3440,6 +3462,7 @@ async function jobsDialog(){
     var ttl=el("b"),ty=el("span","ty ty-"+(r.mode==="all"?"all":r.mode==="video"?"video":r.mode),r.mode==="all"?t("aFace"):KL[r.mode]);ty.translate=false;
     ttl.appendChild(ty);ttl.appendChild(document.createTextNode(r.name));
     var bits=[t("jobDone",{i:nf(dn),n:nf(n)})];
+    if(!r.paused)bits.unshift(t("jobAuto"));
     if(vn&&an<vn)bits.push(t("jobProbe",{i:nf(an),n:nf(vn)}));
     if(r.save>=1048576)bits.push("≈ −"+fmt(r.save));
     try{bits.push(new Date(r.t).toLocaleString(lang,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))}catch(e){}

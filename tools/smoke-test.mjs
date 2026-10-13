@@ -451,11 +451,11 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     const input = document.getElementById("pickFiles"); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true }));
   });
   await page.waitForFunction(() => !document.getElementById("go").disabled, null, { timeout: 240000 });
-  check(/si perde/.test(await page.innerText("#rows")), "Video grandi: la scheda avvisa che senza salvare il risultato si perde");
+  check(/da parte/.test(await page.innerText("#rows")), "Video grandi: la scheda dice che il risultato resta da parte finché non lo salvi");
   await page.click("#go");
   await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && !document.getElementById("total").hidden, null, { timeout: 240000 });
-  const tmp = await page.evaluate(async () => { const d = await (await navigator.storage.getDirectory()).getDirectoryHandle("schiaccia-tmp"); const n = []; for await (const k of d.keys()) n.push(k); return n.length; });
-  check(tmp === 2, `Video grandi: risultati scritti su disco nella cartella privata (${tmp} file)`);
+  const tmp = await page.evaluate(async () => { const r = await navigator.storage.getDirectory(); let n = 0; for (const name of ["schiaccia-tmp", "schiaccia-jobs"]) { try { const walk = async (d) => { for await (const e of d.values()) { if (e.kind === "file") n++; else await walk(e); } }; await walk(await r.getDirectoryHandle(name)); } catch {} } return n; });
+  check(tmp === 2, `Video grandi: risultati scritti su disco nella cartella privata, poi passati al lavoro salvato in automatico (${tmp} file)`);
   check(/uno alla volta/.test(await page.innerText("#saveElse")), `Video grandi: niente ZIP, «${await page.innerText("#saveElse")}»`);
   const names = [], dls = [];
   page.on("download", (d) => { names.push(d.suggestedFilename()); dls.push(d); });
