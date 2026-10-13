@@ -131,6 +131,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-APP-06 La prima volta che parte un lavoro lungo l'app chiede se continuare in secondo piano e avvisare a lavoro finito («Sì» chiede anche il permesso per le notifiche); la risposta è ricordata. Su iPhone, dove il lavoro si ferma comunque fuori dall'app, compare solo l'avviso «resta nell'app finché non ho finito».
 - R-APP-07 Mentre lavora in secondo piano, nella tendina delle notifiche compare il riquadro del lettore con l'avanzamento («Schiaccio 7 di 12 · 58%») e un pulsante per fermare.
 - R-APP-08 A lavoro finito, se l'app è in secondo piano e il permesso c'è, arriva una notifica con l'esito; toccandola si torna all'app.
+- R-APP-09 Prestazioni: a parità di risultato, l'app usa al meglio il telefono. Video: l'analisi cerca per bisezione solo la soglia del livello scelto e codifica gli spezzoni di prova in parallelo; cambiando livello completa la curva solo se serve. PDF e JPG: le immagini si ricomprimono in parallelo in più worker (quanti ne reggono processori e memoria), con ritorno al lavoro in pagina dove i worker non possono disegnare. Scansione: raddrizzamento e pulizia sulla scheda grafica (WebGL), con ritorno al calcolo attuale se WebGL manca o fallisce. I tempi si misurano con `tools/bench.mjs` prima e dopo ogni cambiamento.
 
 ## REL · Rilascio
 - R-REL-01 Pubblicazione automatica su GitHub Pages a ogni push su `main`.
