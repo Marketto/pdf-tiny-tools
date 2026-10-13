@@ -84,6 +84,11 @@ Sezioni `bordi` e `orientamento` in `index.html`, dopo `detectPage`.
 - `capBuild`: `refineQuad` → `pageCanvas` (warp + stile) → `autoOrient` (in cache in `p.auto`; si rifà solo dopo «Bordi») → `turnCanvas` (quarti di giro automatici + «Ruota» + inclinazione, angoli scoperti bianchi, una sola ricampionatura) → JPEG.
 - Misure (prove con foto finte di un foglio in prospettiva su un tavolo scuro): orientamento giusto in 52 casi su 52 su pagine pulite (13 lingue × 4 rotazioni) e in 8 su 8 su foto, compresi capovolti e coricati; circa 1,2 s a pagina al computer. Calamita entro 5 px su 1500; un angolo lasciato a 150 px nello sfondo viene riportato a 6 px dal vero.
 
+## PDF ricercabile e caricamento pigro (SCN-25, APP-04)
+- `loadScript(src)` aggiunge uno script una volta sola. JSZip non è più nella pagina: `zipLib()` lo carica al primo ZIP. `sw.js` tiene in `CORE` solo pagina, testi, pdf-lib e icone; Mediabunny, JSZip e Tesseract entrano in cache al primo uso («cache prima» per `vendor/`).
+- `autoOrient` conserva anche `script` (da `worker.detect()`). `ocrLangFor(script)` sceglie la lingua (vedi SCN-25). I dati stanno in `vendor/tesseract/lang/<lingua>.traineddata.gz` (`@tesseract.js-data/*`, modelli `4.0.0_best_int`).
+- `capSave` in PDF, con la casella `#ocrText` accesa: un secondo worker LSTM (`ocrRecWorker(lingua)`, `reinitialize` se la lingua cambia) riconosce ogni pagina con `{pdfTextOnly:true}` e uscita `{pdf:true}`; la pagina di solo testo, con il carattere invisibile `GlyphLessFont` di Tesseract (codifica Unicode, vale per ogni alfabeto), si incolla sopra l'immagine con `embedPdf` + `drawPage` alla stessa misura: nelle prove le parole cadono entro mezzo punto da quelle dell'immagine. Errori: la pagina resta senza testo. La casella è `ocrBox()` (in A nel pannello Salva, in B sotto la griglia, solo in PDF), memorizzata in `localStorage.ocrText`. Circa 1 s a pagina al computer.
+
 ## Scansione (SCN)
 1. «Scatta» in Cattura apre `<input id="camInput" capture="environment">`: fotocamera di sistema, nessun permesso.
 2. `workFrom` riduce la foto a 3000 px (`work`).

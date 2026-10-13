@@ -186,7 +186,8 @@ h1 .f-pdf2{transform:rotateX(-270deg) translateZ(.5em);color:#ffb3c7}
 body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .capture{display:flex;flex-direction:column;gap:22px}
 .capMsg{margin:0;font-weight:700;text-align:center}.capMsg:empty{display:none}
-.i-squash{display:none}.act-cap .i-squash{display:block}.act-cap .i-cam{display:none}
+/* .snd svg li mostra tutti: qui serve più specificità */
+#camBtn .i-squash{display:none}.act-cap #camBtn .i-squash{display:block}.act-cap #camBtn .i-cam{display:none}
 #scanStyle{display:none}
 /* rullo del verbo: Schiaccia ⇄ Cattura */
 #actBtn .face{color:var(--paper)}
@@ -445,7 +446,6 @@ details p{margin:8px 0 0;max-width:65ch}
 
 <script src="i18n.js"></script>
 <script src="vendor/pdf-lib.min.js"></script>
-<script src="vendor/jszip.min.js"></script>
 <script>
 (function(){
 "use strict";
@@ -456,6 +456,14 @@ var mode="pdf",MODES=["pdf","jpg","video"],rollAngle=0;
 /* cosa si fa: "squash" (Schiaccia) o "capture" (Cattura, solo PDF e JPG). Si cambia dal verbo del titolo. */
 var act="squash";
 var $=function(id){return document.getElementById(id)};
+/* caricamento pigro (R-APP-04): uno script si aggiunge alla pagina solo la prima volta che serve */
+var scriptP={};
+function loadScript(src){
+  return scriptP[src]||(scriptP[src]=new Promise(function(res,rej){
+    var sc=document.createElement("script");sc.src=src;sc.onload=res;sc.onerror=function(){scriptP[src]=null;rej(new Error(src))};document.head.appendChild(sc);
+  }));
+}
+async function zipLib(){if(!window.JSZip)try{await loadScript("vendor/jszip.min.js")}catch(e){}return window.JSZip||null}
 var rowsEl=$("rows"),msgEl=$("msg"),goBtn=$("go"),press=$("press");
 
 /* ---------- lingue ---------- */
@@ -1325,9 +1333,10 @@ $("saveElse").addEventListener("click",async function(){
     finish(t("savedEach",{n:nf(list.length)}));return;
   }
   if(!canDir){
-    if(!window.JSZip){say(t("zipMissing"),true);return}
+    var JZ=await zipLib();
+    if(!JZ){say(t("zipMissing"),true);return}
     say(t("zipPrep"));
-    var zip=new JSZip();
+    var zip=new JZ();
     list.forEach(function(j){zip.file(j.rel,j.blob)});
     var blob=await zip.generateAsync({type:"blob",compression:"STORE"});
     if(await saveBlob(t("zipName"),blob))finish(t("savedZip",{name:savedAs,n:nf(list.length)}));
@@ -1754,8 +1763,7 @@ function ocrWorker(){
       window.Tesseract.createWorker("osd",0,{workerPath:base+"worker.min.js",corePath:base+"tesseract-core-simd.wasm.js",langPath:base.replace(/\/$/,""),
         legacyCore:true,legacyLang:true,cacheMethod:"none",workerBlobURL:false}).then(res,rej);
     }
-    if(window.Tesseract)return go();
-    var sc=document.createElement("script");sc.src="vendor/tesseract/tesseract.min.js";sc.onload=go;sc.onerror=rej;document.head.appendChild(sc);
+    loadScript("vendor/tesseract/tesseract.min.js").then(go,rej);
   }).catch(function(e){ocrBad=true;ocrP=null;throw e});
   return ocrP;
 }
@@ -1795,17 +1803,41 @@ function findSkew(cv){
 }
 /* orientamento del testo (quarti di giro, solo se Tesseract è sicuro) e inclinazione da correggere */
 async function autoOrient(cv){
-  var deg=0;
+  var deg=0,script=null;
   if(!ocrBad){
     try{
       var w=await ocrWorker(),small=scaledGray(cv,1600),r=(await w.detect(small)).data;small.width=small.height=0;
       if(r&&r.orientation_degrees!=null&&r.orientation_confidence>=2)deg=r.orientation_degrees;
+      if(r&&r.script_confidence>=1)script=r.script;
     }catch(e){}
   }
   var turned=turnCanvas(cv,deg,0),skew=-findSkew(turned);
   if(turned!==cv)turned.width=turned.height=0;
-  return {deg:deg,skew:skew};
+  return {deg:deg,skew:skew,script:script};
 }
+/* ---------- PDF ricercabile (R-SCN-25): lingua dal sistema di scrittura, dati scaricati solo quando servono ---------- */
+var LATIN={it:"ita",en:"eng",es:"spa",fr:"fra",pt:"por",de:"deu",id:"ind"};
+function ocrLangFor(script){
+  if(!script)return LATIN[lang]||"eng";
+  if(script==="Latin")return LATIN[lang]||"eng";
+  return {Cyrillic:"rus",Arabic:lang==="ur"?"urd":"ara",Devanagari:"hin",Bengali:"ben",Han:"chi_sim",HanS:"chi_sim"}[script]||null;
+}
+var recP=null,recLang="",recSeen={};
+async function ocrRecWorker(code,onNew){
+  var base=new URL("vendor/tesseract/",location.href).href;
+  if(!recSeen[code]&&onNew)onNew();
+  if(!recP){
+    await loadScript("vendor/tesseract/tesseract.min.js");
+    recP=window.Tesseract.createWorker(code,1,{workerPath:base+"worker.min.js",corePath:base+"tesseract-core-simd.wasm.js",langPath:base+"lang",cacheMethod:"none",workerBlobURL:false});
+    recLang=code;
+    recP.catch(function(){recP=null});
+  }
+  var w=await recP;
+  if(recLang!==code){await w.reinitialize(code,1);recLang=code}
+  recSeen[code]=1;
+  return w;
+}
+function ocrOn(){try{return localStorage.getItem("ocrText")!=="0"}catch(e){return true}}
 
 function percentile(hist,total,p){var acc=0,lim=total*p;for(var i=0;i<256;i++){acc+=hist[i];if(acc>=lim)return i}return 255}
 /* pulizia: «doc» stima la luce sul foglio e la toglie (fondo bianco uniforme), poi tende il contrasto;
@@ -2121,6 +2153,12 @@ function styleSeg(cur,withSame,fn,small){
 function panel(tag){var s=el("section","panel");s.appendChild(el("div","tag",tag));return s}
 function capInfo(){var tot=0;cap.pages.forEach(function(p){tot+=p.blob.size});return t("capInfo",{n:nf(cap.pages.length),size:fmt(tot)})}
 function saveLabel(){return t(mode==="pdf"?"capSavePdf":"capSaveJpg")}
+/* casella del PDF ricercabile, accesa all'inizio e ricordata */
+function ocrBox(){
+  var l=el("label","check"),c=document.createElement("input");c.type="checkbox";c.id="ocrText";c.checked=ocrOn();
+  c.addEventListener("change",function(){try{localStorage.setItem("ocrText",c.checked?"1":"0")}catch(e){}});
+  l.appendChild(c);l.appendChild(el("span",null,t("ocrText")));return l;
+}
 function shortStyle(s){for(var i=0;i<STYLES.length;i++)if(STYLES[i][0]===s)return t(STYLES[i][1]);return ""}
 function capRender(){
   var box=$("capture");if(!box)return;
@@ -2157,6 +2195,7 @@ function capRender(){
     add.addEventListener("click",function(){shoot()});grid.appendChild(add);
     pn.appendChild(grid);
     if(n)pn.appendChild(el("p","lab",capInfo()));
+    if(mode==="pdf")pn.appendChild(ocrBox());
     box.appendChild(pn);
     var dock=el("div","dock");
     dock.appendChild(ibtn("go",ICON.cam,t("shootShort"),function(){shoot()}));
@@ -2202,6 +2241,7 @@ function capRender(){
   box.appendChild(p2);
   var p3=panel(t("capS3"));
   if(n)p3.appendChild(el("p","lab",capInfo()));
+  if(mode==="pdf")p3.appendChild(ocrBox());
   var bt=el("div","btns"),sv2=ibtn("ok","",saveLabel(),capSave);sv2.disabled=!n;bt.appendChild(sv2);p3.appendChild(bt);
   box.appendChild(p3);
 }
@@ -2214,10 +2254,20 @@ async function capSave(){
     loaderOn("scan",t("buildPdf"));
     var blob=null;
     try{
-      var doc=await L.PDFDocument.create();
+      var doc=await L.PDFDocument.create(),withText=ocrOn();
       for(var i=0;i<pages.length;i++){
-        var img=await doc.embedJpg(new Uint8Array(await pages[i].blob.arrayBuffer())),k=842/Math.max(img.width,img.height);
-        doc.addPage([img.width*k,img.height*k]).drawImage(img,{x:0,y:0,width:img.width*k,height:img.height*k});
+        var img=await doc.embedJpg(new Uint8Array(await pages[i].blob.arrayBuffer())),k=842/Math.max(img.width,img.height),pw=img.width*k,ph=img.height*k;
+        var pg=doc.addPage([pw,ph]);pg.drawImage(img,{x:0,y:0,width:pw,height:ph});
+        var code=withText?ocrLangFor(pages[i].auto&&pages[i].auto.script):null;
+        if(!code)continue;
+        /* testo invisibile sopra l'immagine: la pagina «solo testo» di Tesseract, alla stessa misura */
+        try{
+          $("loaderTitle").textContent=t("ocrRead",{i:nf(i+1),n:nf(pages.length)});
+          var w=await ocrRecWorker(code,function(){$("loaderN").textContent=t("ocrLang")});
+          $("loaderN").textContent="";
+          var r=await w.recognize(pages[i].blob,{pdfTextOnly:true},{pdf:true,text:false,blocks:false});
+          if(r&&r.data&&r.data.pdf){var emb=(await doc.embedPdf(new Uint8Array(r.data.pdf),[0]))[0];pg.drawPage(emb,{x:0,y:0,width:pw,height:ph})}
+        }catch(e){$("loaderN").textContent=""}
       }
       blob=new Blob([await doc.save({useObjectStreams:true})],{type:"application/pdf"});
     }catch(e){}
@@ -2237,8 +2287,9 @@ async function capSave(){
     }catch(e){say(t("failed"),true);return}
     capDone(t("savedTo",{dir:dest.name,n:nf(pages.length)}));return;
   }
-  if(!window.JSZip){say(t("zipMissing"),true);return}
-  var zip=new JSZip();pages.forEach(function(p,k){zip.file(names[k],p.blob)});
+  var JZ=await zipLib();
+  if(!JZ){say(t("zipMissing"),true);return}
+  var zip=new JZ();pages.forEach(function(p,k){zip.file(names[k],p.blob)});
   var z=await zip.generateAsync({type:"blob",compression:"STORE"});
   if(await saveBlob(base+".zip",z))capDone(t("savedZip",{name:savedAs,n:nf(pages.length)}));
 }

@@ -239,7 +239,10 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     return [...new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/jpeg", .9))).arrayBuffer())];
   }));
   const shot = async (trigger) => { const [fc] = await Promise.all([page.waitForEvent("filechooser"), trigger()]); await fc.setFiles({ name: "foto.jpg", mimeType: "image/jpeg", buffer: photo }); };
+  const icons = () => page.evaluate(() => [...document.querySelectorAll("#camBtn svg")].filter((x) => getComputedStyle(x).display !== "none").map((x) => x.getAttribute("class")).join(","));
+  check(await icons() === "i-cam", `Cattura: in Schiaccia il pulsante mostra solo la fotocamera (${await icons()})`);
   await page.click("#camBtn");
+  check(await icons() === "i-squash", `Cattura: in Cattura mostra solo l'icona della compressione (${await icons()})`);
   check(await page.evaluate(() => document.body.classList.contains("act-cap") && getComputedStyle(document.getElementById("go")).display === "none" && !!document.querySelector("#capture .capBig")), "Cattura: la fotocamera apre la schermata Cattura (passi 1-2-3 al telefono)");
   check(/Cattura/.test(await page.innerText("#title")), `Cattura: il verbo del titolo cambia (${(await page.innerText("#title")).replace(/\s+/g, " ")})`);
   await shot(() => page.click("#capture .capBig .btn.go"));
@@ -288,12 +291,18 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
 }
 // --- Cattura: orientamento (Tesseract), raddrizzamento del testo, calamita e controllo dei bordi (R-SCN-20…24)
 {
-  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 500, height: 900 } });
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 500, height: 900 }, acceptDownloads: true });
   const page = await ctx.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(() => { for (const k of ["showOpenFilePicker", "showSaveFilePicker", "showDirectoryPicker"]) Object.defineProperty(window, k, { value: undefined }); });
   await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  const reqs = [];
+  ctx.on("request", (r) => reqs.push(r.url()));
   await page.goto(url);
+  await page.waitForTimeout(500);
+  const heavy = await page.evaluate(() => performance.getEntriesByType("resource").map((e) => e.name).filter((n) => /jszip|mediabunny|tesseract/.test(n)).concat(window.JSZip ? ["JSZip"] : []));
+  check(heavy.length === 0, `Caricamento pigro: all'avvio niente JSZip, Mediabunny né Tesseract${heavy.length ? " → " + heavy.join(", ") : ""}`);
   // foto: foglio con il testo capovolto e stampato storto di 3°, in prospettiva su un tavolo scuro
   const photo = Buffer.from(await page.evaluate(async () => {
     const d = I18N.it, PW = 840, PH = 1188, pg = document.createElement("canvas"); pg.width = PW; pg.height = PH; const g = pg.getContext("2d");
@@ -337,6 +346,19 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   });
   check(out.dark < 10, `Bordi: angolo lasciato nello sfondo corretto dal controllo (sfondo nel bordo della pagina: ${out.dark.toFixed(1)}%)`);
   check(out.deg === 0 && out.conf > 2, `Orientamento: foglio capovolto girato dritto (residuo ${out.deg}°, fiducia ${out.conf && out.conf.toFixed(1)})`);
+  check(!reqs.some((u) => /lang\/\w+\.traineddata/.test(u)), "Caricamento pigro: prima del salvataggio nessun dato di lingua scaricato");
+  check(await page.locator("#ocrText").isChecked(), "PDF ricercabile: casella accesa all'inizio");
+  const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 120000 }), page.click("#capture .btn.ok")]);
+  const { readFile: readP } = await import("node:fs/promises");
+  const pdfB = await readP(await dl.path());
+  const font = await page.evaluate(async (b) => {
+    const P = PDFLib, doc = await P.PDFDocument.load(new Uint8Array(b)), res = doc.getPage(0).node.Resources(), xo = res.lookup(P.PDFName.of("XObject")), names = [];
+    for (const [, ref] of xo.entries()) { const st = doc.context.lookup(ref), r2 = st.dict.lookup(P.PDFName.of("Resources")), f = r2 && r2.lookup(P.PDFName.of("Font")); if (f) for (const [, fr] of f.entries()) names.push(String(doc.context.lookup(fr).lookup(P.PDFName.of("BaseFont")))); }
+    return names.join(",");
+  }, [...pdfB]);
+  check(/GlyphLess/.test(font), `PDF ricercabile: livello di testo invisibile sopra la pagina (carattere ${font || "assente"})`);
+  const langs = reqs.filter((u) => /lang\/\w+\.traineddata/.test(u)).map((u) => u.split("/").pop());
+  check(langs.length === 1 && /^ita\./.test(langs[0]), `Caricamento pigro: al salvataggio scaricata solo la lingua che serve (${langs.join(", ")})`);
   check(errors.length === 0, `Orientamento e bordi: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }

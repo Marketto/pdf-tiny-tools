@@ -81,6 +81,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-SCN-22 Tesseract (circa 9 MB) si scarica solo la prima volta che serve, con un messaggio che lo dice, e poi resta disponibile anche senza rete. Se non si può scaricare, le pagine si fanno lo stesso, senza orientamento automatico.
 - R-SCN-23 Calamita dei bordi: nell'editor, quando si lascia un angolo vicino al bordo vero del foglio, l'angolo si aggancia al punto in cui si incontrano i due bordi; le maniglie dei lati lo seguono.
 - R-SCN-24 Controllo dopo il raddrizzamento: se nella pagina raddrizzata un bordo del foglio resta visibile storto o curvo (si vede lo sfondo), angoli e maniglie dei lati vengono corretti da soli e la pagina si rifà una volta.
+- R-SCN-25 PDF ricercabile: il PDF salvato da Cattura ha, sopra ogni pagina, il testo riconosciuto (invisibile, ma selezionabile e ricercabile). Lingua dal sistema di scrittura riconosciuto (R-SCN-20) e dalla lingua dell'app: per l'alfabeto latino la lingua dell'app se è latina, altrimenti inglese; cirillico → russo; arabo → urdu se l'app è in urdu, altrimenti arabo; devanagari → hindi; bengalese → bengalese; cinese → cinese semplificato. Altri sistemi: niente testo. Si può spegnere con una casella accanto a «Salva il PDF», accesa all'inizio e ricordata. Se il riconoscimento non riesce, il PDF si salva lo stesso, senza testo.
 
 ## LST · Elenco
 - R-LST-01 Ogni scheda: nome, dimensioni prima e dopo, percentuale, stato.
@@ -122,6 +123,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-APP-01 Installabile su Android e iPhone, con pulsante «Installa»; su iPhone mostra i passaggi.
 - R-APP-02 Pulsante di condivisione di sistema; dove manca, copia il link.
 - R-APP-03 Dopo una pubblicazione la versione nuova si vede al primo aggiornamento; senza rete funziona l'ultima scaricata.
+- R-APP-04 Caricamento pigro: le parti pesanti si scaricano solo quando servono e poi restano nella cache offline. Mediabunny alla prima volta in modalità video; Tesseract e il modello di orientamento alla prima pagina di Cattura; i dati di una lingua (0,7–3 MB) al primo PDF ricercabile in quella lingua; JSZip al primo ZIP.
 
 ## REL · Rilascio
 - R-REL-01 Pubblicazione automatica su GitHub Pages a ogni push su `main`.

@@ -1,7 +1,7 @@
 // Cache offline. Il nome qui sotto viene cambiato a ogni pubblicazione da .github/workflows/pages.yml:
 // non modificarlo a mano.
 const CACHE="schiaccia-pdf-v3";
-const CORE=["./","index.html","manifest.webmanifest","i18n.js","vendor/pdf-lib.min.js","vendor/jszip.min.js","vendor/mediabunny.min.mjs","icons/icon.svg","icons/icon-192.png","icons/icon-512.png","icons/apple-touch-icon.png"];
+const CORE=["./","index.html","manifest.webmanifest","i18n.js","vendor/pdf-lib.min.js","icons/icon.svg","icons/icon-192.png","icons/icon-512.png","icons/apple-touch-icon.png"];
 
 // All'installazione i file si scaricano saltando la cache del browser: altrimenti, subito dopo
 // una pubblicazione, nella cache nuova finirebbe la pagina vecchia.
@@ -16,7 +16,8 @@ self.addEventListener("activate",e=>{
     .then(()=>self.clients.claim()));
 });
 
-// Librerie, icone e font cambiano di rado: prima la cache.
+// Librerie, icone e font cambiano di rado: prima la cache. JSZip, Mediabunny e Tesseract (con i dati delle lingue)
+// non sono in CORE: entrano in cache la prima volta che servono (R-APP-04).
 async function cacheFirst(c,r,own){
   const hit=await c.match(r,{ignoreSearch:own});
   if(hit)return hit;
