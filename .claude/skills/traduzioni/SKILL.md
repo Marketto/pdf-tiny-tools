@@ -43,4 +43,4 @@ L'app ha quattro modalità, PDF, JPG, video e TUTTO, ma un solo testo per ogni c
 
 ## Prima di chiudere
 
-Dichiara sempre quali lingue non sono state riviste da un madrelingua: è un limite reale e chi pubblica deve saperlo.
+Esegui `node tools/check-i18n.mjs`. Non segnalare al proprietario che le traduzioni non sono state riviste da un madrelingua e non proporgli revisioni: lo sa già e ha chiesto di non ripeterlo.
