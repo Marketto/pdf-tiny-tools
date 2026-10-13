@@ -54,7 +54,7 @@ h1 span{color:var(--acc)}
    L'angolo e la larghezza li imposta setMode(); la larghezza segue la faccia visibile. */
 .roll{font:inherit;color:inherit;background:none;border:0;padding:0 .03em;margin:0;cursor:pointer;display:inline-flex;align-items:center;gap:.1em;
   letter-spacing:inherit;-webkit-text-stroke:inherit;paint-order:inherit;text-shadow:inherit;perspective:500px;border-radius:10px;-webkit-tap-highlight-color:transparent}
-.drum{display:inline-grid;justify-items:center;transform-style:preserve-3d;transform:translateZ(-.5em) rotateX(0deg);transition:transform .55s cubic-bezier(.3,1.6,.5,1),width .45s ease}
+.drum{display:inline-grid;grid-template-columns:minmax(0,1fr);justify-items:center;transform-style:preserve-3d;transform:translateZ(-.5em) rotateX(0deg);transition:transform .55s cubic-bezier(.3,1.6,.5,1),width .45s ease}
 .drum.snap{transition:none}
 .face{grid-area:1/1;text-align:center;white-space:nowrap;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .f-pdf{transform:rotateX(0deg) translateZ(.5em);color:#ffb3c7}
@@ -73,10 +73,12 @@ h1 .f-pdf2{transform:rotateX(-270deg) translateZ(.5em);color:#ffb3c7}
 .mode-video{--acc-l:#ece3ff;--acc:#d6c2ff;--acc-s:#7b5cff}
 .mode-video .m-skin{fill:#d6c2ff}
 .mode-video #camBtn{display:none}
-/* «VIDEO» è più lungo: il titolo si stringe un po' per restare su una riga */
-.mode-video h1{font-size:clamp(36px,9.2vw,76px)}
 .m-skin{transition:fill .4s}
-.titleRow{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+/* titolo, rullo e versione su una riga; fitTitle() rimpicciolisce il titolo se non ci stanno (R-UI-04/06) */
+.titleRow{display:flex;align-items:flex-end;gap:12px;flex-wrap:nowrap;min-width:0}
+.titleRow h1{white-space:nowrap;min-width:0}
+.titleRow h1.wrap{white-space:normal}
+.titleRow .ver{flex:none}
 .ver{font-family:var(--body);font-weight:700;font-size:14px;line-height:1;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:4px 9px;margin-bottom:6px;transform:rotate(-4deg);box-shadow:2px 2px 0 var(--ink);font-variant-numeric:tabular-nums}
 .sub{margin:14px 0 0;font-weight:700;max-width:34ch}
 
@@ -459,7 +461,7 @@ function showTitle(){
     b.innerHTML='<span class="drum"><span class="face f-pdf">PDF</span><span class="face f-jpg">JPG</span><span class="face f-vid">VIDEO</span><span class="face f-pdf2" aria-hidden="true">PDF</span></span><svg class="rollArrows" viewBox="0 0 12 26" aria-hidden="true"><path d="M2 9l4-6 4 6M2 17l4 6 4-6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     b.addEventListener("click",function(){setMode(MODES[(MODES.indexOf(mode)+1)%MODES.length])});
     sp.replaceWith(b);
-    turnDrum(true);
+    turnDrum(true);fitTitle();
   }
   b.setAttribute("aria-label",t("modeLbl",{kind:mode.toUpperCase()}));
 }
@@ -477,8 +479,37 @@ function turnDrum(now){
   if(rollAngle===270)setTimeout(function(){if(rollAngle===270&&mode==="pdf"){rollAngle=0;d.classList.add("snap");d.style.transform="translateZ(-.5em) rotateX(0deg)";d.offsetWidth;d.classList.remove("snap")}},600);
   else if(now){d.offsetWidth;d.classList.remove("snap")}
 }
-function setMode(m,quiet){
-  if(busy||loading||MODES.indexOf(m)<0)return;
+/* una sola grandezza per tutte le modalità: si misura il titolo come se il rullo mostrasse la parola più lunga */
+function fitTitle(){
+  var h1=$("title"),row=h1.parentNode,b=$("modeBtn");if(!b||!row.clientWidth)return;
+  var d=b.querySelector(".drum");
+  h1.classList.remove("wrap");h1.style.fontSize="";
+  var base=parseFloat(getComputedStyle(h1).fontSize),widest=0;
+  each("#modeBtn .face",function(f){widest=Math.max(widest,f.offsetWidth)});
+  var need=h1.scrollWidth-d.offsetWidth+widest+12+$("ver").offsetWidth+4;
+  var size=Math.max(26,Math.floor(base*Math.min(1,row.clientWidth/need)));
+  if(size<base)h1.style.fontSize=size+"px";
+  if(base*row.clientWidth/need<26)h1.classList.add("wrap");
+  turnDrum(true);
+}
+/* lavoro che andrebbe perso cambiando modalità (R-MOD-06) */
+var abortWork=false,curConv=null;
+function unsaved(){return busy||probing||scanPages.length>0||items.some(function(x){return x.status==="done"})}
+async function stopWork(){
+  abortWork=true;probeGen++;probing=false;
+  if(curConv)try{await curConv.cancel()}catch(e){}
+  while(busy)await new Promise(function(r){setTimeout(r,100)});
+}
+async function setMode(m,quiet,sure){
+  if(loading||MODES.indexOf(m)<0||m===mode&&!quiet)return;
+  if(!quiet&&!sure&&unsaved()){
+    if(!await ask({title:t("leaveTitle"),text:t("leaveBody"),buttons:[{label:t("leaveYes"),cls:"danger",value:1}]})){
+      if(location.hash!==(mode==="pdf"?"":"#"+mode))try{history.replaceState(null,"",mode==="pdf"?location.pathname+location.search:"#"+mode)}catch(e){}
+      return;
+    }
+    await stopWork();
+  }
+  if(busy)return;
   if(m!==mode&&items.length){reset();tmpClean()}
   if(m!==mode)scanPages=[];
   mode=m;
@@ -872,7 +903,9 @@ goBtn.addEventListener("click",async function(){
   busy=true;press.classList.add("busy");say("");music.setMood("drive");
   items.forEach(function(it){if(!it.scan){it.status="wait";it.out=null;it.note="";it.pct=0;it.size=it.file.size}});
   render();
+  abortWork=false;
   for(var i=0;i<items.length;i++){
+    if(abortWork)break;
     var it=items[i];if(it.scan)continue;
     it.status="work";render();squashSound();
     try{
@@ -1064,7 +1097,7 @@ async function squeezeVideo(it,onPct){
   }else tgt=new M.BufferTarget();
   var fs=big?false:"in-memory";
   var out=new M.Output({format:mov?new M.MovOutputFormat({fastStart:fs}):new M.Mp4OutputFormat({fastStart:fs}),target:tgt});
-  var conv=await M.Conversion.init({input:vInput(M,it.file),output:out,showWarnings:false,
+  var conv=curConv=await M.Conversion.init({input:vInput(M,it.file),output:out,showWarnings:false,
     video:{codec:v.codec,quality:new M.Quality({bitrate:pl.b,bitrateMode:"variable"}),forceTranscode:true},
     audio:v.aac?{codec:"aac",quality:new M.Quality({bitrate:AAC}),forceTranscode:true}:{}});
   if(!conv.isValid)throw new Error("invalid");
@@ -1080,7 +1113,9 @@ async function goVideo(){
   busy=true;press.classList.add("busy");say("");music.setMood("drive");
   var lock=await wakeLock();
   render();
+  abortWork=false;
   for(var i=0;i<items.length;i++){
+    if(abortWork)break;
     var it=items[i];if(it.status!=="wait"||!it.plan)continue;
     if(isBig(it)&&!await canDisk(it.plan.bytes)){it.status="same";it.note="tooBig";render();continue}
     it.status="work";it.pct=0;render();squashSound();
@@ -1794,7 +1829,8 @@ applyLang();
 if(!hadMode&&$("modeBtn"))$("modeBtn").classList.add("wiggle");
 window.addEventListener("hashchange",function(){if(/^#(jpg|pdf|video)$/i.test(location.hash))setMode(location.hash.slice(1).toLowerCase())});
 /* le larghezze delle facce del rullo cambiano quando arriva il carattere del titolo */
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){turnDrum(true)});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitTitle);
+var fitT=0;window.addEventListener("resize",function(){clearTimeout(fitT);fitT=setTimeout(fitTitle,120)});
 
 /* un solo interruttore per effetti e musica: 0 = accesi, 2 = silenzio */
 /* ---------- suoni: tutto sintetizzato qui, nessun file audio ---------- */

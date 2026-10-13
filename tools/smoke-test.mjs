@@ -59,6 +59,23 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `${locale}: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- titolo: stessa grandezza nelle tre modalità, versione sulla stessa riga anche a 360 px (R-UI-04/06)
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 360, height: 760 } });
+  const page = await ctx.newPage();
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url);
+  const sizes = [], rows = [];
+  for (let k = 0; k < 3; k++) {
+    await page.waitForTimeout(700);
+    sizes.push(await page.evaluate(() => getComputedStyle(document.getElementById("title")).fontSize));
+    rows.push(await page.evaluate(() => { const a = document.getElementById("title").getBoundingClientRect(), v = document.getElementById("ver").getBoundingClientRect(); return v.top < a.bottom && v.bottom > a.top && a.height < parseFloat(getComputedStyle(document.getElementById("title")).fontSize) * 1.5; }));
+    await page.click("#modeBtn");
+  }
+  check(new Set(sizes).size === 1, `Titolo: stessa grandezza in PDF, JPG e VIDEO (${sizes.join(", ")})`);
+  check(rows.every(Boolean), "Titolo: titolo, modalità e versione su una riga a 360 px");
+  await ctx.close();
+}
 // --- modalità JPG: rullo nel titolo, soglie di lato e di peso, dati dello scatto conservati
 {
   const { readFile: read } = await import("node:fs/promises");
@@ -141,6 +158,11 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.click("#vlvlMid");
   await page.click("#go");
   await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy") && document.querySelector("#rows .badge:not(.wait):not(.work)"), null, { timeout: 240000 });
+  await page.click("#modeBtn");
+  await page.waitForSelector("#modal:not([hidden])");
+  check(/Cambi modalità/.test(await page.innerText("#modalTitle")), "Video: con un file pronto, cambiare modalità chiede conferma");
+  await page.click("#modalBtns button >> nth=1");
+  check(await page.evaluate(() => document.body.classList.contains("mode-video") && document.querySelectorAll("#rows .row:not(.demo)").length === 1), "Video: annullando si resta in modalità video con il file pronto");
   const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#saveAs")]);
   const { readFile: read } = await import("node:fs/promises");
   const vid = await read(await dl.path());

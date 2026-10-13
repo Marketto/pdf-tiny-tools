@@ -16,6 +16,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-MOD-03 Cambiando modalità cambiano colore della mascotte (rosa PDF, menta JPG, lavanda VIDEO, R-VID-12), colori dell'interfaccia (R-UI-05), testi e opzioni del passo 2; l'elenco si svuota.
 - R-MOD-04 Modalità ricordata; `#jpg` o `#video` nel link aprono quella modalità e la condivisione lo include.
 - R-MOD-05 Il rullo è un pulsante vero: tastiera e lettori di schermo.
+- R-MOD-06 Se ci sono lavorazioni in corso o risultati non salvati (compressione o analisi in corso, file pronti da salvare, pagine scansionate non salvate), cambiare modalità chiede sempre conferma, avvisando che il lavoro non salvato si perde. Confermando, il lavoro in corso si interrompe e l'elenco si svuota.
 
 ## CAR · Caricamento
 - R-CAR-01 Uno o più file, una cartella intera o trascinamento.
@@ -89,7 +90,8 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-UI-01 Mascotte: pressa kawaii con occhioni; ogni tanto strizza gli occhi a caso tra «> <» e sorriso ad arco.
 - R-UI-02 Icone dell'app a tutto campo su giallo unito, mascotte più grande possibile.
 - R-UI-03 Testata: accanto al logo, in flex, lingua, installazione e le tre icone suoni, fotocamera, condivisione. Le tre icone stanno sempre su una sola riga, anche su telefoni stretti o con caratteri ingranditi.
-- R-UI-04 Numero di versione visibile accanto al titolo.
+- R-UI-04 Numero di versione visibile accanto al titolo, sulla stessa riga del titolo e della parola della modalità, anche al telefono: se non ci sta, il titolo si rimpicciolisce.
+- R-UI-06 Il titolo ha la stessa grandezza in tutte le modalità: è dimensionato sulla parola più lunga del rullo, quindi cambiando modalità non cambia.
 - R-UI-05 Colori «tono su tono» con la pelle della mascotte, che cambiano con la modalità (anche VIDEO, R-VID-12); lo sfondo azzurro a puntini resta uguale. Pulsanti, etichette dei passi, badge e riquadri di conferma nel colore della pelle (rosa in PDF, menta in JPG); «Schiaccia!», livello scelto, barra di avanzamento e contorni di messa a fuoco nella stessa tinta più intensa; badge dei risultati in versione più chiara. Nel titolo la faccia PDF del rullo è rosa e quella JPG menta. Il rosso resta solo per errori e sovrascrittura. L'icona dell'app resta gialla (R-UI-02).
 
 ## AUD · Suoni e musica

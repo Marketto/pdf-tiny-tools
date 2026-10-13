@@ -8,7 +8,7 @@ Tutto il JavaScript è in `index.html`, dentro un'unica funzione, diviso da comm
 
 | Sezione (marcatore) | Funzioni principali | Requisiti |
 |---|---|---|
-| `lingue` | `pickLang`, `t`, `applyLang`, `showTitle`, `turnDrum`, `setMode`, `isPdf` | I18N, MOD |
+| `lingue` | `pickLang`, `t`, `applyLang`, `showTitle`, `turnDrum`, `fitTitle`, `unsaved`, `stopWork`, `setMode`, `isPdf` | I18N, MOD |
 | `carico` | `addFile`, `walkHandle`, `walkEntry`, `loaderOn`, `loaderOff` | CAR |
 | `vista` | `render` | LST, SAV-08 |
 | `motore` | `squeezePdf`, `squeezeImage`, `squeezeJpg`, `exifSegment`, `jpgOpts` | CMP, JPG |
@@ -40,7 +40,8 @@ Fuori dallo script principale: registrazione del service worker in fondo a `inde
 
 ## Testi e modalità
 - `MODES=["pdf","jpg","video"]`. `t(k)`: in modalità JPG usa la chiave `kJ` se esiste, altrimenti sostituisce «PDF» con «JPG»; in modalità video `kV`, altrimenti «PDF» → `vWord` (maiuscola se apre la frase).
-- Il rullo è un `<button id="modeBtn">` costruito da `showTitle()` al posto di `<span>PDF</span>` della chiave `h1`: quattro facce 3D (PDF, JPG, VIDEO e di nuovo PDF), girate in avanti da `turnDrum()` con un angolo in linea (`rollAngle`); dalla quarta faccia torna a 0 senza animazione. La larghezza del rullo segue la faccia visibile. In modalità video il titolo è un po' più piccolo per stare su una riga. Le classi `mode-jpg` e `mode-video` su `<body>` che cambia anche il colore `.m-skin` della mascotte e i tre toni d'accento (UI-05): `--acc-l` (chiaro: badge), `--acc` (pelle: pulsanti, etichette, conferme), `--acc-s` (intenso: «Schiaccia!», livello scelto, barra, contorni di fuoco). Definiti su `:root` per il PDF e ridefiniti in `.mode-jpg` e `.mode-video` (lavanda, dove `#camBtn` è nascosto); `--tomato` solo per errori e sovrascrittura.
+- Il rullo è un `<button id="modeBtn">` costruito da `showTitle()` al posto di `<span>PDF</span>` della chiave `h1`: quattro facce 3D (PDF, JPG, VIDEO e di nuovo PDF), girate in avanti da `turnDrum()` con un angolo in linea (`rollAngle`); dalla quarta faccia torna a 0 senza animazione. La larghezza del rullo segue la faccia visibile (colonna `minmax(0,1fr)`, così le facce più larghe non spostano quella visibile). `fitTitle()` (all'avvio, al cambio di lingua, all'arrivo del carattere, al ridimensionamento) dà al titolo una sola grandezza per tutte le modalità: lo misura come se mostrasse la faccia più larga, con la versione accanto, e lo rimpicciolisce (minimo 26 px) finché la riga ci sta; sotto i 26 px lascia andare a capo (UI-04/06).
+- Cambio di modalità (MOD-06): `setMode` è asincrona; se `unsaved()` (lavoro in corso, analisi, file pronti, pagine scansionate) chiede conferma con `ask()`, poi `stopWork()` alza `abortWork` (i cicli di compressione si fermano tra un file e l'altro), annulla la conversione video in corso (`curConv.cancel()`) e aspetta che `busy` torni falso. Le classi `mode-jpg` e `mode-video` su `<body>` che cambia anche il colore `.m-skin` della mascotte e i tre toni d'accento (UI-05): `--acc-l` (chiaro: badge), `--acc` (pelle: pulsanti, etichette, conferme), `--acc-s` (intenso: «Schiaccia!», livello scelto, barra, contorni di fuoco). Definiti su `:root` per il PDF e ridefiniti in `.mode-jpg` e `.mode-video` (lavanda, dove `#camBtn` è nascosto); `--tomato` solo per errori e sovrascrittura.
 
 ## PDF (CMP)
 `squeezePdf` apre con pdf-lib, prende i flussi `/Subtype /Image` (escluse le `SMask`), `squeezeImage` decodifica (JPEG col browser, Flate con `DecompressionStream` + filtro PNG), riduce, ricodifica JPEG, sostituisce solo se < 90%. Intoccati: CMYK, Indexed, `Decode`, `Mask`, JBIG2, JPX, CCITT. Forze in `PRESETS`: qualità 0,82/0,68/0,50, lato 2400/1700/1200.
