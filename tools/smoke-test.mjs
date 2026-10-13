@@ -21,6 +21,9 @@ const url = `http://localhost:${server.address().port}/`;
 let chromium;
 try { ({ chromium } = await import("playwright")); } catch { ({ chromium } = await import("playwright-core")); }
 const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
+// la domanda sul lavoro in secondo piano (R-APP-06) è già risposta «no» in tutte le prove, tranne quella che la prova
+const newContext = browser.newContext.bind(browser);
+browser.newContext = async (o = {}) => { const c = await newContext(o); if (!o.askBg) await c.addInitScript(() => { try { if (localStorage.getItem("bg") === null) localStorage.setItem("bg", "0"); } catch {} }); return c; };
 let failed = 0;
 const check = (ok, what) => { console.log((ok ? "✓ " : "✗ ") + what); if (!ok) failed++; };
 
@@ -57,6 +60,34 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     check(done === 1, `compressione: PDF di prova da ${Math.round(size / 1024)} KB alleggerito (${(await page.innerText("#rows")).replace(/\n/g, " / ")})`);
   }
   check(errors.length === 0, `${locale}: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
+// --- secondo piano: domanda la prima volta, audio e riquadro del lettore con l'avanzamento durante il lavoro (R-APP-05…07)
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 }, askBg: true });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url + "#jpg");
+  await page.evaluate(async () => {
+    const dt = new DataTransfer();
+    for (let k = 0; k < 4; k++) {
+      const c = document.createElement("canvas"); c.width = 3000; c.height = 2000; const g = c.getContext("2d"), d = g.createImageData(3000, 2000);
+      for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = v; d.data[i + 1] = 255 - v; d.data[i + 2] = v / 2; d.data[i + 3] = 255; }
+      g.putImageData(d, 0, 0); dt.items.add(new File([await new Promise((r) => c.toBlob(r, "image/jpeg", .95))], `f${k}.jpg`, { type: "image/jpeg" }));
+    }
+    const input = document.getElementById("pickFiles"); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.click("#go");
+  await page.waitForSelector("#modal:not([hidden])");
+  check(/fuori dall'app/.test(await page.innerText("#modalTitle")), "Secondo piano: la prima volta chiede se continuare fuori dall'app");
+  await page.click("#modalBtns button >> nth=0");
+  const seen = await page.waitForFunction(() => navigator.mediaSession && navigator.mediaSession.playbackState === "playing" && navigator.mediaSession.metadata && /Schiaccio \d+ di 4/.test(navigator.mediaSession.metadata.title) && navigator.mediaSession.metadata.title, null, { timeout: 60000, polling: 50 }).then((h) => h.jsonValue()).catch(() => "");
+  check(!!seen, `Secondo piano: durante il lavoro il riquadro del lettore mostra l'avanzamento (${seen || "assente"})`);
+  await page.waitForFunction(() => !document.getElementById("press").classList.contains("busy"), null, { timeout: 120000 });
+  check(await page.evaluate(() => localStorage.getItem("bg") === "1" && navigator.mediaSession.playbackState === "none"), "Secondo piano: risposta ricordata, audio spento a lavoro finito");
+  check(errors.length === 0, `Secondo piano: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
 // --- titolo: stessa grandezza nelle tre modalità, versione sulla stessa riga anche a 360 px (R-UI-04/06)

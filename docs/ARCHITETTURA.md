@@ -22,6 +22,7 @@ Tutto il JavaScript è in `index.html`, dentro un'unica funzione, diviso da comm
 | `musica` | oggetto `music` (`start`, `stop`, `setMood`, `festa`), `MOOD`, `playStep` | AUD |
 | `occhi` | `wink` | UI-01 |
 | `cattura` (mascotte) | `snapFlash` (flash a ogni foto aggiunta) | UI-07 |
+| `secondo piano` | `bgAsk`, `bgBegin`, `bgEnd`, `bgUpdate`, `bgText`, `bgStop`, `bgNotify`, `humWav` | APP-05…08 |
 | `condivisione` | `toast`, gestore di `shareBtn` | APP-02 |
 | `installazione` | `beforeinstallprompt`, istruzioni iPhone | APP-01 |
 
@@ -120,6 +121,15 @@ Tre ingressi: `showDirectoryPicker` (lettura e scrittura: unico che consente «a
 
 ## Suoni e musica (AUD)
 Tutto Web Audio, niente file. `music` mette in coda le note ~0,35 s prima; umori in `MOOD` (bpm, filtro, giro, melodia) e stili in `playStep`: `calm`, `mystery` (giro con re maggiore, staccato), `drive`, `joy`, `scan`, `jump` (fanfara, `festa()`). Volume del sottofondo in `VOL`. L'audio parte al primo tocco e si sospende con la pagina nascosta.
+
+## Secondo piano (APP-05…08)
+Sezione `secondo piano` in `index.html`, prima di `condivisione`.
+- `bgAsk()` all'inizio di compressione, analisi video e codifica video: la prima volta chiede (`ask`) se continuare fuori dall'app; il pulsante «Sì» chiede anche il permesso per le notifiche dentro il tocco. Risposta in `localStorage.bg`. Su iPhone (`isIOS`) solo il `toast` `bgIos`, una volta per sessione.
+- `bgBegin()` / `bgEnd()` contano i lavori in corso (`bgN`): li chiamano `loaderOn`/`loaderOff` (lettura cartelle, scrittura, scansione, PDF di Cattura), la compressione, `goVideo` e `probeAll` (che ora gira il ciclo in `probeLoop`). Con `bgOn()` suona in loop un `<audio>` con un ronzio a 60 Hz e −50 dB generato al volo (`humWav`, 2 s, 120 periodi esatti): Chrome non congela le pagine che riproducono audio e mostra il riquadro del lettore.
+- `bgUpdate(testo)` aggiorna `navigator.mediaSession.metadata` al massimo ogni 0,8 s; il testo viene da `bgText()` (in `render`) o dal loader. Le azioni «pausa» e «stop» del lettore chiamano `bgStop()` (annulla lettura, compressione e codifica in corso).
+- Il `visibilitychange` non sospende più l'audio mentre si lavora in secondo piano.
+- `bgNotify(testo)` a fine lavoro (compressione, codifica, analisi, `finish()` del salvataggio), solo con la pagina nascosta e il permesso concesso: `showNotification` dal service worker; in `sw.js` `notificationclick` riporta all'app.
+- Limiti: su iPhone il lavoro si ferma fuori dall'app; se il sistema chiude la pagina per memoria il lavoro si perde; il ronzio potrebbe non bastare su alcuni telefoni (va provato).
 
 ## Cache offline (APP-03)
 `sw.js`: installazione con `cache: "reload"`; pagina e testi rete prima (cache se manca o > 4 s); `vendor/`, `icons/`, font cache prima. Il nome cache lo cambia `pages.yml`. Al cambio di service worker la pagina si ricarica se non c'è lavoro in corso.

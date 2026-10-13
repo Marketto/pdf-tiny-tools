@@ -635,13 +635,14 @@ function loaderOn(mode,title){
   music.setMood({back:"joy",scan:"scan"}[mode]||"mystery");
   $("loaderTitle").textContent=title||t("reading");
   $("loaderN").textContent="";$("loader").hidden=false;$("app").inert=true;
+  bgBegin(title||t("reading"));
   try{$("loaderCancel").focus()}catch(e){}
 }
 /* resta visibile almeno un attimo, così non è un lampo; restituisce true se è stato annullato */
 async function loaderOff(){
   var wait=900-(Date.now()-loadStart);
   if(wait>0&&!cancelLoad)await new Promise(function(r){setTimeout(r,wait)});
-  loading=false;$("loader").hidden=true;$("app").inert=false;
+  loading=false;$("loader").hidden=true;$("app").inert=false;bgEnd();
   music.setMood(busy?"drive":"calm");
   return cancelLoad;
 }
@@ -649,7 +650,7 @@ async function loaderOff(){
 function addFile(file,rel,handle,dir){
   if(!isPdf(file.name)||cancelLoad)return;
   items.push({id:nextId++,name:file.name,rel:rel||file.name,file:file,size:file.size,status:"wait",pct:0,out:null,note:"",handle:handle||null,dir:dir||null});
-  if(loading)$("loaderN").textContent=t("found",{n:nf(items.length)});
+  if(loading){$("loaderN").textContent=t("found",{n:nf(items.length)});bgUpdate(t("reading")+" · "+$("loaderN").textContent)}
 }
 function loaded(n){
   if(mode==="video")tmpClean();
@@ -807,6 +808,7 @@ function render(){
     if(it.status==="work"||it.status==="probe"){var bar=el("div","bar");bar.style.width=it.pct+"%";li.appendChild(bar)}
     rowsEl.appendChild(li);
   });
+  if(bgN)bgUpdate(bgText());
   goBtn.disabled=busy||(mode==="video"?probing||vidOk===false||!items.some(function(x){return x.status==="wait"&&x.plan}):!items.some(function(x){return !x.scan}));
   goBtn.textContent=busy?t("going"):t("go");
   $("total").hidden=!done||busy;
@@ -993,7 +995,8 @@ goBtn.addEventListener("click",async function(){
   var jpg=mode==="jpg";
   if(!jpg&&!L.PDFDocument){say(t("engine"),true);return}
   var preset=jpg?jpgOpts():PRESETS[document.querySelector('input[name="lvl"]:checked').value];
-  busy=true;press.classList.add("busy");say("");music.setMood("drive");
+  await bgAsk();if(busy)return;
+  busy=true;press.classList.add("busy");say("");music.setMood("drive");bgBegin();
   items.forEach(function(it){if(!it.scan){it.status="wait";it.out=null;it.note="";it.pct=0;it.size=it.file.size}});
   render();
   abortWork=false;
@@ -1012,9 +1015,10 @@ goBtn.addEventListener("click",async function(){
     }
     render();
   }
-  busy=false;press.classList.remove("busy");render();music.setMood("calm");
+  busy=false;press.classList.remove("busy");render();music.setMood("calm");bgEnd();
   var ok=items.filter(function(x){return x.status==="done"}).length;
   say(ok?t("done",{ok:nf(ok),n:nf(items.length)}):t("none"),!ok);
+  bgNotify(ok?t("done",{ok:nf(ok),n:nf(items.length)}):t("none"));
   if(ok)sfx(playDone);
 });
 
@@ -1160,6 +1164,12 @@ async function probeAll(){
   var gen=++probeGen;probing=true;
   items.forEach(function(it){if(!it.vp){it.status="probe";it.pct=0}});
   render();
+  await bgAsk();if(gen!==probeGen)return;
+  bgBegin();
+  try{await probeLoop(gen)}finally{bgEnd()}
+  if(gen===probeGen)bgNotify(t("bgProbeDone"));
+}
+async function probeLoop(gen){
   for(var i=0;i<items.length;i++){
     var it=items[i];if(it.vp||it.status!=="probe")continue;
     var last=-1;
@@ -1203,7 +1213,8 @@ async function squeezeVideo(it,onPct){
 var CODEC_NAME={hevc:"HEVC",avc:"H.264",vp9:"VP9",av1:"AV1"};
 async function wakeLock(){try{return navigator.wakeLock?await navigator.wakeLock.request("screen"):null}catch(e){return null}}
 async function goVideo(){
-  busy=true;press.classList.add("busy");say("");music.setMood("drive");
+  await bgAsk();if(busy)return;
+  busy=true;press.classList.add("busy");say("");music.setMood("drive");bgBegin();
   var lock=await wakeLock();
   render();
   abortWork=false;
@@ -1223,9 +1234,10 @@ async function goVideo(){
     render();
   }
   if(lock)try{lock.release()}catch(e){}
-  busy=false;press.classList.remove("busy");render();music.setMood("calm");
+  busy=false;press.classList.remove("busy");render();music.setMood("calm");bgEnd();
   var ok=items.filter(function(x){return x.status==="done"}).length;
   say(ok?t("done",{ok:nf(ok),n:nf(items.length)}):t("none"),!ok);
+  bgNotify(ok?t("done",{ok:nf(ok),n:nf(items.length)}):t("none"));
   if(ok)sfx(playDone);
 }
 
@@ -1319,7 +1331,7 @@ async function okToReplace(hits){
 }
 
 /* salvataggio riuscito: l'app torna come appena aperta, con l'elenco vuoto, e resta solo il messaggio di conferma */
-function finish(msg){reset();tmpClean(90000);render();say(msg);music.festa()}
+function finish(msg){reset();tmpClean(90000);render();say(msg);music.festa();bgNotify(msg)}
 
 /* un solo file: salva con nome */
 $("saveAs").addEventListener("click",async function(){
@@ -2608,7 +2620,7 @@ var music=(function(){
 })();
 document.addEventListener("visibilitychange",function(){
   if(!actx)return;
-  try{if(document.hidden)actx.suspend();else if(sndMode!==2)actx.resume()}catch(e){}
+  try{if(document.hidden){if(!(bgN&&bgOn()))actx.suspend()}else if(sndMode!==2)actx.resume()}catch(e){}
 });
 
 showMute();startJingle();
@@ -2626,6 +2638,75 @@ function wink(){
   setTimeout(wink,hold+2200+Math.random()*5200);
 }
 if(!calm)setTimeout(wink,1800+Math.random()*2500);
+
+/* ---------- secondo piano (R-APP-05…08) ----------
+   Chrome su Android non congela una pagina che riproduce audio: durante i lavori lunghi suona un <audio> in loop
+   (ronzio a 60 Hz, −50 dB: non si sente) che porta anche il riquadro del lettore con l'avanzamento. Su iPhone non basta. */
+var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+var bgN=0,bgEl=null,bgLast=0,bgIosSaid=false;
+function bgPref(){try{return localStorage.getItem("bg")}catch(e){return null}}
+function bgOn(){return !isIOS&&bgPref()==="1"}
+function humWav(){
+  var sr=8000,n=sr*2,b=new ArrayBuffer(44+n*2),v=new DataView(b);
+  function w(o,x){for(var i=0;i<x.length;i++)v.setUint8(o+i,x.charCodeAt(i))}
+  w(0,"RIFF");v.setUint32(4,36+n*2,true);w(8,"WAVEfmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,"data");v.setUint32(40,n*2,true);
+  for(var i=0;i<n;i++)v.setInt16(44+i*2,Math.round(Math.sin(2*Math.PI*60*i/sr)*100),true);
+  return new Blob([b],{type:"audio/wav"});
+}
+/* la prima volta che parte un lavoro lungo: continuare fuori dall'app e avvisare alla fine? */
+async function bgAsk(){
+  if(isIOS){if(!bgIosSaid){bgIosSaid=true;toast(t("bgIos"))}return}
+  if(bgPref()!==null)return;
+  var a=await ask({title:t("bgTitle"),text:t("bgBody"),noCancel:true,buttons:[
+    {label:t("bgYes"),cls:"ok",value:"1",now:function(){try{if(window.Notification&&Notification.permission==="default")Notification.requestPermission().catch(function(){})}catch(e){}}},
+    {label:t("bgNo"),cls:"alt",value:"0"}]});
+  try{localStorage.setItem("bg",a==="1"?"1":"0")}catch(e){}
+}
+function bgBegin(text){
+  bgN++;
+  if(bgN===1&&bgOn()){
+    try{
+      if(!bgEl){bgEl=new Audio(URL.createObjectURL(humWav()));bgEl.loop=true;bgEl.setAttribute("playsinline","")}
+      var pr=bgEl.play();if(pr&&pr.catch)pr.catch(function(){});
+      if(navigator.mediaSession){
+        navigator.mediaSession.setActionHandler("pause",bgStop);
+        try{navigator.mediaSession.setActionHandler("stop",bgStop)}catch(e){}
+        navigator.mediaSession.playbackState="playing";
+      }
+    }catch(e){}
+  }
+  bgUpdate(text,true);
+}
+function bgEnd(){
+  bgN=Math.max(0,bgN-1);if(bgN)return;
+  try{if(bgEl){bgEl.pause();bgEl.currentTime=0}}catch(e){}
+  try{if(navigator.mediaSession){navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState="none"}}catch(e){}
+}
+/* avanzamento nel riquadro del lettore (R-APP-07) */
+function bgUpdate(text,now){
+  if(!bgN||!bgOn()||!text||!navigator.mediaSession||!window.MediaMetadata)return;
+  var tm=Date.now();if(!now&&tm-bgLast<800)return;bgLast=tm;
+  try{navigator.mediaSession.metadata=new MediaMetadata({title:text,artist:t("title"),artwork:[{src:"icons/icon-192.png",sizes:"192x192",type:"image/png"},{src:"icons/icon-512.png",sizes:"512x512",type:"image/png"}]})}catch(e){}
+}
+function bgStop(){cancelLoad=true;abortWork=true;if(curConv)try{curConv.cancel()}catch(e){}}
+/* notifica a lavoro finito, solo se l'app è in secondo piano (R-APP-08) */
+function bgNotify(body){
+  if(!document.hidden||!bgOn()||!window.Notification||Notification.permission!=="granted")return;
+  var o={body:body,icon:"icons/icon-192.png",badge:"icons/icon-192.png",tag:"schiaccia"};
+  try{
+    if(navigator.serviceWorker&&navigator.serviceWorker.controller)navigator.serviceWorker.ready.then(function(r){r.showNotification(t("title"),o)});
+    else new Notification(t("title"),o);
+  }catch(e){}
+}
+/* testo dell'avanzamento secondo il lavoro in corso */
+function bgText(){
+  var list=items.filter(function(x){return !x.scan}),n=list.length,cur=null,i=0;
+  list.forEach(function(x,k){if(x.status==="work"||x.status==="probe"&&!cur){cur=x;i=k+1}});
+  if(busy&&cur)return t("bgWork",{i:nf(i),n:nf(n),pct:nf(cur.pct||0)});
+  if(probing&&cur)return t("bgProbe",{i:nf(i),n:nf(n),pct:nf(cur.pct||0)});
+  return "";
+}
 
 /* ---------- condivisione: foglio di sistema se c'è, altrimenti copia il link ---------- */
 var toastT=0;

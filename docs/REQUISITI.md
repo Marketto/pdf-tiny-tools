@@ -127,6 +127,10 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video) · [CAR](#ca
 - R-APP-02 Pulsante di condivisione di sistema; dove manca, copia il link.
 - R-APP-03 Dopo una pubblicazione la versione nuova si vede al primo aggiornamento; senza rete funziona l'ultima scaricata.
 - R-APP-04 Caricamento pigro: le parti pesanti si scaricano solo quando servono e poi restano nella cache offline. Mediabunny alla prima volta in modalità video; Tesseract e il modello di orientamento alla prima pagina di Cattura; i dati di una lingua (0,7–3 MB) al primo PDF ricercabile in quella lingua; JSZip al primo ZIP.
+- R-APP-05 Lavoro in secondo piano: durante i lavori lunghi (lettura di cartelle, analisi dei video, compressione, scrittura dei file, riconoscimento del testo) l'app tiene acceso l'audio anche fuori dall'app: la musica se i suoni sono accesi, altrimenti un ronzio impercettibile. Così Chrome su Android non la congela. Va provato sui telefoni veri: non è garantito.
+- R-APP-06 La prima volta che parte un lavoro lungo l'app chiede se continuare in secondo piano e avvisare a lavoro finito («Sì» chiede anche il permesso per le notifiche); la risposta è ricordata. Su iPhone, dove il lavoro si ferma comunque fuori dall'app, compare solo l'avviso «resta nell'app finché non ho finito».
+- R-APP-07 Mentre lavora in secondo piano, nella tendina delle notifiche compare il riquadro del lettore con l'avanzamento («Schiaccio 7 di 12 · 58%») e un pulsante per fermare.
+- R-APP-08 A lavoro finito, se l'app è in secondo piano e il permesso c'è, arriva una notifica con l'esito; toccandola si torna all'app.
 
 ## REL · Rilascio
 - R-REL-01 Pubblicazione automatica su GitHub Pages a ogni push su `main`.

@@ -31,6 +31,7 @@ Dillo esplicitamente nel resoconto, senza darlo per verificato:
 - scelta di una cartella vera e i salvataggi che scrivono nelle cartelle (altra cartella, accanto agli originali, sovrascrittura);
 - installazione su Android e iPhone, funzionamento senza rete;
 - i suoni (si possono solo ascoltare);
+- il lavoro in secondo piano e le notifiche sui telefoni veri (la prova controlla solo domanda, riquadro del lettore e spegnimento a fine lavoro);
 - la codifica video vera in HEVC e H.264 (si prova solo su un dispositivo che li ha: telefono o Chrome/Edge/Safari da computer), l'audio ricompresso in AAC e i video lunghi;
 - l'aspetto: per una modifica visiva guarda uno screenshot, a larghezza telefono e computer.
 
