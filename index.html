@@ -986,7 +986,7 @@ goBtn.addEventListener("click",async function(){
   await bgAsk();if(busy)return;
   busy=true;press.classList.add("busy");say("");music.setMood("drive");bgBegin();
   items.forEach(function(it){if(!it.scan){it.status="wait";it.out=null;it.note="";it.pct=0;it.size=it.file.size}});
-  render();
+  render();progStart("work");
   abortWork=false;
   /* PDF: un file alla volta, le sue immagini in parallelo; JPG: più foto insieme (R-APP-09) */
   var next=0,width=jpg?await poolWidth():1;
@@ -1235,7 +1235,7 @@ async function probeAll(){
   items.forEach(function(it){if(!it.vp&&it.status!=="err"&&it.status!=="same"){it.status="probe";it.pct=0}});
   render();
   await bgAsk();if(gen!==probeGen)return;
-  bgBegin();
+  progStart("probe");bgBegin();
   try{await probeLoop(gen)}finally{bgEnd()}
   if(gen===probeGen)bgNotify(t("bgProbeDone"));
 }
@@ -1305,7 +1305,7 @@ async function goVideo(){
   await bgAsk();if(busy)return;
   busy=true;press.classList.add("busy");say("");music.setMood("drive");bgBegin();
   var lock=await wakeLock();
-  render();
+  render();progStart("work");
   abortWork=false;
   /* il primo video pronto; se non ce n'è e l'analisi va avanti, si aspetta (R-VID-20) */
   while(!abortWork){
@@ -2923,12 +2923,36 @@ function bgNotify(body){
   }catch(e){}
 }
 /* testo dell'avanzamento secondo il lavoro in corso */
+/* avanzamento complessivo e tempo residuo (R-APP-07): i file del giro pesano per dimensione */
+var prog={probe:null,work:null};
+function progStart(kind){
+  var ids={},tot=0;
+  items.forEach(function(x){if(!x.scan&&(kind==="work"?x.status==="wait":x.status==="probe")){ids[x.id]=1;tot+=x.size||1}});
+  prog[kind]={ids:ids,tot:tot||1,t0:performance.now(),eta:null};
+}
+function progFrac(kind){
+  var P=prog[kind];if(!P)return 0;
+  var f=0;
+  items.forEach(function(x){
+    if(!P.ids[x.id])return;
+    var st=x.status,p=kind==="work"?(st==="work"?(x.pct||0)/100:st==="wait"?0:1):(st==="probe"?(x.pct||0)/100:1);
+    f+=(x.size||1)*p;
+  });
+  return Math.min(1,f/P.tot);
+}
+function progEta(kind,f){
+  var P=prog[kind];if(!P)return "";
+  var el=(performance.now()-P.t0)/1000;if(f<.02||el<4)return "";
+  var rem=el*(1-f)/f;P.eta=P.eta==null?rem:P.eta*.8+rem*.2;
+  var r=P.eta;
+  return t("bgEta",{t:r<60?t("timeSec",{n:nf(Math.max(5,Math.round(r/5)*5))}):t("timeMin",{n:nf(Math.round(r/60))})});
+}
 function bgText(){
   var list=items.filter(function(x){return !x.scan}),n=list.length,cur=null,i=0;
   list.forEach(function(x,k){if(x.status==="work"||x.status==="probe"&&!cur){cur=x;i=k+1}});
-  if(busy&&cur)return t("bgWork",{i:nf(i),n:nf(n),pct:nf(cur.pct||0)});
-  if(probing&&cur)return t("bgProbe",{i:nf(i),n:nf(n),pct:nf(cur.pct||0)});
-  return "";
+  var kind=busy?"work":probing?"probe":"";if(!kind||!cur)return "";
+  var f=progFrac(kind);
+  return t(kind==="work"?"bgWork":"bgProbe",{i:nf(i),n:nf(n),pct:nf(Math.round(f*100))})+progEta(kind,f);
 }
 
 /* ---------- condivisione: foglio di sistema se c'è, altrimenti copia il link ---------- */
