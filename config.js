@@ -44,14 +44,14 @@ window.CONFIG = {
     safe: { memPerGbMB: 128, maxMB: 1024, defaultMB: 300 }
   },
   scan: {
-    /* distensione delle pieghe (R-SCN-27): analisi su una copia con il lato lungo di size px; una linea conta se lunga almeno minLen della pagina
-       e piatta (larga almeno 4 volte l'altezza, alta al massimo maxH); la mappa si calcola su una griglia grid×grid con pesi gaussiani
-       stretti lungo la linea (along) e larghi di traverso (across), in frazioni della pagina; spostamenti al massimo maxShift della pagina;
-       servono almeno minLines linee, altrimenti la pagina resta com'è; passes = passate di correzione, composte in una sola */
     /* ombre delle pieghe (R-SCN-29): analisi su una copia con il lato lungo di size px; luce fine con raggio fine, luce del foglio con
        raggio coarse (frazioni della pagina); bordo netto = pendenza della luce oltre sharp per pixel; la luce fine parte dal foglio pulito
        (luce ≥ seed di quella del foglio) e si allarga solo cambiando di meno di step per pixel; schiarimento al massimo maxGain */
     shade: { on: true, size: 1000, fine: 0.006, coarse: 0.04, sharp: 0.015, step: 0.005, seed: 0.97, maxGain: 1.5 },
+    /* distensione delle pieghe (R-SCN-27): analisi su una copia con il lato lungo di size px; una linea conta se lunga almeno minLen della pagina
+       e piatta (larga almeno 4 volte l'altezza, alta al massimo maxH); la mappa si calcola su una griglia grid×grid con pesi gaussiani
+       stretti lungo la linea (along) e larghi di traverso (across), in frazioni della pagina; spostamenti al massimo maxShift della pagina;
+       servono almeno minLines linee, altrimenti la pagina resta com'è; passes = passate di correzione, composte in una sola */
     unfold: { passes: 2, size: 1000, minLen: 0.18, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
   },
   ui: {
