@@ -2286,7 +2286,7 @@ function detectPage(work){
   /* la maschera, quando c'è, ha già i lati curvi: vince anche se ha un po' meno contorno (segBias); e vince comunque se il
      quadrilatero dei lati dritti le sta dentro (era una piega o un riquadro stampato) purché ogni suo lato abbia un po' di contorno */
   var ed=cands[cands.length-1].seg?null:cands[cands.length-1],best=null;
-  cands.forEach(function(c){c.v=c.seg?c.s*E.segBias:c.s;
+  cands.forEach(function(c){c.v=c.seg?c.s*(c.min>=E.segGood?E.segGoodBias:E.segBias):c.s;
     if(c.seg&&ed&&c.min>=E.segMin&&c.s>0&&ed.g.every(function(p){return inQuad(c.g,p)}))c.v=Math.max(c.v,ed.s+1);
     if(!best||c.v>best.v)best=c});
   if(PERF)(window.__det=window.__det||[]).push(cands.map(function(c){return {seg:c.seg,s:Math.round(c.s),min:Math.round(c.min*100)/100,sup:c.sup.map(function(v){return Math.round(v*100)/100}),cont:c.cont,best:c===best}}));
