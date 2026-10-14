@@ -2264,10 +2264,33 @@ function quadInset(Q,d){
   var out=[];for(j=0;j<4;j++){var c=X(Ls[(j+3)%4][0],Ls[(j+3)%4][1],Ls[j][0],Ls[j][1]);if(!c)return Q;out.push(c)}
   return out;
 }
+/* copertine con una cornice colorata: il contorno più forte è quello tra la cornice e l'interno; se appena fuori, parallelo,
+   c'è un altro lato netto e la striscia in mezzo è colorata, il lato vero è quello esterno */
+function quadOuter(G,Q){
+  var E=CFG.scan.edges,w=G.w,h=G.h;Q=Q.map(function(p){return p.slice()});
+  function X(p1,p2,p3,p4){var d=(p1[0]-p2[0])*(p3[1]-p4[1])-(p1[1]-p2[1])*(p3[0]-p4[0]);if(Math.abs(d)<1e-6)return null;
+    var t=((p1[0]-p3[0])*(p3[1]-p4[1])-(p1[1]-p3[1])*(p3[0]-p4[0]))/d;return [p1[0]+t*(p2[0]-p1[0]),p1[1]+t*(p2[1]-p1[1])]}
+  for(var j=0;j<4;j++){
+    var a=Q[j],b=Q[(j+1)%4],pa=Q[(j+3)%4],nb=Q[(j+2)%4],L=dist(a,b),cx=(Q[0][0]+Q[1][0]+Q[2][0]+Q[3][0])/4,cy=(Q[0][1]+Q[1][1]+Q[2][1]+Q[3][1])/4;
+    var nx=-(b[1]-a[1])/L,ny=(b[0]-a[0])/L;if((cx-a[0])*nx+(cy-a[1])*ny>0){nx=-nx;ny=-ny}
+    var depth=Math.min(dist(a,pa),dist(b,nb)),best=null;
+    for(var d=3;d<=depth*E.frame;d+=1)for(var e=-3;e<=3;e+=1.5){
+      var A=X([a[0]+nx*(d+e),a[1]+ny*(d+e)],[b[0]+nx*(d-e),b[1]+ny*(d-e)],pa,a),B=X([a[0]+nx*(d+e),a[1]+ny*(d+e)],[b[0]+nx*(d-e),b[1]+ny*(d-e)],nb,b);if(!A||!B)continue;
+      var T=Q.slice();T[j]=A;T[(j+1)%4]=B;var r=quadScoreG(G,T);if(r.sup[j]<E.frameSup)continue;
+      /* striscia in mezzo: colorata */
+      var col=0,n=0;for(var s=1;s<16;s++)for(var u=1;u<4;u++){var t=s/16,P=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],R=[A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t];
+        var x=Math.round(P[0]+(R[0]-P[0])*u/4),y=Math.round(P[1]+(R[1]-P[1])*u/4);if(x<0||y<0||x>=w||y>=h)continue;n++;if(G.sat[y*w+x]>=E.frameSat)col++}
+      if(PERF&&window.__odbg)window.__odbg.push([j,d,e,+r.sup[j].toFixed(2),n?+(col/n).toFixed(2):-1]);
+      if(n&&col>=n*.6&&(!best||r.sup[j]>best.f))best={f:r.sup[j],T:T};
+    }
+    if(best){if(PERF)(window.__outer=window.__outer||[]).push({j:j,f:+best.f.toFixed(2)});Q=best.T}
+  }
+  return Q;
+}
 function inQuad(Q,p){for(var j=0;j<4;j++){var a=Q[j],b=Q[(j+1)%4];if((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])<0)return false}return true}
 function detectPage(work){
   var G=edgeGrad(work),k=G.k,E=CFG.scan.edges,cands=[];
-  if(PERF){(window.__G=window.__G||[]).push(G);window.__qs=quadScoreG;window.__el=edgeLines}
+  if(PERF){(window.__G=window.__G||[]).push(G);window.__qs=quadScoreG;window.__el=edgeLines;window.__qo=quadOuter}
   var f=detectPageSeg(work);
   if(f){
     cands.push({q:f.q,mids:f.mids,seg:true});
@@ -2292,7 +2315,10 @@ function detectPage(work){
   if(PERF)(window.__det=window.__det||[]).push(cands.map(function(c){return {seg:c.seg,s:Math.round(c.s),min:Math.round(c.min*100)/100,sup:c.sup.map(function(v){return Math.round(v*100)/100}),cont:c.cont,best:c===best}}));
   /* un lato spostato su un contorno debole abbassa il punteggio: conta quello di prima */
   if(Math.max(best.s,best.pre||-1)<=0)return null;
-  if(best.seg)return {q:best.q,mids:best.mids,edge:false};
+  /* cornice colorata: vale per qualunque proposta */
+  var og=quadOuter(G,best.g);
+  if(best.seg&&og.every(function(p,i){return p[0]===best.g[i][0]&&p[1]===best.g[i][1]}))return {q:best.q,mids:best.mids,edge:false};
+  best.g=og;
   /* lati appena dentro il contorno (il passaggio chiaro/scuro sta a metà pixel: senza, resta un filo di sfondo) */
   var g=quadInset(best.g,E.inset);
   /* curvatura dei lati solo se segue il contorno meglio dei lati dritti (una copertina rigida resta dritta) */
@@ -3257,6 +3283,16 @@ function colorFrac(cv){
   for(var i=0;i<d.length;i+=4)if(Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2])>60)n++;
   return n/(w*h);
 }
+/* dai bordi della pagina, i pixel scuri e senza colore collegati al bordo, entro una fascia di band della pagina, diventano bianchi */
+function edgeClean(cv){
+  var C=CFG.scan.edges,W=cv.width,H=cv.height,g=cv.getContext("2d",{willReadFrequently:true}),img=g.getImageData(0,0,W,H),d=img.data,n=W*H;
+  var bx=Math.max(2,Math.round(W*C.cleanBand)),by=Math.max(2,Math.round(H*C.cleanBand)),seen=new Uint8Array(n),st=new Int32Array(n),sp=0,ch=0;
+  function dark(i){var r=d[i*4],gg=d[i*4+1],b=d[i*4+2],mx=Math.max(r,gg,b);return mx<C.cleanDark&&mx-Math.min(r,gg,b)<40}
+  function push(x,y){if(x<0||y<0||x>=W||y>=H)return;if(x>=bx&&x<W-bx&&y>=by&&y<H-by)return;var i=y*W+x;if(seen[i]||!dark(i))return;seen[i]=1;st[sp++]=i}
+  for(var x=0;x<W;x++){push(x,0);push(x,H-1)}for(var y=0;y<H;y++){push(0,y);push(W-1,y)}
+  while(sp){var i=st[--sp],px=i%W,py=(i/W)|0;d[i*4]=d[i*4+1]=d[i*4+2]=255;ch++;push(px-1,py);push(px+1,py);push(px,py-1);push(px,py+1)}
+  if(ch)g.putImageData(img,0,0);
+}
 /* rifà la pagina: raddrizzamento, pieghe, stile, rotazione */
 async function capBuild(p){
   /* correzione automatica dei lati (R-SCN-24), tenuta solo se sotto i lati c'è almeno tanto contorno quanto prima (R-SCN-31) */
@@ -3277,6 +3313,8 @@ async function capBuild(p){
   perf("unfold",tu);
   /* ombre delle pieghe (R-SCN-29): solo Documento e Bianco e nero; Colore resta naturale */
   if(style!=="photo"&&CFG.scan.shade.on){var ts=performance.now();try{var sm=shadeMap(cv);if(sm)await shadeApply(cv,sm)}catch(e){}perf("shade",ts)}
+  /* spicchi di sfondo scuro rimasti lungo i bordi (un lato un po' curvo): diventano bianchi (R-SCN-31) */
+  if(style!=="photo"){try{edgeClean(cv)}catch(e){}}
   var out=turnCanvas(cv,p.auto.deg+p.rot,skew),blob=await toJpeg(out,style==="bw"?.8:.85);
   if(out!==cv)out.width=out.height=0;cv.width=cv.height=0;
   if(p.url)URL.revokeObjectURL(p.url);
@@ -3314,7 +3352,7 @@ async function scanFile(file){
   capTarget=-1;
   if(!r)return;
   var old=target>=0?cap.pages[target]:null;
-  var p={work:r.work,q:r.q,mids:r.mids,rot:0,style:old?old.style:null};
+  var p={work:r.work,q:r.q,mids:r.mids,rot:0,style:old?old.style:null,refined:!!(found&&found.edge&&r.q.every(function(p,i){return dist(p,found.q[i])<1}))};
   loaderOn("scan",t("scanning"));
   try{await capBuild(p)}catch(e){p=null}
   await loaderOff();
@@ -3332,7 +3370,8 @@ async function galleryFiles(files){
     var work=await workFrom(files[i]);if(!work)continue;
     var f=null;try{f=detectPage(work)}catch(e){}
     if(!f)f=insetQuad(work);
-    var p={work:work,q:f.q,mids:f.mids,rot:0,style:null};
+    /* bordi trovati dai lati dritti: sono già sul contorno, la correzione automatica non serve (e tirerebbe dentro una cornice) */
+    var p={work:work,q:f.q,mids:f.mids,rot:0,style:null,refined:!!f.edge};
     try{await capBuild(p);list.push(p)}catch(e){}
   }
   await loaderOff();
