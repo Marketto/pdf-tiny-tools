@@ -3056,6 +3056,7 @@ function capRender(){
   if(capWide.matches){
     /* proposta B: griglia di schede e barra fissa */
     var pn=panel(t("capPages"));
+    pn.appendChild(el("p","hint",t("capTip")));
     pn.appendChild(el("p","lab",t("styleAll")));pn.appendChild(styleSeg(scanStyle,false,capSetStyle));
     var grid=el("div","grid"),dragFrom=-1;
     cap.pages.forEach(function(p,i){
@@ -3098,7 +3099,7 @@ function capRender(){
   var p1=panel(t("capS1")),big=el("div","capBig");
   big.appendChild(ibtn("go",ICON.cam,t("shoot"),function(){shoot()}));
   big.appendChild(ibtn("alt",ICON.gal,t("gallery"),function(){$("galInput").click()}));
-  p1.appendChild(big);box.appendChild(p1);
+  p1.appendChild(big);p1.appendChild(el("p","hint",t("capTip")));box.appendChild(p1);/* consiglio per lo scatto (R-SCN-30) */
   var p2=panel(t("capS2"));
   p2.appendChild(el("p","lab",t("styleAll")));p2.appendChild(styleSeg(scanStyle,false,capSetStyle));
   if(!n)p2.appendChild(el("p","capEmpty",t("capEmpty")));
