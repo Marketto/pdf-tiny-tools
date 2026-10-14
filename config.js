@@ -44,22 +44,29 @@ window.CONFIG = {
     safe: { memPerGbMB: 128, maxMB: 1024, defaultMB: 300 }
   },
   scan: {
-    /* bordi dai lati dritti (R-SCN-31): analisi su una copia con il lato lungo di size px; contano come contorno le pendenze oltre minGrad;
-       si cercano le lines rette più forti; un lato perde miss per ogni tratto senza contorno e unseen per ogni tratto fuori dalla foto,
-       e cont per ogni tratto oltre il quale il foglio continua (entro contReach della foto, carta al più contPaper
-       più scura di quella dentro, con tratti più scuri di contInk); un lato oltre il quale il foglio continua
-       si sposta in fuori fino a grow volte la profondità del foglio, su un contorno con pendenza oltre growGrad per almeno growSup del lato
-       (carta = chiara e con colori meno decisi di growSat);
-       dei keep quadrilateri migliori ogni lato si sposta fino a sideRange della profondità, inclinandosi di ±sideTilt px, dove il punteggio sale (in fuori solo su carta: colori meno decisi di paperSat)
-       (in dentro solo se la striscia lasciata fuori ha tratti scuri in meno di cutInk dei punti);
-       un lato con contorno sotto trimFrom passa dove finisce il contorno di un lato vicino, se manca almeno trimMin prima dell'angolo
-       (ruotando fino a trimTurn gradi perché la striscia tolta abbia tratti scuri in meno di trimInk dei punti);
-       alla fine i lati rientrano di inset px e si curvano solo se così il contorno sotto di loro cresce di almeno curveGain;
-       un lato va sul contorno esterno parallelo entro frame della profondità se ha almeno frameSup di contorno e la striscia è colorata
-       (frameSat: la cornice di una copertina); nella pagina finita, lo sfondo scuro (sotto cleanDark) collegato ai bordi entro cleanBand diventa bianco; gli angoli possono uscire dalla foto
-       fino a outside del lato; il foglio occupa almeno minArea della foto; il punteggio dei bordi trovati con la maschera vale segBias volte (segGoodBias se ogni lato ha almeno segGood di contorno),
-       e vincono se contengono quelli dei lati dritti e ogni loro lato ha almeno segMin di contorno */
-    edges: { size: 480, minGrad: 3, lines: 28, miss: 1, unseen: 0.3, cont: 2, contReach: 0.04, contPaper: 60, contInk: 50, grow: 1, growGrad: 1.5, growSup: 0.6, growSat: 60, keep: 5, sideRange: 0.3, sideTilt: 12, cutInk: 0.4, paperSat: 35, trimFrom: 0.3, trimMin: 0.1, trimTurn: 30, trimInk: 0.03, inset: 2, curveGain: 0.005, frame: 0.1, frameSup: 0.7, frameSat: 35, cleanBand: 0.03, cleanDark: 90, outside: 0.15, minArea: 0.08, segBias: 1.1, segGood: 0.8, segGoodBias: 1.35, segMin: 0.3 },
+    /* bordi dai lati dritti (R-SCN-31), tutto su una copia con il lato lungo di size px (misure in px di quella copia):
+       - contorno = pendenza oltre minGrad; si prendono le lines rette più forti; gli angoli possono uscire dalla foto fino a outside,
+         il foglio occupa almeno minArea della foto;
+       - punteggio di un lato: perde miss per ogni tratto senza contorno, unseen per ogni tratto fuori dalla foto, cont per ogni tratto
+         oltre il quale il foglio continua (entro contReach della foto: carta al più contPaper più scura di quella dentro, senza colori
+         oltre growSat, con tratti più scuri di contInk);
+       - dei keep quadrilateri migliori ogni lato si sposta fino a sideRange della profondità, inclinandosi di ±sideTilt px, dove il
+         punteggio sale: in fuori solo su carta con scritte (colori sotto paperSat), in dentro solo se fuori restano tratti scuri in meno
+         di cutInk dei punti;
+       - un lato con contorno sotto trimFrom passa dove finisce il contorno di un lato vicino, se manca almeno trimMin prima dell'angolo,
+         ruotando fino a trimTurn gradi perché fuori restino tratti scuri in meno di trimInk dei punti;
+       - cornice: un lato va sul contorno esterno parallelo entro frame della profondità se ha almeno frameSup di contorno e la striscia
+         in mezzo ha colori oltre frameSat;
+       - alla fine i lati rientrano di inset px e si curvano solo se così il contorno sotto di loro cresce di almeno curveGain;
+       - bordi della maschera (R-SCN-09/28): punteggio × segBias (× segGoodBias se ogni lato ha almeno segGood di contorno); vincono anche
+         se contengono quelli dei lati dritti e ogni loro lato ha almeno segMin di contorno;
+       - pagina finita: lo sfondo scuro (sotto cleanDark, senza colore) attaccato ai bordi entro cleanBand diventa bianco */
+    edges: { size: 480, minGrad: 3, lines: 28, outside: 0.15, minArea: 0.08,
+      miss: 1, unseen: 0.3, cont: 2, contReach: 0.1, contPaper: 60, contInk: 50, growSat: 60,
+      keep: 5, sideRange: 0.3, sideTilt: 12, paperSat: 35, cutInk: 0.4,
+      trimFrom: 0.3, trimMin: 0.1, trimTurn: 30, trimInk: 0.03,
+      frame: 0.1, frameSup: 0.7, frameSat: 35, inset: 2, curveGain: 0.005,
+      segBias: 1.1, segGood: 0.8, segGoodBias: 1.35, segMin: 0.3, cleanBand: 0.03, cleanDark: 90 },
     /* ombre delle pieghe (R-SCN-29): analisi su una copia con il lato lungo di size px; luce fine con raggio fine, luce del foglio con
        raggio coarse (frazioni della pagina); bordo netto = pendenza della luce oltre sharp per pixel; la luce fine parte dal foglio pulito
        (luce ≥ seed di quella del foglio) e si allarga solo cambiando di meno di step per pixel; schiarimento al massimo maxGain;
@@ -70,12 +77,8 @@ window.CONFIG = {
        stretti lungo la linea (along) e larghi di traverso (across), in frazioni della pagina; spostamenti al massimo maxShift della pagina;
        servono almeno minLines linee, altrimenti la pagina resta com'è; passes = passate di correzione, composte in una sola; una linea vale se
        ha inchiostro su almeno cover della sua lunghezza; una pagina con più di maxColor di colori decisi non si distende;
-       con guard, nemmeno una pagina le cui linee tremano (scarto mediano dalla loro parabola) più di maxWobble px: è scritta a mano;
-       model: local = campioni vicini, smooth = superficie liscia (polinomio, accettata se spiega almeno r2 degli scarti),
-       both = liscia poi locale, pick = prova quelli in pick e tiene quello che lascia le linee più dritte (almeno gain volte) */
-    /* SPERIMENTALE, spento (R-SCN-27): pieghe nette come cerniere tra falde piatte */
-    crease: { on: false, win: 0.03, min: 0.04, noise: 4, tol: 0.012, minPts: 6, span: 0.4, maxTilt: 0.5, max: 3 },
-    unfold: { maxColor: 0.15, model: "local", pick: ["local", "both"], gain: 0.9, guard: true, maxWobble: 2.2, r2: 0.4, passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
+       né una pagina le cui linee tremano (scarto mediano dalla loro parabola) più di maxWobble px: è scritta a mano */
+    unfold: { maxColor: 0.15, maxWobble: 2.2, passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
   },
   ui: {
     /* il riquadro del lettore si aggiorna al massimo ogni tanti millisecondi (R-APP-07) */

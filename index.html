@@ -264,14 +264,22 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .lab{font-weight:700;margin:4px 0 8px}
 .capture .seg{margin-bottom:12px}
 .seg.sm button{font-size:15px;padding:6px 4px}
-.strip{display:flex;gap:12px;overflow-x:auto;padding:6px 6px 12px}
+.strip{display:flex;align-items:flex-start;gap:12px;overflow-x:auto;padding:6px 6px 12px}
+.stripWrap .strip{padding-inline:24px}
 .thumb{flex:none;width:86px;position:relative;border:var(--line);border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 var(--ink);padding:0;cursor:pointer}
 .thumb img,.card img{display:block;width:100%;pointer-events:none}
 .thumb[aria-pressed="true"]{outline:4px solid var(--acc-s);outline-offset:2px}
 .num{position:absolute;inset-inline-start:4px;top:4px;background:var(--ink);color:var(--paper);font:700 12px/1.5 var(--body);border-radius:999px;padding:0 7px}
 .chip{position:absolute;inset-inline-end:4px;bottom:4px;background:var(--acc);border:2px solid var(--ink);font:700 11px/1.4 var(--body);border-radius:999px;padding:0 6px;color:var(--ink)}
 .add{flex:none;width:86px;min-height:110px;border:3px dashed var(--ink);border-radius:10px;display:grid;place-items:center;font:40px var(--display);background:#fff;color:var(--ink);cursor:pointer}
-.tools{display:flex;flex-wrap:wrap;gap:8px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.straightSeg button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.straightTip{margin:-6px 0 10px;font-size:14px}
+.stripWrap{position:relative}
+.stripWrap .mv{position:absolute;top:50%;transform:translateY(-60%);z-index:3;width:28px;height:46px;padding:0;display:grid;place-items:center;border:var(--line);border-radius:8px;background:var(--acc-s);color:var(--paper);box-shadow:2px 2px 0 var(--ink)}
+.stripWrap .mv.l{inset-inline-start:-10px}.stripWrap .mv.r{inset-inline-end:-10px}
+.stripWrap .mv:disabled{opacity:.35;box-shadow:none}
+.ib.on{background:var(--acc-s);color:var(--paper)}
 .tools .btn,.ib{display:inline-flex;align-items:center;gap:6px;font-size:15px;padding:6px 10px;box-shadow:3px 3px 0 var(--ink)}
 .capEmpty{margin:4px 0 0;color:var(--muted);font-weight:700}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
@@ -2171,49 +2179,6 @@ function quadPolish(G,Q){
       if(!moved)break}});
   return {q:cur,s:sc};
 }
-/* il foglio continua oltre un lato (una piega, una fascia stampata): il lato si sposta in fuori, parallelo o quasi, fino a un
-   contorno anche debole, purché la striscia attraversata sia carta con delle scritte */
-function quadGrow(G,Q){
-  var E=CFG.scan.edges,w=G.w,h=G.h;Q=Q.map(function(p){return p.slice()});
-  function L0(x,y){x=Math.round(x);y=Math.round(y);return x<0||y<0||x>=w||y>=h?-1:G.lum[y*w+x]}
-  function X(p1,p2,p3,p4){var d=(p1[0]-p2[0])*(p3[1]-p4[1])-(p1[1]-p2[1])*(p3[0]-p4[0]);if(Math.abs(d)<1e-6)return null;
-    var t=((p1[0]-p3[0])*(p3[1]-p4[1])-(p1[1]-p3[1])*(p3[0]-p4[0]))/d;return [p1[0]+t*(p2[0]-p1[0]),p1[1]+t*(p2[1]-p1[1])]}
-  for(var j=0;j<4;j++){
-    var a=Q[j],b=Q[(j+1)%4],pa=Q[(j+3)%4],nb=Q[(j+2)%4],L=dist(a,b);
-    var cx=(Q[0][0]+Q[1][0]+Q[2][0]+Q[3][0])/4,cy=(Q[0][1]+Q[1][1]+Q[2][1]+Q[3][1])/4,nx=-(b[1]-a[1])/L,ny=(b[0]-a[0])/L;
-    if((cx-a[0])*nx+(cy-a[1])*ny>0){nx=-nx;ny=-ny}
-    var depth=Math.min(dist(a,pa),dist(b,nb)),inner=[];
-    for(var s=1;s<12;s++){var v=L0(a[0]+(b[0]-a[0])*s/12-nx*6,a[1]+(b[1]-a[1])*s/12-ny*6);if(v>=0)inner.push(v)}
-    inner.sort(function(x,y){return x-y});var paper=inner.length?inner[Math.floor(inner.length*.75)]:255,best=null;
-    /* solo se appena fuori dal lato c'è ancora carta (chiara e senza colore): un bordo vero ha fuori lo sfondo */
-    var out=0,on=0;for(s=1;s<12;s++){var mxo=-1;for(var oo=3;oo<=8;oo++){var px0=a[0]+(b[0]-a[0])*s/12+nx*oo,py0=a[1]+(b[1]-a[1])*s/12+ny*oo,v0=L0(px0,py0);
-        if(v0>=0&&G.sat[Math.round(py0)*w+Math.round(px0)]<E.growSat&&v0>mxo)mxo=v0}
-      if(mxo>=0){on++;if(mxo>=paper-E.contPaper)out++}}
-    if(!on||out<on*.7)continue;
-    for(var d=6;d<depth*E.grow&&!best;d+=2)for(var e=-3;e<=3;e+=1.5){
-      var a2=[a[0]+nx*(d+e),a[1]+ny*(d+e)],b2=[b[0]+nx*(d-e),b[1]+ny*(d-e)];
-      var A=X(a2,b2,pa,a),B=X(a2,b2,nb,b);if(!A||!B)continue;
-      if(A[0]<-2||A[1]<-2||A[0]>w+1||A[1]>h+1||B[0]<-2||B[1]<-2||B[0]>w+1||B[1]>h+1)break;
-      var LL=dist(A,B),ux=(B[0]-A[0])/LL,uy=(B[1]-A[1])/LL,pos=0,neg=0,tot=0,pap=0,ink=0,bt=0;
-      for(s=0;s<32;s++){var t=.05+.9*s/31,px=A[0]+ux*t*LL,py=A[1]+uy*t*LL;if(px<1||py<1||px>w-2||py>h-2)continue;tot++;var bs=0;
-        for(var o=-1.5;o<=1.5;o+=.75){var XX=Math.round(px+nx*o),YY=Math.round(py+ny*o);if(XX<1||YY<1||XX>w-2||YY>h-2)continue;var ii=YY*w+XX,gs=G.gx[ii]*nx+G.gy[ii]*ny;if(Math.abs(gs)>Math.abs(bs))bs=gs}
-        if(bs>E.growGrad)pos++;else if(bs<-E.growGrad)neg++;
-        /* la striscia tra il lato vecchio e il nuovo, in questa colonna */
-        var mx=-1,mn=999;for(var q=2;q<d-2;q+=2){var v2=L0(px-nx*q,py-ny*q);if(v2<0)continue;if(v2>mx)mx=v2;if(v2<mn)mn=v2}
-        var sq=false;for(q=2;q<d-2;q+=4){var X3=Math.round(px-nx*q),Y3=Math.round(py-ny*q);if(X3>=0&&Y3>=0&&X3<w&&Y3<h&&G.sat[Y3*w+X3]>=E.growSat){sq=true;break}}
-        if(mx>=0){bt++;if(mx>=paper-E.contPaper&&!sq)pap++;if(mn<mx-E.contInk)ink++}}
-      if(tot<12||!bt)continue;var f=Math.max(pos,neg)/tot;
-      if(!(f>=E.growSup&&pap>=bt*.8&&ink>=bt*.2))continue;
-      /* il nuovo lato è la fine dello scritto: appena oltre, niente tratti scuri */
-      var bl=0,bc=0;for(s=0;s<32;s++){t=.05+.9*s/31;px=A[0]+ux*t*LL;py=A[1]+uy*t*LL;var m1=-1,m2=999;
-        for(q=3;q<=8;q++){var v3=L0(px+nx*q,py+ny*q);if(v3<0)continue;if(v3>m1)m1=v3;if(v3<m2)m2=v3}
-        if(m1>=0){bc++;if(m2>=m1-E.contInk)bl++}}
-      if(bc&&bl>=bc*.85){best={f:f,A:A,B:B,pap:pap,ink:ink,bt:bt,d:d};break}
-    }
-    if(best){if(PERF)(window.__grow=window.__grow||[]).push({j:j,f:+best.f.toFixed(2),pap:best.pap,ink:best.ink,bt:best.bt,d:best.d});Q[j]=best.A;Q[(j+1)%4]=best.B}
-  }
-  return Q;
-}
 /* un lato senza contorno (fuori dalla foto o su un'altra carta, come la piega di un biglietto aperto): se il contorno di un lato
    vicino finisce prima dell'angolo, lì c'è l'angolo vero; il lato passa per quel punto, parallelo al lato opposto */
 function quadTrim(G,Q){
@@ -2249,7 +2214,6 @@ function quadTrim(G,Q){
       var Tt=Q.slice();Tt[j]=A;Tt[(j+1)%4]=B;if(!quadOrder(Tt)||quadArea(Tt)>=quadArea(Q))continue;
       if(!inkBand(G,Tt,Q,j,0,E.trimInk))T=Tt}
     if(!T)continue;
-    if(PERF)(window.__trim=window.__trim||[]).push({j:j,cut:+best.cut.toFixed(2)});
     Q=T;
   }
   return Q;
@@ -2280,17 +2244,15 @@ function quadOuter(G,Q){
       /* striscia in mezzo: colorata */
       var col=0,n=0;for(var s=1;s<16;s++)for(var u=1;u<4;u++){var t=s/16,P=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],R=[A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t];
         var x=Math.round(P[0]+(R[0]-P[0])*u/4),y=Math.round(P[1]+(R[1]-P[1])*u/4);if(x<0||y<0||x>=w||y>=h)continue;n++;if(G.sat[y*w+x]>=E.frameSat)col++}
-      if(PERF&&window.__odbg)window.__odbg.push([j,d,e,+r.sup[j].toFixed(2),n?+(col/n).toFixed(2):-1]);
       if(n&&col>=n*.6&&(!best||r.sup[j]>best.f))best={f:r.sup[j],T:T};
     }
-    if(best){if(PERF)(window.__outer=window.__outer||[]).push({j:j,f:+best.f.toFixed(2)});Q=best.T}
+    if(best)Q=best.T
   }
   return Q;
 }
 function inQuad(Q,p){for(var j=0;j<4;j++){var a=Q[j],b=Q[(j+1)%4];if((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])<0)return false}return true}
 function detectPage(work){
   var G=edgeGrad(work),k=G.k,E=CFG.scan.edges,cands=[];
-  if(PERF){(window.__G=window.__G||[]).push(G);window.__qs=quadScoreG;window.__el=edgeLines;window.__qo=quadOuter}
   var f=detectPageSeg(work);
   if(f){
     cands.push({q:f.q,mids:f.mids,seg:true});
@@ -2300,8 +2262,6 @@ function detectPage(work){
   cands.forEach(function(c){c.g=c.q.map(function(p){return [p[0]*k,p[1]*k]})});
   var e=null;try{var tops=edgeQuad(G);tops.forEach(function(c){var r=quadSides(G,c.q);r=quadPolish(G,r.q);if(!e||r.s>e.s)e=r})}catch(err){}
   if(e){var gr=e.q,pre=e.s;
-    /* anche più volte: tra la piega e il bordo vero ci possono essere altre linee stampate */
-    if(E.grow)for(var gi=0;gi<4;gi++){var g2=quadGrow(G,gr);if(g2.every(function(p,i){return p[0]===gr[i][0]&&p[1]===gr[i][1]}))break;gr=g2}
     gr=quadTrim(G,gr);
     cands.push({g:gr,seg:false,pre:pre})}
   if(!cands.length)return null;
@@ -2661,7 +2621,6 @@ async function autoOrient(cv){
   if(!ocrBad){
     try{
       var w=await ocrWorker(),small=scaledGray(cv,1600),r=(await w.detect(small)).data;small.width=small.height=0;
-      if(PERF)(window.__osd=window.__osd||[]).push(r&&{d:r.orientation_degrees,c:r.orientation_confidence,s:r.script,sc:r.script_confidence,ld:lineDir(cv)});
       if(r&&r.orientation_degrees!=null&&r.orientation_confidence>=2)deg=r.orientation_degrees;
       else if(r&&r.orientation_degrees!=null){
         /* Tesseract incerto (scrittura a mano, poche righe): le righe della pagina dicono se il testo corre in verticale;
@@ -2915,6 +2874,8 @@ var ICON={
   crop:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 2v16h16M2 6h16v16"/></svg>',
   redo:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.2h3.6l1.7-2.6h7.4l1.7 2.6H21v10.6H3z"/><circle cx="12" cy="13.4" r="3"/></svg>',
   del:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+  wand:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M4 20L14.5 9.5"/><path d="M17 3v4M15 5h4M20.5 9.5v3M19 11h3M10 3.5v2.5M8.75 4.75h2.5"/></svg>',
+  hand:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6h12v12H6z" stroke-dasharray="3 3"/><circle cx="6" cy="6" r="2.4" fill="currentColor"/><circle cx="18" cy="6" r="2.4" fill="currentColor"/><circle cx="18" cy="18" r="2.4" fill="currentColor"/><circle cx="6" cy="18" r="2.4" fill="currentColor"/></svg>',
   look:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M10.5 7.5v6M7.5 10.5h6"/></svg>',
   l:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
   r:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>'
@@ -2991,53 +2952,20 @@ function ufLines(bw,W,H,U){
     var sm=ys.map(function(_,j){var a=0;for(var d=-hk;d<=hk;d++)a+=ys[Math.min(ys.length-1,Math.max(0,j+d))];return a/k2});
     var srt=sm.slice().sort(function(a,b){return a-b}),y0=srt[srt.length>>1],pts=[];
     for(var j=0;j<xs.length;j+=3)pts.push([xs[j],y0,sm[j]-y0]);
-    pts.curve={xs:xs,ys:sm};out.push(pts);
+    out.push(pts);
   });
   return out;
 }
 /* mappa sulla griglia: media pesata gaussiana dei campioni, che sfuma a zero dove non ci sono linee */
-function ufGrid(lines,W,H,G,sx,sy,lim,cut){
+function ufGrid(lines,W,H,G,sx,sy,lim){
   var pts=[];lines.forEach(function(l){pts=pts.concat(l)});
   var step=Math.max(1,Math.ceil(pts.length/1500)),f=new Float32Array(G*G);
   for(var gy=0;gy<G;gy++)for(var gx=0;gx<G;gx++){
     var X=gx*(W-1)/(G-1),Y=gy*(H-1)/(G-1),num=0,den=0;
-    for(var i=0;i<pts.length;i+=step){var a=(X-pts[i][0])/sx,b=(Y-pts[i][1])/sy,e=a*a+b*b;if(e>18||cut&&cut(X,Y,pts[i][0],pts[i][1]))continue;var w=Math.exp(-e/2);num+=w*pts[i][2];den+=w}
+    for(var i=0;i<pts.length;i+=step){var a=(X-pts[i][0])/sx,b=(Y-pts[i][1])/sy,e=a*a+b*b;if(e>18)continue;var w=Math.exp(-e/2);num+=w*pts[i][2];den+=w}
     var v=den>1e-3?num/den*Math.min(1,den/.1):0;f[gy*G+gx]=Math.max(-lim,Math.min(lim,v));
   }
   return f;
-}
-/* SPERIMENTALE, non adottato (vedi R-SCN-27): pieghe nette. Per ogni linea i massimi del cambio di pendenza tra due finestre
-   vicine, se ben sopra il suo rumore; ritorna punti [lungo, traverso] nel riferimento della linea */
-function ufKinks(lines,W,C){
-  var out=[],w=Math.max(6,Math.round(W*C.win));
-  function fit(xs,ys,a,b){var n=b-a,sx=0,sy=0,sxx=0,sxy=0;for(var i=a;i<b;i++){sx+=xs[i];sy+=ys[i];sxx+=xs[i]*xs[i];sxy+=xs[i]*ys[i]}var d=n*sxx-sx*sx;return d?(n*sxy-sx*sy)/d:0}
-  lines.forEach(function(l){
-    var c=l.curve;if(!c||c.xs.length<3*w)return;
-    var row=[];for(var j=w;j<c.xs.length-w;j+=2)row.push([c.xs[j],c.ys[j],Math.abs(fit(c.xs,c.ys,j-w,j)-fit(c.xs,c.ys,j,j+w))]);
-    var v=row.map(function(r){return r[2]}).sort(function(a,b){return a-b}),noise=v[v.length>>1];
-    for(j=1;j<row.length-1;j++){var r=row[j][2];if(r>=row[j-1][2]&&r>=row[j+1][2]&&r>Math.max(C.min,C.noise*noise))out.push([row[j][0],row[j][1]])}
-  });
-  return out;
-}
-/* rette delle pieghe tra i punti di piega (ricerca casuale ripetibile): «traverso = a + t·(lungo − b)» */
-function ufCreases(P,W,H,C){
-  var seed=7,res=[];function rnd(){seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff}
-  P=P.slice();
-  for(var k=0;k<C.max&&P.length>=C.minPts;k++){
-    var best=null;
-    for(var it=0;it<600;it++){
-      var a=P[(rnd()*P.length)|0],b=P[(rnd()*P.length)|0];if(Math.abs(a[1]-b[1])<H*.05)continue;
-      var t=(b[0]-a[0])/(b[1]-a[1]);if(Math.abs(t)>C.maxTilt)continue;
-      var nrm=Math.sqrt(1+t*t),inl=[];
-      for(var i=0;i<P.length;i++)if(Math.abs(P[i][0]-(a[0]+t*(P[i][1]-a[1])))/nrm<W*C.tol)inl.push(i);
-      if(!best||inl.length>best.inl.length)best={inl:inl,a:a,t:t};
-    }
-    if(!best||best.inl.length<C.minPts)break;
-    var ys=best.inl.map(function(i){return P[i][1]});if(Math.max.apply(0,ys)-Math.min.apply(0,ys)<H*C.span)break;
-    res.push({a:best.a[0],b:best.a[1],t:best.t});
-    var drop={};best.inl.forEach(function(i){drop[i]=1});P=P.filter(function(_,i){return !drop[i]});
-  }
-  return res;
 }
 /* dalla pagina raddrizzata: {w, h, G, dx, dy} oppure null se non c'è niente di affidabile da correggere */
 /* inchiostro della pagina su una copia con il lato lungo di «size» px: {bw, W, H} */
@@ -3062,29 +2990,6 @@ function lineDir(cv){
   var U=CFG.scan.unfold,B=ufBin(cv,600);
   return {h:ufLines(B.bw,B.W,B.H,U).length,v:ufLines(ufT(B.bw,B.W,B.H),B.H,B.W,U).length};
 }
-/* superficie liscia (polinomio di grado da in lungo e dt di traverso) adattata ai campioni [x, y, scarto] con pesi robusti;
-   along = 0 se le linee corrono in x. {f(x,y), r2} oppure null */
-function ufPoly(lines,W,H,vert,da,dt){
-  var P=[];lines.forEach(function(l){P=P.concat(l)});if(P.length<20)return null;
-  var T=[];for(var i=0;i<=da;i++)for(var j=0;j<=dt;j++)T.push([i,j]);var m=T.length;
-  function basis(x,y){var u=x/W*2-1,v=y/H*2-1,a=vert?v:u,b=vert?u:v;return T.map(function(t){return Math.pow(a,t[0])*Math.pow(b,t[1])})}
-  var X=P.map(function(p){return basis(p[0],p[1])}),z=P.map(function(p){return p[2]}),w=P.map(function(){return 1}),c=null;
-  for(var it=0;it<4;it++){
-    var A=[],B=[];for(i=0;i<m;i++){A.push(new Float64Array(m));B.push(0)}
-    for(var k=0;k<P.length;k++){var xk=X[k],wk=w[k];for(i=0;i<m;i++){B[i]+=wk*xk[i]*z[k];for(var j=i;j<m;j++)A[i][j]+=wk*xk[i]*xk[j]}}
-    var tr=0;for(i=0;i<m;i++){for(j=0;j<i;j++)A[i][j]=A[j][i];tr+=A[i][i]}
-    for(i=1;i<m;i++)A[i][i]+=tr/m*1e-3;
-    /* eliminazione di Gauss */
-    for(var col=0;col<m;col++){var pv=col;for(var r=col+1;r<m;r++)if(Math.abs(A[r][col])>Math.abs(A[pv][col]))pv=r;
-      var tA=A[col];A[col]=A[pv];A[pv]=tA;var tB=B[col];B[col]=B[pv];B[pv]=tB;if(Math.abs(A[col][col])<1e-12)return null;
-      for(r=0;r<m;r++){if(r===col)continue;var f=A[r][col]/A[col][col];if(!f)continue;for(var q=col;q<m;q++)A[r][q]-=f*A[col][q];B[r]-=f*B[col]}}
-    c=B.map(function(v,i){return v/A[i][i]});
-    for(k=0;k<P.length;k++){var e=0;for(i=0;i<m;i++)e+=c[i]*X[k][i];var rr=Math.abs(z[k]-e);w[k]=rr<1.5?1:1.5/rr}
-  }
-  var sr=0,st=0,mz=0,sw=0;for(k=0;k<P.length;k++){mz+=w[k]*z[k];sw+=w[k]}mz/=sw;
-  for(k=0;k<P.length;k++){e=0;for(i=0;i<m;i++)e+=c[i]*X[k][i];sr+=w[k]*(z[k]-e)*(z[k]-e);st+=w[k]*(z[k]-mz)*(z[k]-mz)}
-  return {f:function(x,y){var b=basis(x,y),s=0;for(var i=0;i<m;i++)s+=c[i]*b[i];return s},r2:st>0?1-sr/st:0,rms:Math.sqrt(st/sw)};
-}
 /* tremolio delle linee: per ogni linea, lo scarto dalla parabola che la segue meglio (la carta piega piano, la mano trema) */
 function ufWobble(lines,vert){
   return lines.filter(function(l){return l.length>=10}).map(function(l){
@@ -3098,31 +3003,15 @@ function ufWobble(lines,vert){
     return Math.sqrt(e/n);
   });
 }
-function unfoldField(cv,pass,model){
+function unfoldField(cv,pass){
   var U=CFG.scan.unfold,B=ufBin(cv,U.size),bw=B.bw,W=B.W,H=B.H,i;
   var hl=ufLines(bw,W,H,U),vl=ufLines(ufT(bw,W,H),H,W,U).map(function(l){return l.map(function(p){return [p[1],p[0],p[2]]})});
   if(hl.length+vl.length<U.minLines)return null;
-  var G=U.grid,C=CFG.scan.crease;model=model||U.model||"local";
-  if(model==="smooth"||(model==="both"&&!pass)||(U.guard&&!pass)){
-    var ph=hl.length>=2?ufPoly(hl,W,H,false,3,2):null,pv=vl.length>=2?ufPoly(vl,W,H,true,3,2):null;
-    var wb=ufWobble(hl,false).concat(ufWobble(vl,true)).sort(function(x,y){return x-y}),wob=wb.length?wb[wb.length>>1]:0;
-    if(PERF)(window.__unf=window.__unf||[]).push({pass:pass,h:hl.length,v:vl.length,r2h:ph&&+ph.r2.toFixed(2),r2v:pv&&+pv.r2.toFixed(2),wob:+wob.toFixed(2)});
-    /* scrittura a mano: le righe tremano attorno alla loro curva molto più di quanto la carta possa piegarsi; non si distende */
-    if(U.guard&&!pass&&wob>U.maxWobble)return false;
-    if(model==="smooth"||(model==="both"&&!pass)){
-      var Dy=new Float32Array(G*G),Dx=new Float32Array(G*G),mx2=0;
-      for(var gy=0;gy<G;gy++)for(var gx=0;gx<G;gx++){var X=gx*(W-1)/(G-1),Y=gy*(H-1)/(G-1),j=gy*G+gx;
-        if(ph&&ph.r2>=U.r2)Dy[j]=Math.max(-U.maxShift*H,Math.min(U.maxShift*H,ph.f(X,Y)));
-        if(pv&&pv.r2>=U.r2)Dx[j]=Math.max(-U.maxShift*W,Math.min(U.maxShift*W,pv.f(X,Y)));
-        mx2=Math.max(mx2,Math.abs(Dx[j]),Math.abs(Dy[j]))}
-      return mx2<.6?null:{w:W,h:H,G:G,dx:Dx,dy:Dy};
-    }
-  }
-  /* SPERIMENTALE: ogni lato di una piega è una falda a sé, i campioni non valgono oltre la piega */
-  var cv2=C.on?ufCreases(ufKinks(hl,W,C),W,H,C):[],ch=C.on?ufCreases(ufKinks(ufLines(ufT(bw,W,H),H,W,U),H,C),H,W,C):[];
-  function side(X,Y){var s=0,k;for(k=0;k<cv2.length;k++)s=s*2+(X>cv2[k].a+cv2[k].t*(Y-cv2[k].b)?1:0);for(k=0;k<ch.length;k++)s=s*2+(Y>ch[k].a+ch[k].t*(X-ch[k].b)?1:0);return s}
-  var cut=cv2.length+ch.length?function(X1,Y1,X2,Y2){return side(X1,Y1)!==side(X2,Y2)}:null;
-  var dy=ufGrid(hl,W,H,G,U.along*W,U.across*H,U.maxShift*H,cut),dx=ufGrid(vl,W,H,G,U.across*W,U.along*H,U.maxShift*W,cut),mx=0;
+  /* scrittura a mano: le righe tremano attorno alla loro curva molto più di quanto la carta possa piegarsi; non si distende */
+  if(!pass){var wb=ufWobble(hl,false).concat(ufWobble(vl,true)).sort(function(x,y){return x-y}),wob=wb.length?wb[wb.length>>1]:0;
+    if(PERF)(window.__unf=window.__unf||[]).push({h:hl.length,v:vl.length,wob:+wob.toFixed(2)});
+    if(wob>U.maxWobble)return false}
+  var G=U.grid,dy=ufGrid(hl,W,H,G,U.along*W,U.across*H,U.maxShift*H),dx=ufGrid(vl,W,H,G,U.across*W,U.along*H,U.maxShift*W),mx=0;
   for(i=0;i<G*G;i++)mx=Math.max(mx,Math.abs(dx[i]),Math.abs(dy[i]));
   return mx<.6?null:{w:W,h:H,G:G,dx:dx,dy:dy};
 }
@@ -3234,17 +3123,14 @@ function ufAt(F,f,X,Y){
   return (f[r0]*(1-fx)+f[r0+1]*fx)*(1-fy)+(f[r0+G]*(1-fx)+f[r0+G+1]*fx)*fy;
 }
 /* la mappa in più passate sulla copia piccola (ogni passata corregge quello che resta), composte in una sola: la pagina si ricampiona una volta */
-/* quanto sono storte le linee della pagina: scarto medio in pixel della copia di analisi (e quante linee) */
-function ufResid(cv){
-  var U=CFG.scan.unfold,B=ufBin(cv,U.size),L=ufLines(B.bw,B.W,B.H,U).concat(ufLines(ufT(B.bw,B.W,B.H),B.H,B.W,U)),s=0,n=0;
-  L.forEach(function(l){l.forEach(function(p){s+=Math.abs(p[2]);n++})});
-  return {r:n?s/n:0,lines:L.length};
-}
 /* la mappa in più passate sulla copia piccola (ogni passata corregge quello che resta), composte in una sola: la pagina si ricampiona una volta */
-async function unfoldRun(sm,model){
-  var U=CFG.scan.unfold,F=null,cur=sm;
+async function unfoldMap(cv){
+  var U=CFG.scan.unfold,k=Math.min(1,U.size/Math.max(cv.width,cv.height));
+  var sm=document.createElement("canvas");sm.width=Math.max(1,Math.round(cv.width*k));sm.height=Math.max(1,Math.round(cv.height*k));
+  sm.getContext("2d").drawImage(cv,0,0,sm.width,sm.height);
+  var F=null,cur=sm;
   for(var pass=0;pass<U.passes;pass++){
-    var N=unfoldField(cur,pass,model);if(N===false)break;if(!N){if(pass===0&&model==="both")continue;break}
+    var N=unfoldField(cur,pass);if(!N)break;
     if(F){
       /* totale = nuova + vecchia presa dove la nuova manda */
       for(var gy=0;gy<N.G;gy++)for(var gx=0;gx<N.G;gx++){
@@ -3255,24 +3141,7 @@ async function unfoldRun(sm,model){
     F=N;
     if(pass<U.passes-1){var nx=await unfoldApply(sm,F);if(cur!==sm)cur.width=cur.height=0;cur=nx}
   }
-  if(cur!==sm)cur.width=cur.height=0;
-  return F;
-}
-/* con model "pick" si provano i modelli elencati e si tiene quello che lascia le linee più dritte, purché migliori davvero */
-async function unfoldMap(cv){
-  var U=CFG.scan.unfold,k=Math.min(1,U.size/Math.max(cv.width,cv.height));
-  var sm=document.createElement("canvas");sm.width=Math.max(1,Math.round(cv.width*k));sm.height=Math.max(1,Math.round(cv.height*k));
-  sm.getContext("2d").drawImage(cv,0,0,sm.width,sm.height);
-  var F=null;
-  if(U.model!=="pick")F=await unfoldRun(sm,U.model);
-  else{
-    var r0=ufResid(sm),best=r0.r*U.gain,log={none:+r0.r.toFixed(2)};
-    for(var j=0;j<U.pick.length;j++){var Fm=await unfoldRun(sm,U.pick[j]);if(!Fm)continue;
-      var t=await unfoldApply(sm,Fm),r=ufResid(t);t.width=t.height=0;log[U.pick[j]]=+r.r.toFixed(2);
-      if(r.lines>=r0.lines*.8&&r.r<best){best=r.r;F=Fm;log.pick=U.pick[j]}}
-    if(PERF)(window.__pick=window.__pick||[]).push(log);
-  }
-  sm.width=sm.height=0;
+  if(cur!==sm)cur.width=cur.height=0;sm.width=sm.height=0;
   return F;
 }
 /* quota della pagina con colori decisi (differenza tra il canale più forte e il più debole oltre 60) */
@@ -3296,6 +3165,8 @@ function edgeClean(cv){
 /* rifà la pagina: raddrizzamento, pieghe, stile, rotazione */
 async function capBuild(p){
   /* correzione automatica dei lati (R-SCN-24), tenuta solo se sotto i lati c'è almeno tanto contorno quanto prima (R-SCN-31) */
+  /* angoli a mano (R-SCN-32): solo la prospettiva degli angoli scelti */
+  if(p.manual)p.refined=true;
   if(!p.refined){var rf=null;try{rf=refineQuad(p.work,p.q,p.mids);if(rf&&quadScore(p.work,rf.q)<quadScore(p.work,p.q))rf=null}catch(e){rf=null}if(rf){p.q=rf.q;p.mids=rf.mids}p.refined=true}
   var style=capStyle(p),cv=await pageCanvas({work:p.work,q:p.q,mids:p.mids,style:style});
   /* orientamento sulla pagina com'è uscita dai bordi (la distensione non lo cambia e il riconoscimento ci si trova meglio) */
@@ -3307,14 +3178,15 @@ async function capBuild(p){
      e l'inclinazione fine (R-SCN-21) non serve più */
   var tu=performance.now(),skew=p.auto.skew;
   /* una pagina piena di colore (copertina, foto) ha forme ondulate disegnate apposta: non si distende */
-  if(p.unf===undefined){var cf=colorFrac(cv);if(PERF)(window.__color=window.__color||[]).push(+cf.toFixed(3));
+  if(p.manual)p.unf=null;
+  if(p.unf===undefined){var cf=colorFrac(cv);
     if(cf>CFG.scan.unfold.maxColor)p.unf=null;else try{p.unf=await unfoldMap(cv)}catch(e){p.unf=null}}
   if(p.unf){try{var uc=await unfoldApply(cv,p.unf);cv.width=cv.height=0;cv=uc;skew=0}catch(e){}}
   perf("unfold",tu);
   /* ombre delle pieghe (R-SCN-29): solo Documento e Bianco e nero; Colore resta naturale */
-  if(style!=="photo"&&CFG.scan.shade.on){var ts=performance.now();try{var sm=shadeMap(cv);if(sm)await shadeApply(cv,sm)}catch(e){}perf("shade",ts)}
+  if(style!=="photo"&&CFG.scan.shade.on&&!p.manual){var ts=performance.now();try{var sm=shadeMap(cv);if(sm)await shadeApply(cv,sm)}catch(e){}perf("shade",ts)}
   /* spicchi di sfondo scuro rimasti lungo i bordi (un lato un po' curvo): diventano bianchi (R-SCN-31) */
-  if(style!=="photo"){try{edgeClean(cv)}catch(e){}}
+  if(style!=="photo"&&!p.manual){try{edgeClean(cv)}catch(e){}}
   var out=turnCanvas(cv,p.auto.deg+p.rot,skew),blob=await toJpeg(out,style==="bw"?.8:.85);
   if(out!==cv)out.width=out.height=0;cv.width=cv.height=0;
   if(p.url)URL.revokeObjectURL(p.url);
@@ -3352,7 +3224,7 @@ async function scanFile(file){
   capTarget=-1;
   if(!r)return;
   var old=target>=0?cap.pages[target]:null;
-  var p={work:r.work,q:r.q,mids:r.mids,rot:0,style:old?old.style:null,refined:!!(found&&found.edge&&r.q.every(function(p,i){return dist(p,found.q[i])<1}))};
+  var p={work:r.work,q:r.q,mids:r.mids,rot:0,style:old?old.style:null,refined:!!(found&&found.edge&&r.q.every(function(p,i){return dist(p,found.q[i])<1})),prop:found&&r.work===work?{work:work,q:found.q,mids:found.mids,edge:!!found.edge}:null};
   loaderOn("scan",t("scanning"));
   try{await capBuild(p)}catch(e){p=null}
   await loaderOff();
@@ -3371,7 +3243,7 @@ async function galleryFiles(files){
     var f=null;try{f=detectPage(work)}catch(e){}
     if(!f)f=insetQuad(work);
     /* bordi trovati dai lati dritti: sono già sul contorno, la correzione automatica non serve (e tirerebbe dentro una cornice) */
-    var p={work:work,q:f.q,mids:f.mids,rot:0,style:null,refined:!!f.edge};
+    var p={work:work,q:f.q,mids:f.mids,rot:0,style:null,refined:!!f.edge,prop:{work:work,q:f.q,mids:f.mids,edge:!!f.edge}};
     try{await capBuild(p);list.push(p)}catch(e){}
   }
   await loaderOff();
@@ -3387,6 +3259,25 @@ async function capEdges(i){
   capTarget=-1;
   if(!r)return;
   p.work=r.work;p.q=r.q;p.mids=r.mids;p.refined=false;p.auto=null;p.unf=undefined;
+  capRebuild([p]);
+}
+/* raddrizzamento automatico o angoli a mano (R-SCN-32) */
+async function capManual(i,on){
+  var p=cap.pages[i];if(!p||!!p.manual===on)return;
+  if(on){
+    capTarget=i;
+    var r=await editCorners(p.work,{q:p.q,mids:p.mids});
+    if(r==="retake")return;
+    capTarget=-1;
+    if(!r){capRender();return}
+    p.work=r.work;p.q=r.q;p.mids=r.mids;p.manual=true;
+  }else{
+    p.manual=false;
+    var pr=p.prop&&p.prop.work===p.work?p.prop:null;
+    if(!pr){var f=null;try{f=detectPage(p.work)}catch(e){}if(!f)f=insetQuad(p.work);pr={work:p.work,q:f.q,mids:f.mids,edge:!!f.edge};p.prop=pr}
+    p.q=pr.q;p.mids=pr.mids;p.refined=pr.edge;
+  }
+  p.auto=null;p.unf=undefined;
   capRebuild([p]);
 }
 function capMove(i,j){
@@ -3541,6 +3432,8 @@ function capRender(){
       r2.appendChild(ibtn("alt ib",ICON.look,t("viewBtn"),function(){viewOpen(i)},true));
       r2.appendChild(ibtn("alt ib",ICON.rot,t("rotate"),function(){rotatePage(i)},true));
       r2.appendChild(ibtn("alt ib",ICON.crop,t("edges"),function(){capEdges(i)},true));
+      var mb=ibtn("alt ib"+(p.manual?" on":""),p.manual?ICON.hand:ICON.wand,t("straight")+": "+t(p.manual?"straightHand":"straightAuto"),function(){capManual(i,!p.manual)},true);
+      mb.setAttribute("aria-pressed",String(!!p.manual));mb.title=t("straight")+": "+t(p.manual?"straightHand":"straightAuto");r2.appendChild(mb);
       r2.appendChild(ibtn("alt ib",ICON.redo,t("retake"),function(){shoot(i)},true));
       r2.appendChild(ibtn("danger ib",ICON.del,t("delPage"),function(){capDelete(i)},true));
       c.appendChild(r2);
@@ -3582,8 +3475,16 @@ function capRender(){
       b.addEventListener("click",function(){if(cap.sel===i)viewOpen(i);else{cap.sel=i;capRender()}});strip.appendChild(b);
     });
     var add=el("button","add","+");add.type="button";add.setAttribute("aria-label",t("addPage"));add.addEventListener("click",function(){shoot()});
-    strip.appendChild(add);p2.appendChild(strip);
-    var i=cap.sel;
+    strip.appendChild(add);
+    var i=cap.sel,sw=el("div","stripWrap");sw.appendChild(strip);
+    /* linguette ai lati della striscia: spostano la pagina selezionata (R-SCN-19) */
+    if(n>1&&i>=0){
+      var lt=ibtn("mv l",ICON.l,t("moveL"),function(){capMove(i,i-1)},true);lt.disabled=i===0;
+      var rt=ibtn("mv r",ICON.r,t("moveR"),function(){capMove(i,i+1)},true);rt.disabled=i===n-1;
+      sw.appendChild(lt);sw.appendChild(rt);
+    }
+    p2.appendChild(sw);
+    var selT=strip.children[i];if(selT)requestAnimationFrame(function(){var a=selT.offsetLeft-strip.clientWidth/2+selT.offsetWidth/2;strip.scrollLeft=Math.max(0,a)});
     if(i>=0&&cap.pages[i]){
       p2.appendChild(el("p","lab",t("pageN",{n:nf(i+1)})));
       var tl=el("div","tools");
@@ -3591,10 +3492,17 @@ function capRender(){
       tl.appendChild(ibtn("alt",ICON.rot,t("rotate"),function(){rotatePage(i)}));
       tl.appendChild(ibtn("alt",ICON.crop,t("edges"),function(){capEdges(i)}));
       tl.appendChild(ibtn("alt",ICON.redo,t("retake"),function(){shoot(i)}));
-      var lb=ibtn("alt",ICON.l,t("moveL"),function(){capMove(i,i-1)},true);lb.disabled=i===0;tl.appendChild(lb);
-      var rb=ibtn("alt",ICON.r,t("moveR"),function(){capMove(i,i+1)},true);rb.disabled=i===n-1;tl.appendChild(rb);
       tl.appendChild(ibtn("danger",ICON.del,t("delPage"),function(){capDelete(i)}));
       p2.appendChild(tl);
+      var pg=cap.pages[i];
+      p2.appendChild(el("p","lab",t("straight")));
+      var sg=el("div","seg sm straightSeg");
+      [[false,ICON.wand,"straightAuto"],[true,ICON.hand,"straightHand"]].forEach(function(x){
+        var b=el("button");b.type="button";b.innerHTML=x[1];b.appendChild(document.createTextNode(t(x[2])));
+        b.setAttribute("aria-pressed",String(!!pg.manual===x[0]));b.addEventListener("click",function(){capManual(i,x[0])});sg.appendChild(b);
+      });
+      p2.appendChild(sg);
+      if(pg.manual)p2.appendChild(el("p","hint straightTip",t("straightTip")));
       p2.appendChild(el("p","lab",t("stylePage")));
       p2.appendChild(styleSeg(cap.pages[i].style,true,function(s){pageStyle(i,s)},true));
       var segs=p2.querySelectorAll(".seg");segs[segs.length-1].style.marginBottom="0";

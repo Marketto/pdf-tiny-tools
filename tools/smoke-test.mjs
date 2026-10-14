@@ -533,13 +533,30 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await shot(() => page.click("#capture .add"));
   await page.waitForSelector("#scanner:not([hidden])"); await page.click("#scanOk");
   await page.waitForFunction(() => document.querySelectorAll("#capture .thumb").length === 2 && document.getElementById("loader").hidden, null, { timeout: 30000 });
-  check(await page.locator("#capture .tools button").count() === 7, "Cattura: strumenti della pagina selezionata (guarda, ruota, bordi, rifai, sposta, elimina)");
+  check(await page.locator("#capture .tools button").count() === 5, "Cattura: strumenti della pagina selezionata (guarda, ruota, bordi, rifai, elimina)");
+  // linguette ai lati della striscia (R-SCN-19): spostano la pagina selezionata
+  const ord0 = await page.evaluate(() => [...document.querySelectorAll("#capture .thumb img")].map((i) => i.src).join());
+  check(await page.locator("#capture .stripWrap .mv").count() === 2 && await page.evaluate(() => document.querySelector("#capture .stripWrap .mv.r").disabled), "Cattura: linguette ‹ › ai lati della striscia, avanti spenta sull'ultima pagina");
+  await page.click("#capture .stripWrap .mv.l");
+  const ord1 = await page.evaluate(() => [...document.querySelectorAll("#capture .thumb img")].map((i) => i.src).join());
+  const sel1 = await page.evaluate(() => [...document.querySelectorAll("#capture .thumb")].findIndex((t) => t.getAttribute("aria-pressed") === "true"));
+  check(ord0 !== ord1 && sel1 === 0, `Cattura: la linguetta sposta indietro la pagina selezionata, che resta selezionata (${sel1})`);
+  await page.click("#capture .stripWrap .mv.r");
+  // raddrizzamento automatico o angoli a mano (R-SCN-32)
+  check(await page.evaluate(() => document.querySelector("#capture .straightSeg button").getAttribute("aria-pressed") === "true"), "Cattura: raddrizzamento automatico di serie");
+  await page.click("#capture .straightSeg button >> nth=1");
+  await page.waitForSelector("#scanner:not([hidden])"); await page.click("#scanOk");
+  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector("#capture .straightSeg button:nth-child(2)").getAttribute("aria-pressed") === "true", null, { timeout: 30000 });
+  check(!!(await page.$("#capture .straightTip")), "Cattura: «Angoli a mano» passa dall'editor e lo dice sotto la scelta");
+  await page.click("#capture .straightSeg button >> nth=0");
+  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector("#capture .straightSeg button").getAttribute("aria-pressed") === "true", null, { timeout: 30000 });
+  check(!(await page.$("#capture .straightTip")), "Cattura: riscegliendo «Automatico» la pagina torna come proposta");
   await page.click("#capture .tools button >> nth=1");
   await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelectorAll("#capture .thumb").length === 2, null, { timeout: 30000 });
   await page.waitForFunction(() => [...document.querySelectorAll("#capture .thumb img")].every((i) => i.complete && i.naturalWidth));
   const dims = await page.evaluate(() => [...document.querySelectorAll("#capture .thumb img")].map((i) => i.naturalWidth > i.naturalHeight));
   check(dims.length === 2 && dims[0] !== dims[1], `Cattura: «Ruota» gira solo la pagina selezionata (${dims})`);
-  await page.click("#capture .seg.sm button >> nth=2");
+  await page.click("#capture .seg.sm:not(.straightSeg) button >> nth=2");
   await page.waitForFunction(() => document.getElementById("loader").hidden && !!document.querySelector("#capture .thumb .chip"), null, { timeout: 30000 });
   check(true, "Cattura: stile proprio della pagina (B/N) segnato sulla miniatura");
   // anteprima a tutto schermo (R-SCN-26): tocco sulla miniatura selezionata, doppio tocco ingrandisce, scorrimento cambia pagina, indietro chiude
