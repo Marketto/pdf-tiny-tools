@@ -620,6 +620,41 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(outs[0].px.length === outs[1].px.length && diff < 6, `Scansione: stesso risultato sulla scheda grafica e in JavaScript (differenza media ${diff.toFixed(1)} su 255)`);
   check(!outs[0].err.length && !outs[1].err.length, "Scansione su scheda grafica: nessun errore JavaScript");
 }
+// --- Cattura: pieghe distese (R-SCN-27): un foglio con righe ondulate deve uscire con le righe dritte
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url + "?perf=1"); await page.waitForTimeout(600);
+  const photo = Buffer.from(await page.evaluate(async () => {
+    const c = document.createElement("canvas"); c.width = 1200; c.height = 1600; const g = c.getContext("2d");
+    g.fillStyle = "#2d3a4a"; g.fillRect(0, 0, 1200, 1600); g.fillStyle = "#f6f4ee"; g.fillRect(150, 150, 900, 1300);
+    /* righe di tabella piegate: un'onda e uno scalino a metà foglio, come una piega */
+    g.strokeStyle = "#222"; g.lineWidth = 3;
+    for (let i = 0; i < 22; i++) { g.beginPath(); for (let x = 200; x <= 1000; x += 4) { const y = 260 + i * 52 + 14 * Math.sin((x - 200) / 800 * Math.PI) + (x > 600 ? 8 : 0); x === 200 ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke(); }
+    return [...new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/jpeg", .92))).arrayBuffer())];
+  }));
+  await page.click("#camBtn");
+  await page.setInputFiles("#galInput", { name: "piega.jpg", mimeType: "image/jpeg", buffer: photo });
+  await page.waitForFunction(() => document.querySelectorAll("#capture .thumb").length === 1 && document.getElementById("loader").hidden, null, { timeout: 120000 });
+  const r = await page.evaluate(async () => {
+    const im = document.querySelector("#capture .thumb img"); await new Promise((r) => (im.complete && im.naturalWidth ? r() : (im.onload = r)));
+    const bmp = await createImageBitmap(await (await fetch(im.src)).blob()), W = 400, H = Math.round(400 * bmp.height / bmp.width), c = document.createElement("canvas"); c.width = W; c.height = H;
+    const g = c.getContext("2d"); g.drawImage(bmp, 0, 0, W, H); const d = g.getImageData(0, 0, W, H).data;
+    /* si segue una riga da metà foglio verso i due lati: su un foglio disteso resta alla stessa altezza */
+    const dark = (x, y) => d[(y * W + x) * 4], cx = W >> 1;
+    let y0 = 0, best = 1e9; for (let y = Math.round(H * .45); y < H * .55; y++) if (dark(cx, y) < best) { best = dark(cx, y); y0 = y; }
+    const ys = [y0], win = Math.max(2, Math.round(H * .006));
+    for (const dir of [-1, 1]) { let y = y0; for (let x = cx + dir; x > W * .15 && x < W * .85; x += dir) { let bb = 1e9, by = y; for (let t = y - win; t <= y + win; t++) if (dark(x, t) < bb) { bb = dark(x, t); by = t; } y = by; ys.push(y); } }
+    const spread = Math.max(...ys) - Math.min(...ys), near = ys;
+    return { spread: spread / H * 1000, unfold: (window.__perf || []).some((x) => x[0] === "unfold") };
+  });
+  check(r.unfold && r.spread < 8, `Cattura: le righe ondulate di un foglio piegato escono dritte (scarto ${r.spread.toFixed(1)}‰ dell'altezza; senza distensione è circa 25‰)`);
+  check(errors.length === 0, `Pieghe: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
 // --- Cattura: orientamento (Tesseract), raddrizzamento del testo, calamita e controllo dei bordi (R-SCN-20…24)
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 500, height: 900 }, acceptDownloads: true });

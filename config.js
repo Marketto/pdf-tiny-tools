@@ -37,7 +37,7 @@ window.CONFIG = {
        con H.264 in uscita i valori si moltiplicano per avcMul */
     guess: { hiFrom: 0.965, bpp: { hi: 0.06, lo: 0.04 }, ratio: { hi: { modern: 0.7, avc: 0.45, old: 0.3 }, lo: { modern: 0.5, avc: 0.32, old: 0.22 } }, avcMul: 1.5 },
     /* video corti (R-VID-04): fino a shortSecs secondi si prova il video intero, al massimo wholeTries volte, misurando wholeFrames fotogrammi */
-    shortSecs: 20, wholeTries: 3, wholeFrames: 6,
+    shortSecs: 20, wholeTries: 4, wholeFrames: 6,
     /* margine sul bitrate trovato, perché la qualità reale non scenda sotto la soglia (R-VID-06) */
     planMargin: 1.05,
     /* video grandi (R-VID-14): soglia sicura = memoria del dispositivo × memPerGbMB, al massimo maxMB; se la memoria non è nota, defaultMB */

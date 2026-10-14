@@ -1476,10 +1476,13 @@ async function squeezeVideo(it,pl,onPct){
   return new Blob([tgt.buffer],{type:mov?"video/quicktime":"video/mp4"});
 }
 async function dropTmpName(n){if(n)try{await (await tmpDir()).removeEntry(n)}catch(e){}}
+/* video corto: la prova promossa più leggera, misurata sul video intero */
+function wholeBest(c,thr){var r=null;c.forEach(function(p){if(p.q>=thr&&(!r||p.b<r.b))r=p});return r}
 /* video corto (R-VID-04): fotogrammi di riferimento sparsi su tutto il video, alle misure di confronto del bersaglio */
 async function vWholeRefs(it,v,M,tg){
   var vt=await vInput(M,it.file).getPrimaryVideoTrack(),t0=await vt.getFirstTimestamp(),n=CFG.video.wholeFrames,ts=[];
-  for(var k=0;k<n;k++)ts.push(t0+v.dur*(k+.5)/n);
+  /* a metà di un fotogramma, così originale e risultato non scivolano su quello accanto */
+  var fps=v.fps||30;for(var k=0;k<n;k++)ts.push(t0+(Math.floor(v.dur*(k+.5)/n*fps)+.5)/fps);
   var size=tg?fitSize(tg.w,tg.h):fitSize(vt.displayWidth,vt.displayHeight);
   return {t0:t0,ts:ts,size:size,y:await frames(M,vt,ts,size)};
 }
@@ -1493,7 +1496,7 @@ async function vScore(M,blob,ref){
 /* video corto: si ricodifica intero e si misura il risultato; si tiene il più leggero che rispetta la soglia */
 async function vWhole(it,v,lv,onPct){
   var M=await loadMB(),tg=vTarget(v,lv),c=vCurve(v,tg,true),thr=lv.ssim,f0=vGuess(v,lv,tg),aud=v.aac?AAC:v.abr,keep=it.size*CFG.video.fileKeep;
-  var ref=await vWholeRefs(it,v,M,tg),best=null,tries=0,f;
+  var ref=await vWholeRefs(it,v,M,tg),best=null,tries=0,f;v.whole=true;
   while(tries<CFG.video.wholeTries&&!abortWork&&(f=nextFrac(c,thr,f0))){
     var b=Math.round(v.src*f),near=null;
     c.forEach(function(p){if(!near||Math.abs(Math.log(p.b/b))<Math.abs(Math.log(near.b/b)))near=p});
@@ -1507,6 +1510,12 @@ async function vWhole(it,v,lv,onPct){
     c.push({f:f,b:b,q:q,rate:Math.max(1,blob.size*8/v.dur-aud)});sortCurve(c);
     if(q>=thr&&blob.size<keep&&(!best||blob.size<best.blob.size)){if(best)await dropTmpName(best.tmp);pl.q=q;pl.bytes=blob.size;best={blob:blob,tmp:name,pl:pl}}
     else await dropTmpName(name);
+  }
+  if(!best&&!abortWork){
+    /* nessuna prova di adesso è passata, ma una misura precedente sul video intero sì: si usa quella */
+    var ok=wholeBest(c,thr);
+    if(ok){var pl2={b:ok.b,q:ok.q,w:tg?tg.w:0,h:tg?tg.h:0,bytes:Math.round((ok.rate+aud)*v.dur/8)};it.plan=pl2;
+      if(pl2.bytes<keep&&!(isBig(it)&&!await canDisk(pl2.bytes))){var bl=await squeezeVideo(it,pl2,onPct);if(bl.size<keep){pl2.bytes=bl.size;return bl}await dropTmp(it)}}
   }
   it.plan=best?best.pl:null;it.tmpName=best?best.tmp:null;
   return best&&best.blob;
@@ -1528,7 +1537,16 @@ async function videoOne(it,lv,onPct){
   }
   await vDims(it);
   var v=it.vp,blob;
-  if(!vCovered(v,lv)&&v.dur<=CFG.video.shortSecs){
+  var tg0=vTarget(v,lv),wb=v.whole&&v.dur<=CFG.video.shortSecs?wholeBest(vCurve(v,tg0),lv.ssim):null;
+  if(wb){
+    /* video corto già misurato intero (R-VID-19): si ricodifica subito con la prova promossa più leggera */
+    var plw={b:wb.b,q:wb.q,w:tg0?tg0.w:0,h:tg0?tg0.h:0,bytes:Math.round((wb.rate+(v.aac?AAC:v.abr))*v.dur/8)};
+    if(plw.bytes>=it.size*CFG.video.fileKeep){it.status="same";it.note="noGainV";return}
+    it.plan=plw;
+    if(isBig(it)&&!await canDisk(plw.bytes)){it.status="same";it.note="tooBig";return}
+    blob=await squeezeVideo(it,plw,onPct);
+    if(blob.size>=it.size*CFG.video.fileKeep){it.status="same";it.note="noGainV";await dropTmp(it);return}
+  }else if(!vCovered(v,lv)&&v.dur<=CFG.video.shortSecs){
     blob=await vWhole(it,v,lv,onPct);await vRemember(it,{v:v});
     if(!blob){it.status="same";it.note=it.note||"noGainV";return}
   }else{
@@ -2572,14 +2590,35 @@ function ufLines(bw,W,H,U){
     if(!s)st[l]={x0:xx,x1:xx,y0:yy,y1:yy};else{if(xx<s.x0)s.x0=xx;if(xx>s.x1)s.x1=xx;if(yy<s.y0)s.y0=yy;if(yy>s.y1)s.y1=yy}}
   var keep={};
   Object.keys(st).forEach(function(l){var s=st[l],w=s.x1-s.x0+1,h=s.y1-s.y0+1;
-    if(w>=W*U.minLen&&h<=H*U.maxH&&w>=4*h){s.w=w;s.si=new Float64Array(w);s.ci=new Float64Array(w);s.sm=new Float64Array(w);s.cm=new Float64Array(w);keep[l]=s}});
+    if(w>=W*U.minLen/2&&h<=H*U.maxH&&w>=4*h){s.w=w;s.si=new Float64Array(w);s.ci=new Float64Array(w);s.sm=new Float64Array(w);s.cm=new Float64Array(w);keep[l]=s}});
   for(i=0;i<W*H;i++){var s2=lab[i]&&keep[lab[i]];if(!s2)continue;var cx=i%W-s2.x0,cy=(i/W)|0;
     s2.sm[cx]+=cy;s2.cm[cx]++;if(bw[i]){s2.si[cx]+=cy;s2.ci[cx]++}}
-  var out=[],k2=Math.max(5,W*.01|0)|1,hk=k2>>1;
+  var segs=[],k2=Math.max(5,W*.01|0)|1,hk=k2>>1;
   Object.keys(keep).forEach(function(l){
     var s=keep[l],xs=[],ys=[];
     for(var c=0;c<s.w;c++){if(s.ci[c]){xs.push(c+s.x0);ys.push(s.si[c]/s.ci[c])}else if(s.cm[c]){xs.push(c+s.x0);ys.push(s.sm[c]/s.cm[c])}}
     if(xs.length<s.w*.5||xs.length<=k2)return;
+    segs.push({xs:xs,ys:ys});
+  });
+  /* una piega netta spezza la linea in due pezzi sfalsati: i pezzi che si toccano quasi e stanno alla stessa altezza si riuniscono */
+  segs.sort(function(a,b){return a.xs[0]-b.xs[0]});
+  var used=[],chains=[];
+  for(var a=0;a<segs.length;a++){
+    if(used[a])continue;used[a]=1;var ch=[segs[a]];
+    for(;;){
+      var e=ch[ch.length-1],ex=e.xs[e.xs.length-1],ey=e.ys[e.ys.length-1],best=-1,bd=1e9;
+      for(var b=a+1;b<segs.length;b++){
+        if(used[b])continue;var gx=segs[b].xs[0]-ex,gy=Math.abs(segs[b].ys[0]-ey);
+        if(gx>-W*.01&&gx<W*.04&&gy<H*.012&&gy+gx*.1<bd){bd=gy+gx*.1;best=b}
+      }
+      if(best<0)break;used[best]=1;ch.push(segs[best]);
+    }
+    var xs2=[],ys2=[];ch.forEach(function(g){for(var j=0;j<g.xs.length;j++)if(!xs2.length||g.xs[j]>xs2[xs2.length-1]){xs2.push(g.xs[j]);ys2.push(g.ys[j])}});
+    if(xs2[xs2.length-1]-xs2[0]>=W*U.minLen)chains.push({xs:xs2,ys:ys2});
+  }
+  var out=[];
+  chains.forEach(function(c){
+    var xs=c.xs,ys=c.ys;
     var sm=ys.map(function(_,j){var a=0;for(var d=-hk;d<=hk;d++)a+=ys[Math.min(ys.length-1,Math.max(0,j+d))];return a/k2});
     var srt=sm.slice().sort(function(a,b){return a-b}),y0=srt[srt.length>>1],pts=[];
     for(var j=0;j<xs.length;j+=3)pts.push([xs[j],y0,sm[j]-y0]);
