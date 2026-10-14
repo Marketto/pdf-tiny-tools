@@ -44,16 +44,24 @@ window.CONFIG = {
     safe: { memPerGbMB: 128, maxMB: 1024, defaultMB: 300 }
   },
   scan: {
+    /* bordi dai lati dritti (R-SCN-31): analisi su una copia con il lato lungo di size px; contano come contorno le pendenze oltre minGrad;
+       si cercano le lines rette più forti; un lato perde miss per ogni tratto senza contorno e unseen per ogni tratto fuori dalla foto; gli angoli possono uscire dalla foto
+       fino a outside del lato; il foglio occupa almeno minArea della foto; il punteggio dei bordi trovati con la maschera vale segBias volte,
+       e vincono se contengono quelli dei lati dritti e ogni loro lato ha almeno segMin di contorno */
+    edges: { size: 480, minGrad: 3, lines: 28, miss: 1, unseen: 0.3, outside: 0.15, minArea: 0.08, segBias: 1.1, segMin: 0.3 },
     /* ombre delle pieghe (R-SCN-29): analisi su una copia con il lato lungo di size px; luce fine con raggio fine, luce del foglio con
        raggio coarse (frazioni della pagina); bordo netto = pendenza della luce oltre sharp per pixel; la luce fine parte dal foglio pulito
-       (luce ≥ seed di quella del foglio) e si allarga solo cambiando di meno di step per pixel; schiarimento al massimo maxGain */
-    shade: { on: true, size: 1000, fine: 0.006, coarse: 0.04, sharp: 0.015, step: 0.005, seed: 0.97, maxGain: 1.5 },
+       (luce ≥ seed di quella del foglio) e si allarga solo cambiando di meno di step per pixel; schiarimento al massimo maxGain;
+       attorno ai tratti la luce si prende dal foglio raggiunto entro fill px (niente aloni) */
+    shade: { on: true, size: 1000, fine: 0.006, coarse: 0.04, sharp: 0.015, step: 0.005, seed: 0.97, maxGain: 1.5, fill: 6 },
     /* distensione delle pieghe (R-SCN-27): analisi su una copia con il lato lungo di size px; una linea conta se lunga almeno minLen della pagina
        e piatta (larga almeno 4 volte l'altezza, alta al massimo maxH); la mappa si calcola su una griglia grid×grid con pesi gaussiani
        stretti lungo la linea (along) e larghi di traverso (across), in frazioni della pagina; spostamenti al massimo maxShift della pagina;
        servono almeno minLines linee, altrimenti la pagina resta com'è; passes = passate di correzione, composte in una sola; una linea vale se
        ha inchiostro su almeno cover della sua lunghezza */
-    unfold: { passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
+    /* SPERIMENTALE, spento (R-SCN-27): pieghe nette come cerniere tra falde piatte */
+    crease: { on: false, win: 0.03, min: 0.04, noise: 4, tol: 0.012, minPts: 6, span: 0.4, maxTilt: 0.5, max: 3 },
+    unfold: { model: "local", pick: ["local", "both"], gain: 0.9, guard: false, r2: 0.4, passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
   },
   ui: {
     /* il riquadro del lettore si aggiorna al massimo ogni tanti millisecondi (R-APP-07) */

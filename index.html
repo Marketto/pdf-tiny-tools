@@ -2005,7 +2005,143 @@ async function warp(work,q,mids,W,H){
    Restituisce {q, mids} in coordinate della foto, oppure null se non è convincente. */
 /* bordi proposti (R-SCN-09): prima con la soglia che separa chiaro e scuro; se il foglio non si stacca (sfondo chiaro o colorato
    che si unisce al foglio), di nuovo cercando la separazione solo tra le parti chiare (R-SCN-28) */
+/* ---- bordi dai lati dritti (R-SCN-31): pendenza del colore, rette più forti (Hough), quadrilateri formati da due rette
+   «orizzontali» e due «verticali»; ogni quadrilatero vale quanto contorno vero ha sotto i lati, meno quello che manca.
+   Lo stesso punteggio decide tra questi e quelli trovati con la maschera chiaro/scuro. */
+var edgeCache=new WeakMap();
+function edgeGrad(work){
+  var G=edgeCache.get(work);if(G)return G;
+  var E=CFG.scan.edges,k=Math.min(1,E.size/Math.max(work.width,work.height)),w=Math.max(16,Math.round(work.width*k)),h=Math.max(16,Math.round(work.height*k)),n=w*h,i,x,y,c;
+  var cv=document.createElement("canvas");cv.width=w;cv.height=h;var g=cv.getContext("2d",{willReadFrequently:true});g.drawImage(work,0,0,w,h);
+  var d=g.getImageData(0,0,w,h).data;cv.width=cv.height=0;
+  /* tre canali sfumati (due medie 3×3), poi Sobel: per ogni pixel la pendenza del canale che cambia di più */
+  var ch=[0,1,2].map(function(c){var a=new Float32Array(n);for(var j=0;j<n;j++)a[j]=d[j*4+c];return shBlur(a,w,h,1)});
+  var gx=new Float32Array(n),gy=new Float32Array(n);
+  for(y=1;y<h-1;y++)for(x=1;x<w-1;x++){i=y*w+x;var bm=-1;
+    for(c=0;c<3;c++){var a=ch[c];
+      var sx=(a[i-w+1]+2*a[i+1]+a[i+w+1]-a[i-w-1]-2*a[i-1]-a[i+w-1])/8,sy=(a[i+w-1]+2*a[i+w]+a[i+w+1]-a[i-w-1]-2*a[i-w]-a[i-w+1])/8,m=sx*sx+sy*sy;
+      if(m>bm){bm=m;gx[i]=sx;gy[i]=sy}}}
+  G={w:w,h:h,k:k,gx:gx,gy:gy};edgeCache.set(work,G);
+  return G;
+}
+/* rette forti: ogni pixel di contorno vota solo per le direzioni vicine alla sua (±2°), pesato dalla pendenza */
+function edgeLines(G){
+  var E=CFG.scan.edges,w=G.w,h=G.h,n=w*h,i,NT=180,D=Math.ceil(Math.hypot(w,h))+1,R=2*D+1,acc=new Float32Array(NT*R),mag=new Float32Array(n);
+  for(i=0;i<n;i++)mag[i]=Math.hypot(G.gx[i],G.gy[i]);
+  var srt=Array.prototype.slice.call(mag).sort(function(a,b){return a-b}),thr=Math.max(E.minGrad,srt[Math.floor(n*.9)]);
+  var cs=new Float32Array(NT),sn=new Float32Array(NT);for(var t=0;t<NT;t++){cs[t]=Math.cos(t*Math.PI/NT);sn[t]=Math.sin(t*Math.PI/NT)}
+  for(i=0;i<n;i++){if(mag[i]<=thr)continue;var x=i%w,y=(i/w)|0,a=Math.atan2(G.gy[i],G.gx[i]);if(a<0)a+=Math.PI;
+    var t0=Math.round(a/Math.PI*NT),wt=Math.min(60,mag[i]);
+    for(var dt=-2;dt<=2;dt++){var ti=((t0+dt)%NT+NT)%NT,r=Math.round(x*cs[ti]+y*sn[ti])+D;acc[ti*R+r]+=wt}}
+  var out=[];
+  for(var l=0;l<E.lines;l++){
+    var bi=0,bv=0;for(i=0;i<acc.length;i++)if(acc[i]>bv){bv=acc[i];bi=i}
+    if(bv<=0)break;var T=(bi/R)|0,rr=bi%R;out.push({t:T*Math.PI/NT,r:rr-D});
+    for(dt=-4;dt<=4;dt++){var tt=((T+dt)%NT+NT)%NT,o=tt*R;for(var r2=Math.max(0,rr-8);r2<=Math.min(R-1,rr+8);r2++)acc[o+r2]=0}
+  }
+  return out;
+}
+/* punteggio di un quadrilatero (coordinate della copia piccola): per ogni lato, i punti con una pendenza di traverso al lato
+   (entro ±1,5 px) contano come contorno; i punti fuori dalla foto non contano né in un senso né nell'altro */
+function quadScoreG(G,Q){
+  var w=G.w,h=G.h,cx=(Q[0][0]+Q[1][0]+Q[2][0]+Q[3][0])/4,cy=(Q[0][1]+Q[1][1]+Q[2][1]+Q[3][1])/4,E=CFG.scan.edges,score=0,sup=[],cross=[];
+  for(var j=0;j<4;j++){
+    var a=Q[j],b=Q[(j+1)%4],L=dist(a,b);if(L<8)return {s:-1e9,sup:[0,0,0,0]};
+    var ux=(b[0]-a[0])/L,uy=(b[1]-a[1])/L,nx=-uy,ny=ux,pos=0,neg=0,tot=0,crs=0,X,Y,ii,o;
+    if((cx-a[0])*nx+(cy-a[1])*ny>0){nx=-nx;ny=-ny}
+    for(var s=0;s<48;s++){var t=.03+.94*s/47,px=a[0]+ux*t*L,py=a[1]+uy*t*L;
+      if(px<1||py<1||px>w-2||py>h-2)continue;tot++;var best=0;
+      for(var o=-1.5;o<=1.5;o+=.75){var X=Math.round(px+nx*o),Y=Math.round(py+ny*o);if(X<1||Y<1||X>w-2||Y>h-2)continue;var ii=Y*w+X,gx=G.gx[ii],gy=G.gy[ii];
+        var gs=gx*nx+gy*ny,gt=Math.abs(gx*ux+gy*uy);if(Math.abs(gs)>Math.abs(best)&&Math.abs(gs)>1.8*gt)best=gs}
+      if(best>E.minGrad)pos++;else if(best<-E.minGrad)neg++;
+      /* fuori dal lato, appena oltre: tratti che lo attraversano (testo o linee che continuano) */
+      for(o=3;o<=9;o+=3){X=Math.round(px-nx*0+nx*o);Y=Math.round(py+ny*o);if(X<1||Y<1||X>w-2||Y>h-2)continue;ii=Y*w+X;
+        if(Math.abs(G.gx[ii]*ux+G.gy[ii]*uy)>3*E.minGrad){crs++;break}}}
+    /* un bordo vero passa sempre dallo stesso chiaro allo stesso scuro; una riga di testo dà pendenze nei due versi */
+    var f=tot?Math.max(pos,neg)/tot:0,seen=L*tot/48;sup.push(tot>=12?f:-1);cross.push(tot?Math.round(crs/tot*100)/100:-1);
+    score+=seen*(f-(1-f)*E.miss)-(L-seen)*E.unseen;
+  }
+  return {s:score,sup:sup,cross:cross};
+}
+function edgeQuad(G){
+  var E=CFG.scan.edges,w=G.w,h=G.h,L=edgeLines(G),hz=[],vt=[];
+  /* anche i bordi della foto, appena fuori: un foglio che esce dall'inquadratura ha lì il suo lato */
+  L=L.concat([{t:Math.PI/2,r:-1},{t:Math.PI/2,r:h},{t:0,r:-1},{t:0,r:w}]);
+  L.forEach(function(l){if(Math.abs(Math.sin(l.t))>.6)hz.push(l);if(Math.abs(Math.cos(l.t))>.6)vt.push(l)});
+  function X(a,b){var det=Math.cos(a.t)*Math.sin(b.t)-Math.sin(a.t)*Math.cos(b.t);if(Math.abs(det)<1e-3)return null;
+    return [(a.r*Math.sin(b.t)-b.r*Math.sin(a.t))/det,(b.r*Math.cos(a.t)-a.r*Math.cos(b.t))/det]}
+  var best=null,ox=w*E.outside,oy=h*E.outside;
+  for(var a=0;a<hz.length;a++)for(var b=a+1;b<hz.length;b++)for(var c=0;c<vt.length;c++)for(var d=c+1;d<vt.length;d++){
+    var Q=[X(hz[a],vt[c]),X(hz[a],vt[d]),X(hz[b],vt[d]),X(hz[b],vt[c])];
+    if(Q.some(function(p){return !p||p[0]<-ox||p[1]<-oy||p[0]>w+ox||p[1]>h+oy}))continue;
+    Q=quadOrder(Q);if(!Q||quadArea(Q)<w*h*E.minArea)continue;
+    var sc=quadScoreG(G,Q);if(!best||sc.s>best.s)best={s:sc.s,sup:sc.sup,q:Q};
+  }
+  return best;
+}
+function quadArea(P){var a=0;for(var j=0;j<4;j++){var p=P[j],q2=P[(j+1)%4];a+=p[0]*q2[1]-q2[0]*p[1]}return Math.abs(a)/2}
+/* angoli in ordine: alto a sinistra, poi in senso orario; null se il quadrilatero non è convesso */
+function quadOrder(P){
+  var cx=(P[0][0]+P[1][0]+P[2][0]+P[3][0])/4,cy=(P[0][1]+P[1][1]+P[2][1]+P[3][1])/4;
+  P=P.slice().sort(function(a,b){return Math.atan2(a[1]-cy,a[0]-cx)-Math.atan2(b[1]-cy,b[0]-cx)});
+  var st=0;for(var j=1;j<4;j++)if(P[j][0]+P[j][1]<P[st][0]+P[st][1])st=j;
+  P=[P[st],P[(st+1)%4],P[(st+2)%4],P[(st+3)%4]];
+  for(j=0;j<4;j++){var a=P[j],b=P[(j+1)%4],c=P[(j+2)%4];if((b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0])<=0)return null}
+  return P;
+}
+/* curvatura dei lati di un quadrilatero trovato dalle rette: al centro di ogni lato, il contorno più forte entro ±6% */
+function edgeMids(G,Q){
+  var pm=projMids(Q),cx=(Q[0][0]+Q[1][0]+Q[2][0]+Q[3][0])/4,cy=(Q[0][1]+Q[1][1]+Q[2][1]+Q[3][1])/4,sides=[[0,1],[1,2],[3,2],[0,3]];
+  return pm.map(function(M,j){
+    var a=Q[sides[j][0]],b=Q[sides[j][1]],L=dist(a,b),ux=(b[0]-a[0])/L,uy=(b[1]-a[1])/L,nx=-uy,ny=ux,R=Math.round(L*.06),offs=[];
+    for(var s=-4;s<=4;s++){var px=M[0]+ux*s*L*.02,py=M[1]+uy*s*L*.02,bo=null,bv=CFG.scan.edges.minGrad*1.5;
+      for(var o=-R;o<=R;o++){var X=Math.round(px+nx*o),Y=Math.round(py+ny*o);if(X<1||Y<1||X>G.w-2||Y>G.h-2)continue;var ii=Y*G.w+X,gn=Math.abs(G.gx[ii]*nx+G.gy[ii]*ny),gt=Math.abs(G.gx[ii]*ux+G.gy[ii]*uy);
+        if(gn>1.8*gt&&gn>bv*(1+Math.abs(o)/R*.5)){bv=gn;bo=o}}
+      if(bo!==null)offs.push(bo)}
+    if(offs.length<6)return M;
+    offs.sort(function(x,y){return x-y});var med=offs[offs.length>>1],agree=offs.filter(function(o){return Math.abs(o-med)<=1.5}).length;
+    return agree>=6&&Math.abs(med)>=Math.max(2,L*.012)?[M[0]+nx*med,M[1]+ny*med]:M;
+  });
+}
+/* ritocco: ogni angolo si sposta di un passo (2 px, poi 1) finché il contorno sotto i lati aumenta */
+function quadPolish(G,Q){
+  var cur=Q.map(function(p){return p.slice()}),sc=quadScoreG(G,cur).s;
+  [2,1].forEach(function(st){
+    for(var it=0;it<8;it++){var moved=false;
+      for(var i=0;i<4;i++)for(var dx=-st;dx<=st;dx+=st)for(var dy=-st;dy<=st;dy+=st){if(!dx&&!dy)continue;
+        var tr=cur.map(function(p){return p.slice()});tr[i][0]+=dx;tr[i][1]+=dy;var v=quadScoreG(G,tr).s;if(v>sc+1e-6){sc=v;cur=tr;moved=true}}
+      if(!moved)break}});
+  return {q:cur,s:sc};
+}
+function inQuad(Q,p){for(var j=0;j<4;j++){var a=Q[j],b=Q[(j+1)%4];if((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])<0)return false}return true}
 function detectPage(work){
+  var G=edgeGrad(work),k=G.k,E=CFG.scan.edges,cands=[];
+  var f=detectPageSeg(work);
+  if(f){
+    cands.push({q:f.q,mids:f.mids,seg:true});
+    var rf=null;try{rf=refineQuad(work,f.q,f.mids)}catch(err){}
+    if(rf)cands.push({q:rf.q,mids:rf.mids,seg:true});
+  }
+  cands.forEach(function(c){c.g=c.q.map(function(p){return [p[0]*k,p[1]*k]})});
+  var e=null;try{e=edgeQuad(G)}catch(err){}
+  if(e){var pe=quadPolish(G,e.q);cands.push({g:pe.q,seg:false})}
+  if(!cands.length)return null;
+  cands.forEach(function(c){var r=quadScoreG(G,c.g);c.s=r.s;c.sup=r.sup;c.cross=r.cross;c.min=Math.min.apply(0,r.sup.filter(function(v){return v>=0}).concat([1]))});
+  /* la maschera, quando c'è, ha già i lati curvi: vince anche se ha un po' meno contorno (segBias); e vince comunque se il
+     quadrilatero dei lati dritti le sta dentro (era una piega o un riquadro stampato) purché ogni suo lato abbia un po' di contorno */
+  var ed=cands[cands.length-1].seg?null:cands[cands.length-1],best=null;
+  cands.forEach(function(c){c.v=c.seg?c.s*E.segBias:c.s;
+    if(c.seg&&ed&&c.min>=E.segMin&&c.s>0&&ed.g.every(function(p){return inQuad(c.g,p)}))c.v=Math.max(c.v,ed.s+1);
+    if(!best||c.v>best.v)best=c});
+  if(PERF)(window.__det=window.__det||[]).push(cands.map(function(c){return {seg:c.seg,s:Math.round(c.s),min:Math.round(c.min*100)/100,sup:c.sup.map(function(v){return Math.round(v*100)/100}),cross:c.cross,best:c===best}}));
+  if(best.s<=0)return null;
+  if(best.seg)return {q:best.q,mids:best.mids,edge:false};
+  var m=edgeMids(G,best.g);
+  return {q:best.g.map(function(p){return [p[0]/k,p[1]/k]}),mids:m.map(function(p){return [p[0]/k,p[1]/k]}),edge:true};
+}
+/* punteggio di un quadrilatero in coordinate della foto (per scegliere tra proposta e correzione automatica) */
+function quadScore(work,q){var G=edgeGrad(work),k=G.k;return quadScoreG(G,q.map(function(p){return [p[0]*k,p[1]*k]})).s}
+function detectPageSeg(work){
   var a=detectPageAt(work,0),b=detectPageAt(work,1);
   if(!b)return a;if(!a)return b;
   /* il chiaro contiene un quadrilatero più chiaro, ben più piccolo e dai bordi dritti: il primo era il foglio insieme alla superficie
@@ -2339,6 +2475,7 @@ async function autoOrient(cv){
   if(!ocrBad){
     try{
       var w=await ocrWorker(),small=scaledGray(cv,1600),r=(await w.detect(small)).data;small.width=small.height=0;
+      if(PERF)(window.__osd=window.__osd||[]).push(r&&{d:r.orientation_degrees,c:r.orientation_confidence,s:r.script,sc:r.script_confidence,ld:lineDir(cv)});
       if(r&&r.orientation_degrees!=null&&r.orientation_confidence>=2)deg=r.orientation_degrees;
       else if(r&&r.orientation_degrees!=null){
         /* Tesseract incerto (scrittura a mano, poche righe): le righe della pagina dicono se il testo corre in verticale;
@@ -2576,6 +2713,7 @@ function scanFileName(ext){
 /* ---------- cattura: schermata propria per scattare, sistemare e salvare le pagine (R-SCN-14…19) ----------
    cap.pages: {work, q, mids, rot, style (null = come tutte), blob, url}. Telefono: proposta A; da 760 px: proposta B. */
 var cap={pages:[],sel:-1},capTarget=-1,capWide=window.matchMedia?matchMedia("(min-width:760px)"):{matches:false};
+if(PERF)window.__cap=cap;
 var ICON={
   cam:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.2h3.6l1.7-2.6h7.4l1.7 2.6H21v10.6H3z" fill="currentColor"/><circle cx="12" cy="13.4" r="3.4" stroke="var(--paper)"/></svg>',
   gal:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg>',
@@ -2659,20 +2797,53 @@ function ufLines(bw,W,H,U){
     var sm=ys.map(function(_,j){var a=0;for(var d=-hk;d<=hk;d++)a+=ys[Math.min(ys.length-1,Math.max(0,j+d))];return a/k2});
     var srt=sm.slice().sort(function(a,b){return a-b}),y0=srt[srt.length>>1],pts=[];
     for(var j=0;j<xs.length;j+=3)pts.push([xs[j],y0,sm[j]-y0]);
-    out.push(pts);
+    pts.curve={xs:xs,ys:sm};out.push(pts);
   });
   return out;
 }
 /* mappa sulla griglia: media pesata gaussiana dei campioni, che sfuma a zero dove non ci sono linee */
-function ufGrid(lines,W,H,G,sx,sy,lim){
+function ufGrid(lines,W,H,G,sx,sy,lim,cut){
   var pts=[];lines.forEach(function(l){pts=pts.concat(l)});
   var step=Math.max(1,Math.ceil(pts.length/1500)),f=new Float32Array(G*G);
   for(var gy=0;gy<G;gy++)for(var gx=0;gx<G;gx++){
     var X=gx*(W-1)/(G-1),Y=gy*(H-1)/(G-1),num=0,den=0;
-    for(var i=0;i<pts.length;i+=step){var a=(X-pts[i][0])/sx,b=(Y-pts[i][1])/sy,e=a*a+b*b;if(e>18)continue;var w=Math.exp(-e/2);num+=w*pts[i][2];den+=w}
+    for(var i=0;i<pts.length;i+=step){var a=(X-pts[i][0])/sx,b=(Y-pts[i][1])/sy,e=a*a+b*b;if(e>18||cut&&cut(X,Y,pts[i][0],pts[i][1]))continue;var w=Math.exp(-e/2);num+=w*pts[i][2];den+=w}
     var v=den>1e-3?num/den*Math.min(1,den/.1):0;f[gy*G+gx]=Math.max(-lim,Math.min(lim,v));
   }
   return f;
+}
+/* SPERIMENTALE, non adottato (vedi R-SCN-27): pieghe nette. Per ogni linea i massimi del cambio di pendenza tra due finestre
+   vicine, se ben sopra il suo rumore; ritorna punti [lungo, traverso] nel riferimento della linea */
+function ufKinks(lines,W,C){
+  var out=[],w=Math.max(6,Math.round(W*C.win));
+  function fit(xs,ys,a,b){var n=b-a,sx=0,sy=0,sxx=0,sxy=0;for(var i=a;i<b;i++){sx+=xs[i];sy+=ys[i];sxx+=xs[i]*xs[i];sxy+=xs[i]*ys[i]}var d=n*sxx-sx*sx;return d?(n*sxy-sx*sy)/d:0}
+  lines.forEach(function(l){
+    var c=l.curve;if(!c||c.xs.length<3*w)return;
+    var row=[];for(var j=w;j<c.xs.length-w;j+=2)row.push([c.xs[j],c.ys[j],Math.abs(fit(c.xs,c.ys,j-w,j)-fit(c.xs,c.ys,j,j+w))]);
+    var v=row.map(function(r){return r[2]}).sort(function(a,b){return a-b}),noise=v[v.length>>1];
+    for(j=1;j<row.length-1;j++){var r=row[j][2];if(r>=row[j-1][2]&&r>=row[j+1][2]&&r>Math.max(C.min,C.noise*noise))out.push([row[j][0],row[j][1]])}
+  });
+  return out;
+}
+/* rette delle pieghe tra i punti di piega (ricerca casuale ripetibile): «traverso = a + t·(lungo − b)» */
+function ufCreases(P,W,H,C){
+  var seed=7,res=[];function rnd(){seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff}
+  P=P.slice();
+  for(var k=0;k<C.max&&P.length>=C.minPts;k++){
+    var best=null;
+    for(var it=0;it<600;it++){
+      var a=P[(rnd()*P.length)|0],b=P[(rnd()*P.length)|0];if(Math.abs(a[1]-b[1])<H*.05)continue;
+      var t=(b[0]-a[0])/(b[1]-a[1]);if(Math.abs(t)>C.maxTilt)continue;
+      var nrm=Math.sqrt(1+t*t),inl=[];
+      for(var i=0;i<P.length;i++)if(Math.abs(P[i][0]-(a[0]+t*(P[i][1]-a[1])))/nrm<W*C.tol)inl.push(i);
+      if(!best||inl.length>best.inl.length)best={inl:inl,a:a,t:t};
+    }
+    if(!best||best.inl.length<C.minPts)break;
+    var ys=best.inl.map(function(i){return P[i][1]});if(Math.max.apply(0,ys)-Math.min.apply(0,ys)<H*C.span)break;
+    res.push({a:best.a[0],b:best.a[1],t:best.t});
+    var drop={};best.inl.forEach(function(i){drop[i]=1});P=P.filter(function(_,i){return !drop[i]});
+  }
+  return res;
 }
 /* dalla pagina raddrizzata: {w, h, G, dx, dy} oppure null se non c'è niente di affidabile da correggere */
 /* inchiostro della pagina su una copia con il lato lungo di «size» px: {bw, W, H} */
@@ -2697,12 +2868,53 @@ function lineDir(cv){
   var U=CFG.scan.unfold,B=ufBin(cv,600);
   return {h:ufLines(B.bw,B.W,B.H,U).length,v:ufLines(ufT(B.bw,B.W,B.H),B.H,B.W,U).length};
 }
-function unfoldField(cv){
+/* superficie liscia (polinomio di grado da in lungo e dt di traverso) adattata ai campioni [x, y, scarto] con pesi robusti;
+   along = 0 se le linee corrono in x. {f(x,y), r2} oppure null */
+function ufPoly(lines,W,H,vert,da,dt){
+  var P=[];lines.forEach(function(l){P=P.concat(l)});if(P.length<20)return null;
+  var T=[];for(var i=0;i<=da;i++)for(var j=0;j<=dt;j++)T.push([i,j]);var m=T.length;
+  function basis(x,y){var u=x/W*2-1,v=y/H*2-1,a=vert?v:u,b=vert?u:v;return T.map(function(t){return Math.pow(a,t[0])*Math.pow(b,t[1])})}
+  var X=P.map(function(p){return basis(p[0],p[1])}),z=P.map(function(p){return p[2]}),w=P.map(function(){return 1}),c=null;
+  for(var it=0;it<4;it++){
+    var A=[],B=[];for(i=0;i<m;i++){A.push(new Float64Array(m));B.push(0)}
+    for(var k=0;k<P.length;k++){var xk=X[k],wk=w[k];for(i=0;i<m;i++){B[i]+=wk*xk[i]*z[k];for(var j=i;j<m;j++)A[i][j]+=wk*xk[i]*xk[j]}}
+    var tr=0;for(i=0;i<m;i++){for(j=0;j<i;j++)A[i][j]=A[j][i];tr+=A[i][i]}
+    for(i=1;i<m;i++)A[i][i]+=tr/m*1e-3;
+    /* eliminazione di Gauss */
+    for(var col=0;col<m;col++){var pv=col;for(var r=col+1;r<m;r++)if(Math.abs(A[r][col])>Math.abs(A[pv][col]))pv=r;
+      var tA=A[col];A[col]=A[pv];A[pv]=tA;var tB=B[col];B[col]=B[pv];B[pv]=tB;if(Math.abs(A[col][col])<1e-12)return null;
+      for(r=0;r<m;r++){if(r===col)continue;var f=A[r][col]/A[col][col];if(!f)continue;for(var q=col;q<m;q++)A[r][q]-=f*A[col][q];B[r]-=f*B[col]}}
+    c=B.map(function(v,i){return v/A[i][i]});
+    for(k=0;k<P.length;k++){var e=0;for(i=0;i<m;i++)e+=c[i]*X[k][i];var rr=Math.abs(z[k]-e);w[k]=rr<1.5?1:1.5/rr}
+  }
+  var sr=0,st=0,mz=0,sw=0;for(k=0;k<P.length;k++){mz+=w[k]*z[k];sw+=w[k]}mz/=sw;
+  for(k=0;k<P.length;k++){e=0;for(i=0;i<m;i++)e+=c[i]*X[k][i];sr+=w[k]*(z[k]-e)*(z[k]-e);st+=w[k]*(z[k]-mz)*(z[k]-mz)}
+  return {f:function(x,y){var b=basis(x,y),s=0;for(var i=0;i<m;i++)s+=c[i]*b[i];return s},r2:st>0?1-sr/st:0,rms:Math.sqrt(st/sw)};
+}
+function unfoldField(cv,pass,model){
   var U=CFG.scan.unfold,B=ufBin(cv,U.size),bw=B.bw,W=B.W,H=B.H,i;
   var hl=ufLines(bw,W,H,U),vl=ufLines(ufT(bw,W,H),H,W,U).map(function(l){return l.map(function(p){return [p[1],p[0],p[2]]})});
   if(hl.length+vl.length<U.minLines)return null;
-  var G=U.grid;
-  var dy=ufGrid(hl,W,H,G,U.along*W,U.across*H,U.maxShift*H),dx=ufGrid(vl,W,H,G,U.across*W,U.along*H,U.maxShift*W),mx=0;
+  var G=U.grid,C=CFG.scan.crease;model=model||U.model||"local";
+  if(model==="smooth"||(model==="both"&&!pass)||(U.guard&&!pass)){
+    /* le linee si piegano insieme come un foglio, oppure ognuna per conto suo (scrittura a mano)? */
+    var ph=hl.length>=2?ufPoly(hl,W,H,false,3,2):null,pv=vl.length>=2?ufPoly(vl,W,H,true,3,2):null;
+    if(PERF)(window.__unf=window.__unf||[]).push({pass:pass,h:hl.length,v:vl.length,r2h:ph&&+ph.r2.toFixed(2),r2v:pv&&+pv.r2.toFixed(2),rmsh:ph&&+ph.rms.toFixed(2)});
+    if(U.guard&&!pass&&(!ph||ph.r2<U.r2)&&(!pv||pv.r2<U.r2))return false;
+    if(model==="smooth"||(model==="both"&&!pass)){
+      var Dy=new Float32Array(G*G),Dx=new Float32Array(G*G),mx2=0;
+      for(var gy=0;gy<G;gy++)for(var gx=0;gx<G;gx++){var X=gx*(W-1)/(G-1),Y=gy*(H-1)/(G-1),j=gy*G+gx;
+        if(ph&&ph.r2>=U.r2)Dy[j]=Math.max(-U.maxShift*H,Math.min(U.maxShift*H,ph.f(X,Y)));
+        if(pv&&pv.r2>=U.r2)Dx[j]=Math.max(-U.maxShift*W,Math.min(U.maxShift*W,pv.f(X,Y)));
+        mx2=Math.max(mx2,Math.abs(Dx[j]),Math.abs(Dy[j]))}
+      return mx2<.6?null:{w:W,h:H,G:G,dx:Dx,dy:Dy};
+    }
+  }
+  /* SPERIMENTALE: ogni lato di una piega è una falda a sé, i campioni non valgono oltre la piega */
+  var cv2=C.on?ufCreases(ufKinks(hl,W,C),W,H,C):[],ch=C.on?ufCreases(ufKinks(ufLines(ufT(bw,W,H),H,W,U),H,C),H,W,C):[];
+  function side(X,Y){var s=0,k;for(k=0;k<cv2.length;k++)s=s*2+(X>cv2[k].a+cv2[k].t*(Y-cv2[k].b)?1:0);for(k=0;k<ch.length;k++)s=s*2+(Y>ch[k].a+ch[k].t*(X-ch[k].b)?1:0);return s}
+  var cut=cv2.length+ch.length?function(X1,Y1,X2,Y2){return side(X1,Y1)!==side(X2,Y2)}:null;
+  var dy=ufGrid(hl,W,H,G,U.along*W,U.across*H,U.maxShift*H,cut),dx=ufGrid(vl,W,H,G,U.across*W,U.along*H,U.maxShift*W,cut),mx=0;
   for(i=0;i<G*G;i++)mx=Math.max(mx,Math.abs(dx[i]),Math.abs(dy[i]));
   return mx<.6?null:{w:W,h:H,G:G,dx:dx,dy:dy};
 }
@@ -2783,6 +2995,11 @@ function shadeMap(cv){
     for(var j=0;j<4;j++){var t=nb[j];if(t>=0&&!reach[t]&&!shf[t]&&S2[t]>=lim&&S2[t]<=top){reach[t]=1;q[qt++]=t}}}
   var L=new Float32Array(n),any=false;
   for(i=0;i<n;i++)L[i]=reach[i]?Math.min(F[i],B[i]):B[i];
+  /* attorno ai tratti (fermati dai loro bordi netti) la luce si prende dal foglio vicino: senza, resta un alone grigio intorno alle
+     scritte; le zone stampate grandi restano lontane dal foglio raggiunto e tengono la luce del foglio intero */
+  if(C.fill){var rf=new Float32Array(n),rl=new Float32Array(n);for(i=0;i<n;i++)if(reach[i]){rf[i]=1;rl[i]=L[i]}
+    var bf=shBlur(rf,W,H,C.fill),bl=shBlur(rl,W,H,C.fill);
+    for(i=0;i<n;i++)if(!reach[i]&&bf[i]>.02){var wv=Math.min(1,bf[i]/.25);L[i]=wv*bl[i]/bf[i]+(1-wv)*B[i]}}
   L=shBlur(L,W,H,2);
   var G=new Float32Array(n);
   for(i=0;i<n;i++){var v=Math.min(C.maxGain,Math.max(1,B[i]/Math.max(L[i],1)));G[i]=v;if(v>1.02)any=true}
@@ -2809,13 +3026,17 @@ function ufAt(F,f,X,Y){
   return (f[r0]*(1-fx)+f[r0+1]*fx)*(1-fy)+(f[r0+G]*(1-fx)+f[r0+G+1]*fx)*fy;
 }
 /* la mappa in più passate sulla copia piccola (ogni passata corregge quello che resta), composte in una sola: la pagina si ricampiona una volta */
-async function unfoldMap(cv){
-  var U=CFG.scan.unfold,k=Math.min(1,U.size/Math.max(cv.width,cv.height));
-  var sm=document.createElement("canvas");sm.width=Math.max(1,Math.round(cv.width*k));sm.height=Math.max(1,Math.round(cv.height*k));
-  sm.getContext("2d").drawImage(cv,0,0,sm.width,sm.height);
-  var F=null,cur=sm;
+/* quanto sono storte le linee della pagina: scarto medio in pixel della copia di analisi (e quante linee) */
+function ufResid(cv){
+  var U=CFG.scan.unfold,B=ufBin(cv,U.size),L=ufLines(B.bw,B.W,B.H,U).concat(ufLines(ufT(B.bw,B.W,B.H),B.H,B.W,U)),s=0,n=0;
+  L.forEach(function(l){l.forEach(function(p){s+=Math.abs(p[2]);n++})});
+  return {r:n?s/n:0,lines:L.length};
+}
+/* la mappa in più passate sulla copia piccola (ogni passata corregge quello che resta), composte in una sola: la pagina si ricampiona una volta */
+async function unfoldRun(sm,model){
+  var U=CFG.scan.unfold,F=null,cur=sm;
   for(var pass=0;pass<U.passes;pass++){
-    var N=unfoldField(cur);if(!N)break;
+    var N=unfoldField(cur,pass,model);if(N===false)break;if(!N){if(pass===0&&model==="both")continue;break}
     if(F){
       /* totale = nuova + vecchia presa dove la nuova manda */
       for(var gy=0;gy<N.G;gy++)for(var gx=0;gx<N.G;gx++){
@@ -2826,12 +3047,30 @@ async function unfoldMap(cv){
     F=N;
     if(pass<U.passes-1){var nx=await unfoldApply(sm,F);if(cur!==sm)cur.width=cur.height=0;cur=nx}
   }
-  if(cur!==sm)cur.width=cur.height=0;sm.width=sm.height=0;
+  if(cur!==sm)cur.width=cur.height=0;
+  return F;
+}
+/* con model "pick" si provano i modelli elencati e si tiene quello che lascia le linee più dritte, purché migliori davvero */
+async function unfoldMap(cv){
+  var U=CFG.scan.unfold,k=Math.min(1,U.size/Math.max(cv.width,cv.height));
+  var sm=document.createElement("canvas");sm.width=Math.max(1,Math.round(cv.width*k));sm.height=Math.max(1,Math.round(cv.height*k));
+  sm.getContext("2d").drawImage(cv,0,0,sm.width,sm.height);
+  var F=null;
+  if(U.model!=="pick")F=await unfoldRun(sm,U.model);
+  else{
+    var r0=ufResid(sm),best=r0.r*U.gain,log={none:+r0.r.toFixed(2)};
+    for(var j=0;j<U.pick.length;j++){var Fm=await unfoldRun(sm,U.pick[j]);if(!Fm)continue;
+      var t=await unfoldApply(sm,Fm),r=ufResid(t);t.width=t.height=0;log[U.pick[j]]=+r.r.toFixed(2);
+      if(r.lines>=r0.lines*.8&&r.r<best){best=r.r;F=Fm;log.pick=U.pick[j]}}
+    if(PERF)(window.__pick=window.__pick||[]).push(log);
+  }
+  sm.width=sm.height=0;
   return F;
 }
 /* rifà la pagina: raddrizzamento, pieghe, stile, rotazione */
 async function capBuild(p){
-  if(!p.refined){var rf=null;try{rf=refineQuad(p.work,p.q,p.mids)}catch(e){}if(rf){p.q=rf.q;p.mids=rf.mids}p.refined=true}
+  /* correzione automatica dei lati (R-SCN-24), tenuta solo se sotto i lati c'è almeno tanto contorno quanto prima (R-SCN-31) */
+  if(!p.refined){var rf=null;try{rf=refineQuad(p.work,p.q,p.mids);if(rf&&quadScore(p.work,rf.q)<quadScore(p.work,p.q))rf=null}catch(e){rf=null}if(rf){p.q=rf.q;p.mids=rf.mids}p.refined=true}
   var style=capStyle(p),cv=await pageCanvas({work:p.work,q:p.q,mids:p.mids,style:style});
   /* orientamento sulla pagina com'è uscita dai bordi (la distensione non lo cambia e il riconoscimento ci si trova meglio) */
   if(!p.auto){
