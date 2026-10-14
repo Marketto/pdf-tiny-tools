@@ -2603,6 +2603,10 @@ function ufT(m,W,H){var o=new Uint8Array(W*H);for(var y=0;y<H;y++)for(var x=0;x<
 /* linee lunghe e piatte in orizzontale: per ognuna, la mediana della riga e gli scarti punto per punto [x, y0, y−y0] */
 function ufLines(bw,W,H,U){
   var r=Math.max(9,W/40|0)>>1;
+  /* via prima le linee lunghe di traverso: in una tabella fitta, chiudendo i vuoti, unirebbero tutte le righe in un blocco solo */
+  var ry=Math.max(9,H/30|0)>>1,T=ufT(bw,W,H),ort=ufT(ufRows(ufRows(T,H,W,ry,true),H,W,ry,false),H,W);
+  ort=ufRows(ufT(ufRows(ufT(ort,W,H),H,W,1,false),H,W),W,H,1,false);
+  var clean=new Uint8Array(W*H);for(var ii=0;ii<W*H;ii++)clean[ii]=bw[ii]&&!ort[ii]?1:0;bw=clean;
   var blob=ufRows(ufRows(bw,W,H,r,false),W,H,r,true);
   blob=ufRows(ufRows(blob,W,H,r,true),W,H,r,false);
   /* componenti connesse (8 vicini) con unione e ricerca */
@@ -2627,8 +2631,10 @@ function ufLines(bw,W,H,U){
   var segs=[],k2=Math.max(5,W*.01|0)|1,hk=k2>>1;
   Object.keys(keep).forEach(function(l){
     var s=keep[l],xs=[],ys=[];
-    for(var c=0;c<s.w;c++){if(s.ci[c]){xs.push(c+s.x0);ys.push(s.si[c]/s.ci[c])}else if(s.cm[c]){xs.push(c+s.x0);ys.push(s.sm[c]/s.cm[c])}}
-    if(xs.length<s.w*.5||xs.length<=k2)return;
+    var inked=0;
+    for(var c=0;c<s.w;c++){if(s.ci[c]){inked++;xs.push(c+s.x0);ys.push(s.si[c]/s.ci[c])}else if(s.cm[c]){xs.push(c+s.x0);ys.push(s.sm[c]/s.cm[c])}}
+    /* una linea vera ha inchiostro quasi lungo tutta la sua lunghezza; lettere impilate di righe diverse no */
+    if(inked<s.w*U.cover||xs.length<=k2)return;
     segs.push({xs:xs,ys:ys});
   });
   /* una piega netta spezza la linea in due pezzi sfalsati: i pezzi che si toccano quasi e stanno alla stessa altezza si riuniscono */
