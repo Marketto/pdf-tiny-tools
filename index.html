@@ -2003,7 +2003,16 @@ async function warp(work,q,mids,W,H){
 /* trova il foglio nella foto (R-SCN-09/10): maschera dei pixel chiari e poco saturi (soglia di Otsu),
    pulizia, componente più grande; angoli agli estremi; maniglie dei lati sul bordo della maschera.
    Restituisce {q, mids} in coordinate della foto, oppure null se non è convincente. */
+/* bordi proposti (R-SCN-09): prima con la soglia che separa chiaro e scuro; se il foglio non si stacca (sfondo chiaro o colorato
+   che si unisce al foglio), di nuovo cercando la separazione solo tra le parti chiare (R-SCN-28) */
 function detectPage(work){
+  var a=detectPageAt(work,0),b=detectPageAt(work,1);
+  if(!b)return a;if(!a)return b;
+  /* il chiaro contiene un quadrilatero più chiaro, ben più piccolo e dai bordi dritti: il primo era il foglio insieme alla superficie
+     su cui sta (una cartellina, una tovaglia chiara), il secondo è il foglio */
+  return b.area<a.area*.7&&b.area>.08?b:a;
+}
+function detectPageAt(work,lvl){
   var W=work.width,H=work.height,k=Math.min(1,360/Math.max(W,H)),w=Math.max(16,Math.round(W*k)),h=Math.max(16,Math.round(H*k));
   var cv=document.createElement("canvas");cv.width=w;cv.height=h;
   var g=cv.getContext("2d");g.drawImage(work,0,0,w,h);
@@ -2012,15 +2021,21 @@ function detectPage(work){
     var r=d[i*4],gg=d[i*4+1],b=d[i*4+2],mx=Math.max(r,gg,b),mn=Math.min(r,gg,b);
     var v=r*.3+gg*.59+b*.11-(mx-mn)*.8;v=v<0?0:v>255?255:v;sc[i]=v;hist[v|0]++;
   }
-  var sum=0,sumB=0,wB=0,best=0,thr=128;
-  for(i=0;i<256;i++)sum+=i*hist[i];
-  for(i=0;i<256;i++){
-    wB+=hist[i];if(!wB)continue;var wF=n-wB;if(!wF)break;
-    sumB+=i*hist[i];var mB=sumB/wB,mF=(sum-sumB)/wF,bt=wB*wF*(mB-mF)*(mB-mF);
-    if(bt>best){best=bt;thr=i}
+  /* Otsu tra i livelli lo..255 */
+  function otsu(lo){
+    var nn=0,sum=0,sumB=0,wB=0,best=0,th=lo;
+    for(var j=lo;j<256;j++){nn+=hist[j];sum+=j*hist[j]}
+    for(j=lo;j<256;j++){
+      wB+=hist[j];if(!wB)continue;var wF=nn-wB;if(!wF)break;
+      sumB+=j*hist[j];var mB=sumB/wB,mF=(sum-sumB)/wF,bt=wB*wF*(mB-mF)*(mB-mF);
+      if(bt>best){best=bt;th=j}
+    }
+    return th;
   }
+  var lo=0,thr=otsu(0);
+  if(lvl){lo=thr+1;thr=otsu(lo);if(thr<=lo)return null}
   /* la soglia si abbassa verso lo sfondo: le zone del foglio in ombra o più lontane dalla luce restano dentro */
-  var cB=0,sB=0;for(i=0;i<=thr;i++){cB+=hist[i];sB+=i*hist[i]}
+  var cB=0,sB=0;for(i=lo;i<=thr;i++){cB+=hist[i];sB+=i*hist[i]}
   var mBg=cB?sB/cB:0;thr=mBg+(thr-mBg)*.55;
   var m=new Uint8Array(n);for(i=0;i<n;i++)m[i]=sc[i]>thr?1:0;
   function morph(src,keep){
@@ -2146,7 +2161,7 @@ function detectPage(work){
     return [M[0]+nx*sag[j],M[1]+ny*sag[j]];
   });
   var inv=1/k;
-  return {q:q.map(function(p){return [p[0]*inv,p[1]*inv]}),mids:mids.map(function(p){return [p[0]*inv,p[1]*inv]})};
+  return {q:q.map(function(p){return [p[0]*inv,p[1]*inv]}),mids:mids.map(function(p){return [p[0]*inv,p[1]*inv]}),area:bestArea/n};
 }
 /* ---------- bordi: calamita e controllo (R-SCN-23/24) ----------
    paperMap: punteggio carta/sfondo come in detectPage, a 900 px, con la stessa soglia abbassata verso lo sfondo. */
