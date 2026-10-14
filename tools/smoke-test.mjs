@@ -533,8 +533,8 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await shot(() => page.click("#capture .add"));
   await page.waitForSelector("#scanner:not([hidden])"); await page.click("#scanOk");
   await page.waitForFunction(() => document.querySelectorAll("#capture .thumb").length === 2 && document.getElementById("loader").hidden, null, { timeout: 30000 });
-  check(await page.locator("#capture .tools button").count() === 6, "Cattura: strumenti della pagina selezionata (ruota, bordi, rifai, sposta, elimina)");
-  await page.click("#capture .tools button >> nth=0");
+  check(await page.locator("#capture .tools button").count() === 7, "Cattura: strumenti della pagina selezionata (guarda, ruota, bordi, rifai, sposta, elimina)");
+  await page.click("#capture .tools button >> nth=1");
   await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelectorAll("#capture .thumb").length === 2, null, { timeout: 30000 });
   await page.waitForFunction(() => [...document.querySelectorAll("#capture .thumb img")].every((i) => i.complete && i.naturalWidth));
   const dims = await page.evaluate(() => [...document.querySelectorAll("#capture .thumb img")].map((i) => i.naturalWidth > i.naturalHeight));
@@ -542,6 +542,21 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.click("#capture .seg.sm button >> nth=2");
   await page.waitForFunction(() => document.getElementById("loader").hidden && !!document.querySelector("#capture .thumb .chip"), null, { timeout: 30000 });
   check(true, "Cattura: stile proprio della pagina (B/N) segnato sulla miniatura");
+  // anteprima a tutto schermo (R-SCN-26): tocco sulla miniatura selezionata, doppio tocco ingrandisce, scorrimento cambia pagina, indietro chiude
+  await page.click('#capture .thumb[aria-pressed="true"]');
+  await page.waitForFunction(() => !document.getElementById("viewer").hidden && document.getElementById("viewImg").naturalWidth > 0, null, { timeout: 5000 });
+  const vt0 = await page.innerText("#viewTitle");
+  const sb = await page.locator("#viewStage").boundingBox(), cx = sb.x + sb.width / 2, cy = sb.y + sb.height / 2;
+  await page.mouse.click(cx, cy); await page.mouse.click(cx, cy);
+  const zoomed = await page.evaluate(() => document.getElementById("viewStage").classList.contains("zoomed"));
+  await page.mouse.click(cx, cy); await page.mouse.click(cx, cy);
+  const back1 = await page.evaluate(() => !document.getElementById("viewStage").classList.contains("zoomed"));
+  await page.mouse.move(cx - 120, cy); await page.mouse.down(); await page.mouse.move(cx + 60, cy, { steps: 5 }); await page.mouse.up();
+  const vt1 = await page.innerText("#viewTitle");
+  check(zoomed && back1 && vt0 !== vt1 && /di 2/.test(vt1), `Cattura: anteprima a tutto schermo, doppio tocco ingrandisce e riadatta, scorrendo cambia pagina (${vt0} → ${vt1}, ingrandita ${zoomed}, riadattata ${back1})`);
+  await page.goBack();
+  await page.waitForFunction(() => document.getElementById("viewer").hidden, null, { timeout: 3000 }).catch(() => {});
+  check(await page.evaluate(() => document.getElementById("viewer").hidden && !document.getElementById("app").inert && document.body.classList.contains("act-cap")), "Cattura: il tasto indietro chiude l'anteprima e resta in Cattura");
   await page.click("#modeBtn");
   check(await page.evaluate(() => document.body.classList.contains("mode-jpg") && document.querySelectorAll("#capture .thumb").length === 2), "Cattura: passando a JPG le pagine restano");
   await page.click("#modeBtn");

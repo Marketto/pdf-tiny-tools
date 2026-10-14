@@ -236,6 +236,14 @@ h1 .f-all{transform:rotateX(-270deg) translateZ(.5em);color:#c9a6ff}
 .scanBox .hit{fill:transparent;cursor:grab}
 .loupe{position:fixed;z-index:20;width:128px;height:128px;border-radius:50%;border:4px solid #fffdf3;box-shadow:0 4px 18px rgba(0,0,0,.5);pointer-events:none;background:#000}
 .scanSeg{width:min(520px,100%);margin:0}
+/* anteprima a tutto schermo di una pagina di Cattura (R-SCN-26) */
+.viewer{position:fixed;inset:0;z-index:19;display:flex;flex-direction:column;gap:12px;align-items:center;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));background:#16151f;color:#fffdf3}
+.viewStage{flex:1;min-height:0;width:100%;position:relative;overflow:hidden;touch-action:none;cursor:zoom-in}
+.viewStage.zoomed{cursor:grab}
+.viewStage img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none;box-shadow:0 0 0 3px #fffdf3;background:#fff}
+.viewActs{width:min(520px,100%);grid-auto-columns:auto!important;grid-template-columns:auto 1fr auto}
+.viewActs .ib{padding-inline:14px}
 /* ---- Cattura (R-SCN-14…19): le sezioni della compressione hanno la classe squash ---- */
 .act-cap .squash{display:none!important}
 body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
@@ -530,6 +538,15 @@ details p{margin:8px 0 0;max-width:65ch}
   </div>
 </div>
 
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="viewTitle" hidden>
+  <p class="scanTitle" id="viewTitle"></p>
+  <div class="viewStage" id="viewStage"><img id="viewImg" alt="" draggable="false"></div>
+  <div class="acts viewActs">
+    <button class="btn alt ib" type="button" id="viewPrev"></button>
+    <button class="btn ok" type="button" id="viewBack" data-i18n="viewBack">Torna alla scansione</button>
+    <button class="btn alt ib" type="button" id="viewNext"></button>
+  </div>
+</div>
 <div class="scanner" id="scanner" role="dialog" aria-modal="true" aria-labelledby="scanTitle" hidden>
   <p class="scanTitle" id="scanTitle" data-i18n="fixCorners">Trascina gli angoli sui bordi del foglio</p>
   <div class="scanStage" id="scanStage"><div class="scanBox" id="scanBox"><svg id="scanSvg" xmlns="http://www.w3.org/2000/svg"></svg></div></div>
@@ -2517,6 +2534,7 @@ var ICON={
   crop:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 2v16h16M2 6h16v16"/></svg>',
   redo:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.2h3.6l1.7-2.6h7.4l1.7 2.6H21v10.6H3z"/><circle cx="12" cy="13.4" r="3"/></svg>',
   del:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+  look:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M10.5 7.5v6M7.5 10.5h6"/></svg>',
   l:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
   r:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>'
 };
@@ -2632,6 +2650,97 @@ function styleSeg(cur,withSame,fn,small){
   return g;
 }
 function panel(tag){var s=el("section","panel");s.appendChild(el("div","tag",tag));return s}
+/* anteprima a tutto schermo (R-SCN-26): ingrandimento con due dita, doppio tocco o rotellina; di lato si cambia pagina */
+var view={i:-1,k:1,fit:1,x:0,y:0,W:1,H:1,pts:{},pinch:null,drag:null,tap:0};
+function viewEl(){return $("viewer")}
+function viewOpen(i){
+  if(!cap.pages[i])return;
+  var v=viewEl(),open=!v.hidden;
+  view.i=i;v.hidden=false;$("app").inert=true;
+  if(!open)try{history.pushState({viewer:1},"",location.href)}catch(e){}
+  var img=$("viewImg");img.onload=function(){view.W=img.naturalWidth||1;view.H=img.naturalHeight||1;viewFit()};
+  img.src=cap.pages[i].url;img.alt=t("pageN",{n:nf(i+1)});
+  $("viewTitle").textContent=t("viewOf",{i:nf(i+1),n:nf(cap.pages.length)});
+  $("viewPrev").disabled=i===0;$("viewNext").disabled=i>=cap.pages.length-1;
+  if(img.complete&&img.naturalWidth)img.onload();
+  if(!open)setTimeout(function(){$("viewBack").focus()},0);
+}
+/* chiusura vera; dal pulsante si passa dalla cronologia, così il tasto indietro del telefono fa lo stesso */
+function viewShut(){
+  var v=viewEl();if(v.hidden)return;
+  v.hidden=true;$("app").inert=appBusyScreen();$("viewImg").removeAttribute("src");
+  if(cap.pages[view.i]&&cap.sel!==view.i){cap.sel=view.i;capRender()}
+}
+function viewClose(){if(history.state&&history.state.viewer)history.back();else viewShut()}
+window.addEventListener("popstate",function(){viewShut()});
+function viewStageBox(){var r=$("viewStage").getBoundingClientRect();return {l:r.left,t:r.top,w:r.width,h:r.height}}
+function viewFit(){
+  var b=viewStageBox();view.fit=Math.min(b.w/view.W,b.h/view.H);view.k=view.fit;viewClamp();viewDraw();
+}
+function viewClamp(){
+  var b=viewStageBox(),w=view.W*view.k,h=view.H*view.k;
+  view.x=w<=b.w?(b.w-w)/2:Math.min(0,Math.max(b.w-w,view.x));
+  view.y=h<=b.h?(b.h-h)/2:Math.min(0,Math.max(b.h-h,view.y));
+}
+function viewDraw(){
+  $("viewImg").style.transform="translate("+view.x+"px,"+view.y+"px) scale("+view.k+")";
+  $("viewStage").classList.toggle("zoomed",view.k>view.fit*1.01);
+}
+/* ingrandisce di «f» tenendo fermo il punto (px,py) dello schermo */
+function viewZoom(f,px,py){
+  var b=viewStageBox(),k=Math.min(view.fit*8,Math.max(view.fit,view.k*f));
+  px-=b.l;py-=b.t;var u=(px-view.x)/view.k,w=(py-view.y)/view.k;
+  view.k=k;view.x=px-u*k;view.y=py-w*k;viewClamp();viewDraw();
+}
+function viewGo(d){var n=view.i+(t("dir")==="rtl"?-d:d);if(cap.pages[n])viewOpen(n)}
+(function(){
+  var st=$("viewStage");
+  $("viewPrev").innerHTML=ICON.l;$("viewNext").innerHTML=ICON.r;
+  $("viewPrev").addEventListener("click",function(){if(cap.pages[view.i-1])viewOpen(view.i-1)});
+  $("viewNext").addEventListener("click",function(){if(cap.pages[view.i+1])viewOpen(view.i+1)});
+  $("viewBack").addEventListener("click",viewClose);
+  window.addEventListener("keydown",function(e){
+    if(viewEl().hidden)return;
+    if(e.key==="Escape"){e.preventDefault();viewClose()}
+    else if(e.key==="ArrowLeft")$("viewPrev").click();else if(e.key==="ArrowRight")$("viewNext").click();
+  });
+  window.addEventListener("resize",function(){if(!viewEl().hidden)viewFit()});
+  st.addEventListener("wheel",function(e){e.preventDefault();viewZoom(Math.exp(-e.deltaY*.0015),e.clientX,e.clientY)},{passive:false});
+  st.addEventListener("pointerdown",function(e){
+    try{st.setPointerCapture(e.pointerId)}catch(x){}
+    view.pts[e.pointerId]={x:e.clientX,y:e.clientY};
+    var ids=Object.keys(view.pts);
+    if(ids.length===2){var a=view.pts[ids[0]],c=view.pts[ids[1]];view.pinch={d:Math.hypot(a.x-c.x,a.y-c.y)||1};view.drag=null}
+    else if(ids.length===1)view.drag={x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t:performance.now(),moved:false};
+  });
+  st.addEventListener("pointermove",function(e){
+    if(!view.pts[e.pointerId])return;
+    view.pts[e.pointerId]={x:e.clientX,y:e.clientY};
+    var ids=Object.keys(view.pts);
+    if(ids.length===2&&view.pinch){
+      var a=view.pts[ids[0]],c=view.pts[ids[1]],d=Math.hypot(a.x-c.x,a.y-c.y)||1;
+      viewZoom(d/view.pinch.d,(a.x+c.x)/2,(a.y+c.y)/2);view.pinch.d=d;return;
+    }
+    var g=view.drag;if(!g)return;
+    if(Math.hypot(e.clientX-g.x0,e.clientY-g.y0)>8)g.moved=true;
+    if(view.k>view.fit*1.01){view.x+=e.clientX-g.x;view.y+=e.clientY-g.y;viewClamp();viewDraw()}
+    g.x=e.clientX;g.y=e.clientY;
+  });
+  function up(e){
+    var g=view.drag;delete view.pts[e.pointerId];
+    if(Object.keys(view.pts).length<2)view.pinch=null;
+    if(!g||e.type==="pointercancel"){view.drag=null;return}
+    view.drag=null;
+    var dx=e.clientX-g.x0,dy=e.clientY-g.y0,now=performance.now();
+    if(view.k<=view.fit*1.01&&Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){viewGo(dx<0?1:-1);return}
+    if(!g.moved){
+      /* doppio tocco: 2,5× sul punto toccato, oppure di nuovo adattata */
+      if(now-view.tap<320){view.tap=0;if(view.k>view.fit*1.01)viewFit();else viewZoom(2.5,e.clientX,e.clientY)}
+      else view.tap=now;
+    }
+  }
+  st.addEventListener("pointerup",up);st.addEventListener("pointercancel",up);
+})();
 function capInfo(){var tot=0;cap.pages.forEach(function(p){tot+=p.blob.size});return t("capInfo",{n:nf(cap.pages.length),size:fmt(tot)})}
 function saveLabel(){return t(mode==="pdf"?"capSavePdf":"capSaveJpg")}
 /* casella del PDF ricercabile, accesa all'inizio e ricordata */
@@ -2655,10 +2764,12 @@ function capRender(){
       var c=el("div","card");c.draggable=true;
       c.appendChild(el("span","num",nf(i+1)));
       var im=document.createElement("img");im.src=p.url;im.alt=t("pageN",{n:nf(i+1)});c.appendChild(im);
+      im.style.pointerEvents="auto";im.style.cursor="zoom-in";im.addEventListener("click",function(){viewOpen(i)});
       var sel=document.createElement("select");sel.setAttribute("aria-label",t("stylePage"));
       [[null,"styleSame"]].concat(STYLES).forEach(function(x){var o=el("option",null,t(x[1]));o.value=x[0]||"";o.selected=(p.style||"")===(x[0]||"");sel.appendChild(o)});
       sel.addEventListener("change",function(){pageStyle(i,sel.value||null)});c.appendChild(sel);
       var r2=el("div","row2");
+      r2.appendChild(ibtn("alt ib",ICON.look,t("viewBtn"),function(){viewOpen(i)},true));
       r2.appendChild(ibtn("alt ib",ICON.rot,t("rotate"),function(){rotatePage(i)},true));
       r2.appendChild(ibtn("alt ib",ICON.crop,t("edges"),function(){capEdges(i)},true));
       r2.appendChild(ibtn("alt ib",ICON.redo,t("retake"),function(){shoot(i)},true));
@@ -2699,7 +2810,7 @@ function capRender(){
       var b=el("button","thumb");b.type="button";b.setAttribute("aria-pressed",String(i===cap.sel));
       var im=document.createElement("img");im.src=p.url;im.alt=t("pageN",{n:nf(i+1)});b.appendChild(im);
       b.appendChild(el("span","num",nf(i+1)));if(p.style)b.appendChild(el("span","chip",shortStyle(p.style)));
-      b.addEventListener("click",function(){cap.sel=i;capRender()});strip.appendChild(b);
+      b.addEventListener("click",function(){if(cap.sel===i)viewOpen(i);else{cap.sel=i;capRender()}});strip.appendChild(b);
     });
     var add=el("button","add","+");add.type="button";add.setAttribute("aria-label",t("addPage"));add.addEventListener("click",function(){shoot()});
     strip.appendChild(add);p2.appendChild(strip);
@@ -2707,6 +2818,7 @@ function capRender(){
     if(i>=0&&cap.pages[i]){
       p2.appendChild(el("p","lab",t("pageN",{n:nf(i+1)})));
       var tl=el("div","tools");
+      tl.appendChild(ibtn("alt",ICON.look,t("viewBtn"),function(){viewOpen(i)}));
       tl.appendChild(ibtn("alt",ICON.rot,t("rotate"),function(){rotatePage(i)}));
       tl.appendChild(ibtn("alt",ICON.crop,t("edges"),function(){capEdges(i)}));
       tl.appendChild(ibtn("alt",ICON.redo,t("retake"),function(){shoot(i)}));
