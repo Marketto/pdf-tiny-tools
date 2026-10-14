@@ -2335,6 +2335,17 @@ async function autoOrient(cv){
     try{
       var w=await ocrWorker(),small=scaledGray(cv,1600),r=(await w.detect(small)).data;small.width=small.height=0;
       if(r&&r.orientation_degrees!=null&&r.orientation_confidence>=2)deg=r.orientation_degrees;
+      else if(r&&r.orientation_degrees!=null){
+        /* Tesseract incerto (scrittura a mano, poche righe): le righe della pagina dicono se il testo corre in verticale;
+           allora la pagina va girata di un quarto, e da che parte lo dice Tesseract (anche con poca fiducia) o una seconda
+           domanda sulla pagina già girata */
+        var ld=lineDir(cv),vert=ld.v>=2*ld.h+2,od=r.orientation_degrees;
+        if(vert&&(od===90||od===270)&&r.orientation_confidence>=.5)deg=od;
+        else if(vert){
+          var q=turnCanvas(cv,90,0),s2=scaledGray(q,1600),r2=(await w.detect(s2)).data;s2.width=s2.height=0;if(q!==cv)q.width=q.height=0;
+          deg=r2&&r2.orientation_degrees===180&&r2.orientation_confidence>=.5?270:90;
+        }
+      }
       if(r&&r.script_confidence>=1)script=r.script;
     }catch(e){}
   }
@@ -2653,8 +2664,9 @@ function ufGrid(lines,W,H,G,sx,sy,lim){
   return f;
 }
 /* dalla pagina raddrizzata: {w, h, G, dx, dy} oppure null se non c'è niente di affidabile da correggere */
-function unfoldField(cv){
-  var U=CFG.scan.unfold,k=Math.min(1,U.size/Math.max(cv.width,cv.height)),W=Math.max(1,Math.round(cv.width*k)),H=Math.max(1,Math.round(cv.height*k));
+/* inchiostro della pagina su una copia con il lato lungo di «size» px: {bw, W, H} */
+function ufBin(cv,size){
+  var k=Math.min(1,size/Math.max(cv.width,cv.height)),W=Math.max(1,Math.round(cv.width*k)),H=Math.max(1,Math.round(cv.height*k));
   var c=document.createElement("canvas");c.width=W;c.height=H;var g=c.getContext("2d",{willReadFrequently:true});g.drawImage(cv,0,0,W,H);
   var d=g.getImageData(0,0,W,H).data;c.width=c.height=0;
   var gr=new Float32Array(W*H),ii=new Float64Array((W+1)*(H+1)),i,x,y;
@@ -2667,6 +2679,15 @@ function unfoldField(cv){
     var m=(ii[y1*(W+1)+x1]-ii[y0*(W+1)+x1]-ii[y1*(W+1)+x0]+ii[y0*(W+1)+x0])/((x1-x0)*(y1-y0));
     bw[y*W+x]=gr[y*W+x]<m-12?1:0;
   }
+  return {bw:bw,W:W,H:H};
+}
+/* righe di testo e linee: quante orizzontali e quante verticali (R-SCN-20: aiuta l'orientamento quando Tesseract è incerto) */
+function lineDir(cv){
+  var U=CFG.scan.unfold,B=ufBin(cv,600);
+  return {h:ufLines(B.bw,B.W,B.H,U).length,v:ufLines(ufT(B.bw,B.W,B.H),B.H,B.W,U).length};
+}
+function unfoldField(cv){
+  var U=CFG.scan.unfold,B=ufBin(cv,U.size),bw=B.bw,W=B.W,H=B.H,i;
   var hl=ufLines(bw,W,H,U),vl=ufLines(ufT(bw,W,H),H,W,U).map(function(l){return l.map(function(p){return [p[1],p[0],p[2]]})});
   if(hl.length+vl.length<U.minLines)return null;
   var G=U.grid;
