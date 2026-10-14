@@ -45,10 +45,18 @@ window.CONFIG = {
   },
   scan: {
     /* bordi dai lati dritti (R-SCN-31): analisi su una copia con il lato lungo di size px; contano come contorno le pendenze oltre minGrad;
-       si cercano le lines rette più forti; un lato perde miss per ogni tratto senza contorno e unseen per ogni tratto fuori dalla foto; gli angoli possono uscire dalla foto
+       si cercano le lines rette più forti; un lato perde miss per ogni tratto senza contorno e unseen per ogni tratto fuori dalla foto,
+       e cont per ogni tratto oltre il quale il foglio continua (entro contReach della foto, carta al più contPaper
+       più scura di quella dentro, con tratti più scuri di contInk); un lato oltre il quale il foglio continua
+       si sposta in fuori fino a grow volte la profondità del foglio, su un contorno con pendenza oltre growGrad per almeno growSup del lato
+       (carta = chiara e con colori meno decisi di growSat);
+       dei keep quadrilateri migliori ogni lato si sposta fino a sideRange della profondità, inclinandosi di ±sideTilt px, dove il punteggio sale (in fuori solo su carta: colori meno decisi di paperSat)
+       (in dentro solo se la striscia lasciata fuori ha tratti scuri in meno di cutInk dei punti);
+       un lato con contorno sotto trimFrom passa dove finisce il contorno di un lato vicino, se manca almeno trimMin prima dell'angolo
+       (ruotando fino a trimTurn gradi perché la striscia tolta abbia tratti scuri in meno di trimInk dei punti); gli angoli possono uscire dalla foto
        fino a outside del lato; il foglio occupa almeno minArea della foto; il punteggio dei bordi trovati con la maschera vale segBias volte,
        e vincono se contengono quelli dei lati dritti e ogni loro lato ha almeno segMin di contorno */
-    edges: { size: 480, minGrad: 3, lines: 28, miss: 1, unseen: 0.3, outside: 0.15, minArea: 0.08, segBias: 1.1, segMin: 0.3 },
+    edges: { size: 480, minGrad: 3, lines: 28, miss: 1, unseen: 0.3, cont: 2, contReach: 0.04, contPaper: 60, contInk: 50, grow: 1, growGrad: 1.5, growSup: 0.6, growSat: 60, keep: 5, sideRange: 0.3, sideTilt: 12, cutInk: 0.4, paperSat: 35, trimFrom: 0.3, trimMin: 0.1, trimTurn: 30, trimInk: 0.03, outside: 0.15, minArea: 0.08, segBias: 1.1, segMin: 0.3 },
     /* ombre delle pieghe (R-SCN-29): analisi su una copia con il lato lungo di size px; luce fine con raggio fine, luce del foglio con
        raggio coarse (frazioni della pagina); bordo netto = pendenza della luce oltre sharp per pixel; la luce fine parte dal foglio pulito
        (luce ≥ seed di quella del foglio) e si allarga solo cambiando di meno di step per pixel; schiarimento al massimo maxGain;
@@ -58,10 +66,10 @@ window.CONFIG = {
        e piatta (larga almeno 4 volte l'altezza, alta al massimo maxH); la mappa si calcola su una griglia grid×grid con pesi gaussiani
        stretti lungo la linea (along) e larghi di traverso (across), in frazioni della pagina; spostamenti al massimo maxShift della pagina;
        servono almeno minLines linee, altrimenti la pagina resta com'è; passes = passate di correzione, composte in una sola; una linea vale se
-       ha inchiostro su almeno cover della sua lunghezza */
+       ha inchiostro su almeno cover della sua lunghezza; una pagina con più di maxColor di colori decisi non si distende */
     /* SPERIMENTALE, spento (R-SCN-27): pieghe nette come cerniere tra falde piatte */
     crease: { on: false, win: 0.03, min: 0.04, noise: 4, tol: 0.012, minPts: 6, span: 0.4, maxTilt: 0.5, max: 3 },
-    unfold: { model: "local", pick: ["local", "both"], gain: 0.9, guard: false, r2: 0.4, passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
+    unfold: { maxColor: 0.15, model: "local", pick: ["local", "both"], gain: 0.9, guard: false, r2: 0.4, passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
   },
   ui: {
     /* il riquadro del lettore si aggiorna al massimo ogni tanti millisecondi (R-APP-07) */

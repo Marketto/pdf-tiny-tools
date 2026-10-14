@@ -2021,7 +2021,8 @@ function edgeGrad(work){
     for(c=0;c<3;c++){var a=ch[c];
       var sx=(a[i-w+1]+2*a[i+1]+a[i+w+1]-a[i-w-1]-2*a[i-1]-a[i+w-1])/8,sy=(a[i+w-1]+2*a[i+w]+a[i+w+1]-a[i-w-1]-2*a[i-w]-a[i-w+1])/8,m=sx*sx+sy*sy;
       if(m>bm){bm=m;gx[i]=sx;gy[i]=sy}}}
-  G={w:w,h:h,k:k,gx:gx,gy:gy};edgeCache.set(work,G);
+  var lum=new Float32Array(n),sat=new Uint8Array(n);for(i=0;i<n;i++){lum[i]=d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11;sat[i]=Math.max(d[i*4],d[i*4+1],d[i*4+2])-Math.min(d[i*4],d[i*4+1],d[i*4+2])}
+  G={w:w,h:h,k:k,gx:gx,gy:gy,lum:lum,sat:sat};edgeCache.set(work,G);
   return G;
 }
 /* rette forti: ogni pixel di contorno vota solo per le direzioni vicine alla sua (±2°), pesato dalla pendenza */
@@ -2044,24 +2045,33 @@ function edgeLines(G){
 /* punteggio di un quadrilatero (coordinate della copia piccola): per ogni lato, i punti con una pendenza di traverso al lato
    (entro ±1,5 px) contano come contorno; i punti fuori dalla foto non contano né in un senso né nell'altro */
 function quadScoreG(G,Q){
-  var w=G.w,h=G.h,cx=(Q[0][0]+Q[1][0]+Q[2][0]+Q[3][0])/4,cy=(Q[0][1]+Q[1][1]+Q[2][1]+Q[3][1])/4,E=CFG.scan.edges,score=0,sup=[],cross=[];
-  for(var j=0;j<4;j++){
-    var a=Q[j],b=Q[(j+1)%4],L=dist(a,b);if(L<8)return {s:-1e9,sup:[0,0,0,0]};
-    var ux=(b[0]-a[0])/L,uy=(b[1]-a[1])/L,nx=-uy,ny=ux,pos=0,neg=0,tot=0,crs=0,X,Y,ii,o;
+  var w=G.w,h=G.h,cx=(Q[0][0]+Q[1][0]+Q[2][0]+Q[3][0])/4,cy=(Q[0][1]+Q[1][1]+Q[2][1]+Q[3][1])/4,E=CFG.scan.edges,score=0,sup=[],cont=[];
+  function L0(x,y){x=Math.round(x);y=Math.round(y);return x<0||y<0||x>=w||y>=h?-1:G.lum[y*w+x]}
+  /* livello della carta: i punti appena dentro i lati */
+  var inner=[];
+  for(var j=0;j<4;j++){var a=Q[j],b=Q[(j+1)%4];for(var s=1;s<12;s++){var t=s/12,px=a[0]+(b[0]-a[0])*t,py=a[1]+(b[1]-a[1])*t,dx=cx-px,dy=cy-py,dl=Math.hypot(dx,dy)||1,v=L0(px+dx/dl*6,py+dy/dl*6);if(v>=0)inner.push(v)}}
+  inner.sort(function(x,y){return x-y});var paper=inner.length?inner[Math.floor(inner.length*.75)]:255,reach=Math.max(6,Math.min(w,h)*E.contReach);
+  for(j=0;j<4;j++){
+    a=Q[j];b=Q[(j+1)%4];var L=dist(a,b);if(L<8)return {s:-1e9,sup:[0,0,0,0],cont:[0,0,0,0]};
+    var ux=(b[0]-a[0])/L,uy=(b[1]-a[1])/L,nx=-uy,ny=ux,pos=0,neg=0,rid=0,tot=0,cn=0;
     if((cx-a[0])*nx+(cy-a[1])*ny>0){nx=-nx;ny=-ny}
-    for(var s=0;s<48;s++){var t=.03+.94*s/47,px=a[0]+ux*t*L,py=a[1]+uy*t*L;
-      if(px<1||py<1||px>w-2||py>h-2)continue;tot++;var best=0;
+    for(s=0;s<48;s++){t=.03+.94*s/47;px=a[0]+ux*t*L;py=a[1]+uy*t*L;
+      if(px<1||py<1||px>w-2||py>h-2)continue;tot++;var bp=0,bn=0;
       for(var o=-1.5;o<=1.5;o+=.75){var X=Math.round(px+nx*o),Y=Math.round(py+ny*o);if(X<1||Y<1||X>w-2||Y>h-2)continue;var ii=Y*w+X,gx=G.gx[ii],gy=G.gy[ii];
-        var gs=gx*nx+gy*ny,gt=Math.abs(gx*ux+gy*uy);if(Math.abs(gs)>Math.abs(best)&&Math.abs(gs)>1.8*gt)best=gs}
-      if(best>E.minGrad)pos++;else if(best<-E.minGrad)neg++;
-      /* fuori dal lato, appena oltre: tratti che lo attraversano (testo o linee che continuano) */
-      for(o=3;o<=9;o+=3){X=Math.round(px-nx*0+nx*o);Y=Math.round(py+ny*o);if(X<1||Y<1||X>w-2||Y>h-2)continue;ii=Y*w+X;
-        if(Math.abs(G.gx[ii]*ux+G.gy[ii]*uy)>3*E.minGrad){crs++;break}}}
-    /* un bordo vero passa sempre dallo stesso chiaro allo stesso scuro; una riga di testo dà pendenze nei due versi */
-    var f=tot?Math.max(pos,neg)/tot:0,seen=L*tot/48;sup.push(tot>=12?f:-1);cross.push(tot?Math.round(crs/tot*100)/100:-1);
-    score+=seen*(f-(1-f)*E.miss)-(L-seen)*E.unseen;
+        var gs=gx*nx+gy*ny,gt=Math.abs(gx*ux+gy*uy);if(Math.abs(gs)>1.8*gt){if(gs>bp)bp=gs;if(-gs>bn)bn=-gs}}
+      /* un bordo vero passa sempre dallo stesso chiaro allo stesso scuro; una riga di testo dà pendenze nei due versi.
+         Una costa sottile e chiara (lo spigolo di una scatola) dà i due versi forti insieme e vale mezzo */
+      if(bp>2*E.minGrad&&bn>2*E.minGrad)rid++;else if(bp>E.minGrad&&bp>=bn)pos++;else if(bn>E.minGrad)neg++;
+      /* appena fuori dal lato: carta chiara quasi come dentro (anche un po' in ombra) con dei tratti scuri = il foglio continua (piega, riquadro stampato) */
+      var mx=-1,mn=999,sq=false;for(o=3;o<=reach;o+=2){var Xo=Math.round(px+nx*o),Yo=Math.round(py+ny*o),v=L0(Xo,Yo);if(v<0)continue;if(G.sat[Yo*w+Xo]>=E.growSat)sq=true;if(v>mx)mx=v;if(v<mn)mn=v}
+      /* e subito fuori (3–5 px) è ancora carta: un bordo vero ha lì lo sfondo */
+      var near=-1;for(o=3;o<=5;o++){var Xn=Math.round(px+nx*o),Yn=Math.round(py+ny*o),vn=L0(Xn,Yn);if(vn>=0&&G.sat[Yn*w+Xn]<E.growSat&&vn>near)near=vn}
+      if(!sq&&near>=paper-E.contPaper&&mx>=paper-E.contPaper&&mn<mx-E.contInk)cn++;
+    }
+    var f=tot?(Math.max(pos,neg)+rid*.5)/tot:0,seen=L*tot/48,c=tot?cn/tot:0;sup.push(tot>=12?f:-1);cont.push(Math.round(c*100)/100);
+    score+=seen*(f-(1-f)*E.miss-c*E.cont)-(L-seen)*E.unseen;
   }
-  return {s:score,sup:sup,cross:cross};
+  return {s:score,sup:sup,cont:cont};
 }
 function edgeQuad(G){
   var E=CFG.scan.edges,w=G.w,h=G.h,L=edgeLines(G),hz=[],vt=[];
@@ -2070,14 +2080,58 @@ function edgeQuad(G){
   L.forEach(function(l){if(Math.abs(Math.sin(l.t))>.6)hz.push(l);if(Math.abs(Math.cos(l.t))>.6)vt.push(l)});
   function X(a,b){var det=Math.cos(a.t)*Math.sin(b.t)-Math.sin(a.t)*Math.cos(b.t);if(Math.abs(det)<1e-3)return null;
     return [(a.r*Math.sin(b.t)-b.r*Math.sin(a.t))/det,(b.r*Math.cos(a.t)-a.r*Math.cos(b.t))/det]}
-  var best=null,ox=w*E.outside,oy=h*E.outside;
+  var top=[],ox=w*E.outside,oy=h*E.outside;
   for(var a=0;a<hz.length;a++)for(var b=a+1;b<hz.length;b++)for(var c=0;c<vt.length;c++)for(var d=c+1;d<vt.length;d++){
     var Q=[X(hz[a],vt[c]),X(hz[a],vt[d]),X(hz[b],vt[d]),X(hz[b],vt[c])];
     if(Q.some(function(p){return !p||p[0]<-ox||p[1]<-oy||p[0]>w+ox||p[1]>h+oy}))continue;
     Q=quadOrder(Q);if(!Q||quadArea(Q)<w*h*E.minArea)continue;
-    var sc=quadScoreG(G,Q);if(!best||sc.s>best.s)best={s:sc.s,sup:sc.sup,q:Q};
+    var sc=quadScoreG(G,Q);top.push({s:sc.s,q:Q});
   }
-  return best;
+  top.sort(function(x,y){return y.s-x.s});
+  /* i migliori, diversi tra loro (angoli lontani almeno 4% della foto) */
+  var out=[];top.forEach(function(c){if(out.length<E.keep&&out.every(function(o){return o.q.some(function(p,i){return dist(p,c.q[i])>Math.max(w,h)*.04})}))out.push(c)});
+  return out;
+}
+/* la striscia tra il lato j di Q e quello di T è carta come l'interno di Q (chiara e senza colore in almeno 80% dei punti)? */
+function paperBand(G,Q,T,j){
+  var E=CFG.scan.edges,w=G.w,h=G.h,a=Q[j],b=Q[(j+1)%4],A=T[j],B=T[(j+1)%4],cx=(Q[0][0]+Q[1][0]+Q[2][0]+Q[3][0])/4,cy=(Q[0][1]+Q[1][1]+Q[2][1]+Q[3][1])/4,inner=[],ok=0,n=0;
+  function at(x,y){x=Math.round(x);y=Math.round(y);return x<0||y<0||x>=w||y>=h?-1:y*w+x}
+  for(var s=1;s<12;s++){var px=a[0]+(b[0]-a[0])*s/12,py=a[1]+(b[1]-a[1])*s/12,dx=cx-px,dy=cy-py,dl=Math.hypot(dx,dy)||1,i=at(px+dx/dl*6,py+dy/dl*6);if(i>=0)inner.push(G.lum[i])}
+  inner.sort(function(x,y){return x-y});var paper=inner.length?inner[Math.floor(inner.length*.75)]:255;
+  for(s=1;s<12;s++)for(var u=1;u<4;u++){var t=s/12,v=u/4,P=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],R=[A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t];
+    var k=at(P[0]+(R[0]-P[0])*v,P[1]+(R[1]-P[1])*v);if(k<0)continue;n++;if(G.lum[k]>=paper-E.contPaper&&G.sat[k]<E.paperSat)ok++}
+  return n>0&&ok>=n*.8&&inkBand(G,Q,T,j,paper);
+}
+/* nella striscia ci sono scritte (il foglio continua davvero, non è un tavolo chiaro)? */
+function inkBand(G,Q,T,j,paper,frac){
+  var E=CFG.scan.edges,w=G.w,h=G.h,a=Q[j],b=Q[(j+1)%4],A=T[j],B=T[(j+1)%4],cols=0,ink=0;
+  for(var s=1;s<24;s++){var t=s/24,P=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],R=[A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t],L=dist(P,R),mx=-1,mn=999;
+    for(var q=0;q<=L;q+=1.5){var x=Math.round(P[0]+(R[0]-P[0])*q/L),y=Math.round(P[1]+(R[1]-P[1])*q/L);if(x<0||y<0||x>=w||y>=h)continue;var v=G.lum[y*w+x];if(v>mx)mx=v;if(v<mn)mn=v}
+    if(mx>=0){cols++;if(mn<mx-E.contInk)ink++}}
+  return cols>0&&ink>=cols*(frac||.2);
+}
+/* ogni lato si sposta (in dentro o in fuori, un po' inclinato) dove il punteggio del quadrilatero sale: trova anche i lati deboli
+   che non erano tra le rette più forti */
+function quadSides(G,Q){
+  var E=CFG.scan.edges,w=G.w,h=G.h,cur=Q.map(function(p){return p.slice()}),sc=quadScoreG(G,cur).s;
+  function X(p1,p2,p3,p4){var d=(p1[0]-p2[0])*(p3[1]-p4[1])-(p1[1]-p2[1])*(p3[0]-p4[0]);if(Math.abs(d)<1e-6)return null;
+    var t=((p1[0]-p3[0])*(p3[1]-p4[1])-(p1[1]-p3[1])*(p3[0]-p4[0]))/d;return [p1[0]+t*(p2[0]-p1[0]),p1[1]+t*(p2[1]-p1[1])]}
+  for(var round=0;round<2;round++)for(var j=0;j<4;j++){
+    var a=cur[j],b=cur[(j+1)%4],pa=cur[(j+3)%4],nb=cur[(j+2)%4],L=dist(a,b),nx=-(b[1]-a[1])/L,ny=(b[0]-a[0])/L;
+    var D=Math.min(dist(a,pa),dist(b,nb))*E.sideRange,best=null;
+    for(var d=-D;d<=D;d+=1.5)for(var e=-E.sideTilt;e<=E.sideTilt;e+=2){
+      var A=X([a[0]+nx*(d+e),a[1]+ny*(d+e)],[b[0]+nx*(d-e),b[1]+ny*(d-e)],pa,a),B=X([a[0]+nx*(d+e),a[1]+ny*(d+e)],[b[0]+nx*(d-e),b[1]+ny*(d-e)],nb,b);if(!A||!B)continue;
+      var T=cur.slice();T[j]=A;T[(j+1)%4]=B;
+      /* in fuori solo su carta con scritte (la striscia aggiunta è chiara e senza colore come dentro);
+         in dentro solo se la striscia lasciata fuori non è piena di scritte (non si taglia il testo) */
+      if(quadArea(T)>quadArea(cur)?!paperBand(G,cur,T,j):inkBand(G,T,cur,j,0,E.cutInk))continue;
+      if(T.some(function(p){return p[0]<-w*E.outside||p[1]<-h*E.outside||p[0]>w*(1+E.outside)||p[1]>h*(1+E.outside)}))continue;
+      if(!quadOrder(T)||quadArea(T)<w*h*E.minArea)continue;
+      var v=quadScoreG(G,T).s;if(v>sc+1e-6&&(!best||v>best.v))best={v:v,T:T};
+    }
+    if(best){sc=best.v;cur=best.T}
+  }
+  return {q:cur,s:sc};
 }
 function quadArea(P){var a=0;for(var j=0;j<4;j++){var p=P[j],q2=P[(j+1)%4];a+=p[0]*q2[1]-q2[0]*p[1]}return Math.abs(a)/2}
 /* angoli in ordine: alto a sinistra, poi in senso orario; null se il quadrilatero non è convesso */
@@ -2113,9 +2167,93 @@ function quadPolish(G,Q){
       if(!moved)break}});
   return {q:cur,s:sc};
 }
+/* il foglio continua oltre un lato (una piega, una fascia stampata): il lato si sposta in fuori, parallelo o quasi, fino a un
+   contorno anche debole, purché la striscia attraversata sia carta con delle scritte */
+function quadGrow(G,Q){
+  var E=CFG.scan.edges,w=G.w,h=G.h;Q=Q.map(function(p){return p.slice()});
+  function L0(x,y){x=Math.round(x);y=Math.round(y);return x<0||y<0||x>=w||y>=h?-1:G.lum[y*w+x]}
+  function X(p1,p2,p3,p4){var d=(p1[0]-p2[0])*(p3[1]-p4[1])-(p1[1]-p2[1])*(p3[0]-p4[0]);if(Math.abs(d)<1e-6)return null;
+    var t=((p1[0]-p3[0])*(p3[1]-p4[1])-(p1[1]-p3[1])*(p3[0]-p4[0]))/d;return [p1[0]+t*(p2[0]-p1[0]),p1[1]+t*(p2[1]-p1[1])]}
+  for(var j=0;j<4;j++){
+    var a=Q[j],b=Q[(j+1)%4],pa=Q[(j+3)%4],nb=Q[(j+2)%4],L=dist(a,b);
+    var cx=(Q[0][0]+Q[1][0]+Q[2][0]+Q[3][0])/4,cy=(Q[0][1]+Q[1][1]+Q[2][1]+Q[3][1])/4,nx=-(b[1]-a[1])/L,ny=(b[0]-a[0])/L;
+    if((cx-a[0])*nx+(cy-a[1])*ny>0){nx=-nx;ny=-ny}
+    var depth=Math.min(dist(a,pa),dist(b,nb)),inner=[];
+    for(var s=1;s<12;s++){var v=L0(a[0]+(b[0]-a[0])*s/12-nx*6,a[1]+(b[1]-a[1])*s/12-ny*6);if(v>=0)inner.push(v)}
+    inner.sort(function(x,y){return x-y});var paper=inner.length?inner[Math.floor(inner.length*.75)]:255,best=null;
+    /* solo se appena fuori dal lato c'è ancora carta (chiara e senza colore): un bordo vero ha fuori lo sfondo */
+    var out=0,on=0;for(s=1;s<12;s++){var mxo=-1;for(var oo=3;oo<=8;oo++){var px0=a[0]+(b[0]-a[0])*s/12+nx*oo,py0=a[1]+(b[1]-a[1])*s/12+ny*oo,v0=L0(px0,py0);
+        if(v0>=0&&G.sat[Math.round(py0)*w+Math.round(px0)]<E.growSat&&v0>mxo)mxo=v0}
+      if(mxo>=0){on++;if(mxo>=paper-E.contPaper)out++}}
+    if(!on||out<on*.7)continue;
+    for(var d=6;d<depth*E.grow&&!best;d+=2)for(var e=-3;e<=3;e+=1.5){
+      var a2=[a[0]+nx*(d+e),a[1]+ny*(d+e)],b2=[b[0]+nx*(d-e),b[1]+ny*(d-e)];
+      var A=X(a2,b2,pa,a),B=X(a2,b2,nb,b);if(!A||!B)continue;
+      if(A[0]<-2||A[1]<-2||A[0]>w+1||A[1]>h+1||B[0]<-2||B[1]<-2||B[0]>w+1||B[1]>h+1)break;
+      var LL=dist(A,B),ux=(B[0]-A[0])/LL,uy=(B[1]-A[1])/LL,pos=0,neg=0,tot=0,pap=0,ink=0,bt=0;
+      for(s=0;s<32;s++){var t=.05+.9*s/31,px=A[0]+ux*t*LL,py=A[1]+uy*t*LL;if(px<1||py<1||px>w-2||py>h-2)continue;tot++;var bs=0;
+        for(var o=-1.5;o<=1.5;o+=.75){var XX=Math.round(px+nx*o),YY=Math.round(py+ny*o);if(XX<1||YY<1||XX>w-2||YY>h-2)continue;var ii=YY*w+XX,gs=G.gx[ii]*nx+G.gy[ii]*ny;if(Math.abs(gs)>Math.abs(bs))bs=gs}
+        if(bs>E.growGrad)pos++;else if(bs<-E.growGrad)neg++;
+        /* la striscia tra il lato vecchio e il nuovo, in questa colonna */
+        var mx=-1,mn=999;for(var q=2;q<d-2;q+=2){var v2=L0(px-nx*q,py-ny*q);if(v2<0)continue;if(v2>mx)mx=v2;if(v2<mn)mn=v2}
+        var sq=false;for(q=2;q<d-2;q+=4){var X3=Math.round(px-nx*q),Y3=Math.round(py-ny*q);if(X3>=0&&Y3>=0&&X3<w&&Y3<h&&G.sat[Y3*w+X3]>=E.growSat){sq=true;break}}
+        if(mx>=0){bt++;if(mx>=paper-E.contPaper&&!sq)pap++;if(mn<mx-E.contInk)ink++}}
+      if(tot<12||!bt)continue;var f=Math.max(pos,neg)/tot;
+      if(!(f>=E.growSup&&pap>=bt*.8&&ink>=bt*.2))continue;
+      /* il nuovo lato è la fine dello scritto: appena oltre, niente tratti scuri */
+      var bl=0,bc=0;for(s=0;s<32;s++){t=.05+.9*s/31;px=A[0]+ux*t*LL;py=A[1]+uy*t*LL;var m1=-1,m2=999;
+        for(q=3;q<=8;q++){var v3=L0(px+nx*q,py+ny*q);if(v3<0)continue;if(v3>m1)m1=v3;if(v3<m2)m2=v3}
+        if(m1>=0){bc++;if(m2>=m1-E.contInk)bl++}}
+      if(bc&&bl>=bc*.85){best={f:f,A:A,B:B,pap:pap,ink:ink,bt:bt,d:d};break}
+    }
+    if(best){if(PERF)(window.__grow=window.__grow||[]).push({j:j,f:+best.f.toFixed(2),pap:best.pap,ink:best.ink,bt:best.bt,d:best.d});Q[j]=best.A;Q[(j+1)%4]=best.B}
+  }
+  return Q;
+}
+/* un lato senza contorno (fuori dalla foto o su un'altra carta, come la piega di un biglietto aperto): se il contorno di un lato
+   vicino finisce prima dell'angolo, lì c'è l'angolo vero; il lato passa per quel punto, parallelo al lato opposto */
+function quadTrim(G,Q){
+  var E=CFG.scan.edges,w=G.w,h=G.h;Q=Q.map(function(p){return p.slice()});
+  var cx=(Q[0][0]+Q[1][0]+Q[2][0]+Q[3][0])/4,cy=(Q[0][1]+Q[1][1]+Q[2][1]+Q[3][1])/4;
+  function on(a,b,t){var L=dist(a,b),ux=(b[0]-a[0])/L,uy=(b[1]-a[1])/L,nx=-uy,ny=ux,px=a[0]+(b[0]-a[0])*t,py=a[1]+(b[1]-a[1])*t;
+    if(px<1||py<1||px>w-2||py>h-2)return -1;var bp=0,bn=0;
+    for(var o=-1.5;o<=1.5;o+=.75){var X=Math.round(px+nx*o),Y=Math.round(py+ny*o);if(X<1||Y<1||X>w-2||Y>h-2)continue;var i=Y*w+X,gs=G.gx[i]*nx+G.gy[i]*ny,gt=Math.abs(G.gx[i]*ux+G.gy[i]*uy);if(Math.abs(gs)>1.8*gt){if(gs>bp)bp=gs;if(-gs>bn)bn=-gs}}
+    return bp>E.minGrad||bn>E.minGrad?1:0}
+  function X(p1,p2,p3,p4){var d=(p1[0]-p2[0])*(p3[1]-p4[1])-(p1[1]-p2[1])*(p3[0]-p4[0]);if(Math.abs(d)<1e-6)return null;
+    var t=((p1[0]-p3[0])*(p3[1]-p4[1])-(p1[1]-p3[1])*(p3[0]-p4[0]))/d;return [p1[0]+t*(p2[0]-p1[0]),p1[1]+t*(p2[1]-p1[1])]}
+  var sc=quadScoreG(G,Q).sup;
+  for(var j=0;j<4;j++){
+    if(sc[j]>=E.trimFrom)continue;
+    var c0=Q[j],c1=Q[(j+1)%4],o0=Q[(j+3)%4],o1=Q[(j+2)%4],best=null;
+    /* i due lati vicini: da o0 verso c0 e da o1 verso c1 */
+    [[o0,c0],[o1,c1]].forEach(function(sd){
+      var N=60,vals=[];for(var s=0;s<=N;s++)vals.push(on(sd[0],sd[1],s/N));
+      var last=-1;for(s=0;s<=N;s++)if(vals[s]===1)last=s;
+      if(last<0||last>N*(1-E.trimMin))return;
+      var tail=vals.slice(last+1).filter(function(v){return v>=0}),hit=tail.filter(function(v){return v===1}).length;
+      var head=vals.slice(0,last+1).filter(function(v){return v>=0}),hh=head.filter(function(v){return v===1}).length;
+      if(tail.length<N*E.trimMin*.5||hit>tail.length*.2||hh<head.length*.7)return;
+      var P=[sd[0][0]+(sd[1][0]-sd[0][0])*last/N,sd[0][1]+(sd[1][1]-sd[0][1])*last/N],cut=1-last/N;
+      if(!best||cut>best.cut)best={P:P,cut:cut};
+    });
+    if(!best)continue;
+    /* parallelo al lato opposto (o0–o1); se così taglierebbe delle scritte, ruota in fuori attorno al punto finché non le taglia più */
+    var dx=o1[0]-o0[0],dy=o1[1]-o0[1],T=null;
+    for(var ang=0;ang<=E.trimTurn&&!T;ang+=2)for(var sg=-1;sg<=1&&!T;sg+=2){if(!ang&&sg>0)continue;
+      var r=sg*ang*Math.PI/180,rx=dx*Math.cos(r)-dy*Math.sin(r),ry=dx*Math.sin(r)+dy*Math.cos(r),P2=[best.P[0]+rx,best.P[1]+ry];
+      var A=X(best.P,P2,o0,c0),B=X(best.P,P2,o1,c1);if(!A||!B)continue;
+      var Tt=Q.slice();Tt[j]=A;Tt[(j+1)%4]=B;if(!quadOrder(Tt)||quadArea(Tt)>=quadArea(Q))continue;
+      if(!inkBand(G,Tt,Q,j,0,E.trimInk))T=Tt}
+    if(!T)continue;
+    if(PERF)(window.__trim=window.__trim||[]).push({j:j,cut:+best.cut.toFixed(2)});
+    Q=T;
+  }
+  return Q;
+}
 function inQuad(Q,p){for(var j=0;j<4;j++){var a=Q[j],b=Q[(j+1)%4];if((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])<0)return false}return true}
 function detectPage(work){
   var G=edgeGrad(work),k=G.k,E=CFG.scan.edges,cands=[];
+  if(PERF){(window.__G=window.__G||[]).push(G);window.__qs=quadScoreG;window.__el=edgeLines}
   var f=detectPageSeg(work);
   if(f){
     cands.push({q:f.q,mids:f.mids,seg:true});
@@ -2123,18 +2261,23 @@ function detectPage(work){
     if(rf)cands.push({q:rf.q,mids:rf.mids,seg:true});
   }
   cands.forEach(function(c){c.g=c.q.map(function(p){return [p[0]*k,p[1]*k]})});
-  var e=null;try{e=edgeQuad(G)}catch(err){}
-  if(e){var pe=quadPolish(G,e.q);cands.push({g:pe.q,seg:false})}
+  var e=null;try{var tops=edgeQuad(G);tops.forEach(function(c){var r=quadSides(G,c.q);r=quadPolish(G,r.q);if(!e||r.s>e.s)e=r})}catch(err){}
+  if(e){var gr=e.q,pre=e.s;
+    /* anche più volte: tra la piega e il bordo vero ci possono essere altre linee stampate */
+    if(E.grow)for(var gi=0;gi<4;gi++){var g2=quadGrow(G,gr);if(g2.every(function(p,i){return p[0]===gr[i][0]&&p[1]===gr[i][1]}))break;gr=g2}
+    gr=quadTrim(G,gr);
+    cands.push({g:gr,seg:false,pre:pre})}
   if(!cands.length)return null;
-  cands.forEach(function(c){var r=quadScoreG(G,c.g);c.s=r.s;c.sup=r.sup;c.cross=r.cross;c.min=Math.min.apply(0,r.sup.filter(function(v){return v>=0}).concat([1]))});
+  cands.forEach(function(c){var r=quadScoreG(G,c.g);c.s=r.s;c.sup=r.sup;c.cont=r.cont;c.min=Math.min.apply(0,r.sup.filter(function(v){return v>=0}).concat([1]))});
   /* la maschera, quando c'è, ha già i lati curvi: vince anche se ha un po' meno contorno (segBias); e vince comunque se il
      quadrilatero dei lati dritti le sta dentro (era una piega o un riquadro stampato) purché ogni suo lato abbia un po' di contorno */
   var ed=cands[cands.length-1].seg?null:cands[cands.length-1],best=null;
   cands.forEach(function(c){c.v=c.seg?c.s*E.segBias:c.s;
     if(c.seg&&ed&&c.min>=E.segMin&&c.s>0&&ed.g.every(function(p){return inQuad(c.g,p)}))c.v=Math.max(c.v,ed.s+1);
     if(!best||c.v>best.v)best=c});
-  if(PERF)(window.__det=window.__det||[]).push(cands.map(function(c){return {seg:c.seg,s:Math.round(c.s),min:Math.round(c.min*100)/100,sup:c.sup.map(function(v){return Math.round(v*100)/100}),cross:c.cross,best:c===best}}));
-  if(best.s<=0)return null;
+  if(PERF)(window.__det=window.__det||[]).push(cands.map(function(c){return {seg:c.seg,s:Math.round(c.s),min:Math.round(c.min*100)/100,sup:c.sup.map(function(v){return Math.round(v*100)/100}),cont:c.cont,best:c===best}}));
+  /* un lato spostato su un contorno debole abbassa il punteggio: conta quello di prima */
+  if(Math.max(best.s,best.pre||-1)<=0)return null;
   if(best.seg)return {q:best.q,mids:best.mids,edge:false};
   var m=edgeMids(G,best.g);
   return {q:best.g.map(function(p){return [p[0]/k,p[1]/k]}),mids:m.map(function(p){return [p[0]/k,p[1]/k]}),edge:true};
@@ -3067,6 +3210,14 @@ async function unfoldMap(cv){
   sm.width=sm.height=0;
   return F;
 }
+/* quota della pagina con colori decisi (differenza tra il canale più forte e il più debole oltre 60) */
+function colorFrac(cv){
+  var k=Math.min(1,200/Math.max(cv.width,cv.height)),w=Math.max(1,Math.round(cv.width*k)),h=Math.max(1,Math.round(cv.height*k));
+  var c=document.createElement("canvas");c.width=w;c.height=h;var g=c.getContext("2d",{willReadFrequently:true});g.drawImage(cv,0,0,w,h);
+  var d=g.getImageData(0,0,w,h).data,n=0;c.width=c.height=0;
+  for(var i=0;i<d.length;i+=4)if(Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2])>60)n++;
+  return n/(w*h);
+}
 /* rifà la pagina: raddrizzamento, pieghe, stile, rotazione */
 async function capBuild(p){
   /* correzione automatica dei lati (R-SCN-24), tenuta solo se sotto i lati c'è almeno tanto contorno quanto prima (R-SCN-31) */
@@ -3080,7 +3231,9 @@ async function capBuild(p){
   /* pieghe (R-SCN-27): la mappa si calcola una volta per pagina (finché non cambiano i bordi); distesa, le righe sono già dritte
      e l'inclinazione fine (R-SCN-21) non serve più */
   var tu=performance.now(),skew=p.auto.skew;
-  if(p.unf===undefined){try{p.unf=await unfoldMap(cv)}catch(e){p.unf=null}}
+  /* una pagina piena di colore (copertina, foto) ha forme ondulate disegnate apposta: non si distende */
+  if(p.unf===undefined){var cf=colorFrac(cv);if(PERF)(window.__color=window.__color||[]).push(+cf.toFixed(3));
+    if(cf>CFG.scan.unfold.maxColor)p.unf=null;else try{p.unf=await unfoldMap(cv)}catch(e){p.unf=null}}
   if(p.unf){try{var uc=await unfoldApply(cv,p.unf);cv.width=cv.height=0;cv=uc;skew=0}catch(e){}}
   perf("unfold",tu);
   /* ombre delle pieghe (R-SCN-29): solo Documento e Bianco e nero; Colore resta naturale */
