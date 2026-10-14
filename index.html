@@ -2044,18 +2044,22 @@ function edgeLines(G){
 }
 /* punteggio di un quadrilatero (coordinate della copia piccola): per ogni lato, i punti con una pendenza di traverso al lato
    (entro ±1,5 px) contano come contorno; i punti fuori dalla foto non contano né in un senso né nell'altro */
-function quadScoreG(G,Q){
+function quadScoreG(G,Q,M){
   var w=G.w,h=G.h,cx=(Q[0][0]+Q[1][0]+Q[2][0]+Q[3][0])/4,cy=(Q[0][1]+Q[1][1]+Q[2][1]+Q[3][1])/4,E=CFG.scan.edges,score=0,sup=[],cont=[];
   function L0(x,y){x=Math.round(x);y=Math.round(y);return x<0||y<0||x>=w||y>=h?-1:G.lum[y*w+x]}
   /* livello della carta: i punti appena dentro i lati */
   var inner=[];
   for(var j=0;j<4;j++){var a=Q[j],b=Q[(j+1)%4];for(var s=1;s<12;s++){var t=s/12,px=a[0]+(b[0]-a[0])*t,py=a[1]+(b[1]-a[1])*t,dx=cx-px,dy=cy-py,dl=Math.hypot(dx,dy)||1,v=L0(px+dx/dl*6,py+dy/dl*6);if(v>=0)inner.push(v)}}
   inner.sort(function(x,y){return x-y});var paper=inner.length?inner[Math.floor(inner.length*.75)]:255,reach=Math.max(6,Math.min(w,h)*E.contReach);
+  var map=M?pageMap(Q,M,1,1):null;
+  function sidePt(j,t){return j===0?map(t,0):j===1?map(1,t):j===2?map(1-t,1):map(0,1-t)}
   for(j=0;j<4;j++){
     a=Q[j];b=Q[(j+1)%4];var L=dist(a,b);if(L<8)return {s:-1e9,sup:[0,0,0,0],cont:[0,0,0,0]};
     var ux=(b[0]-a[0])/L,uy=(b[1]-a[1])/L,nx=-uy,ny=ux,pos=0,neg=0,rid=0,tot=0,cn=0;
     if((cx-a[0])*nx+(cy-a[1])*ny>0){nx=-nx;ny=-ny}
     for(s=0;s<48;s++){t=.03+.94*s/47;px=a[0]+ux*t*L;py=a[1]+uy*t*L;
+      /* lati curvi (maniglie dei lati): il punto e la direzione si prendono sulla curva */
+      if(map){var c0=sidePt(j,t),c1=sidePt(j,Math.min(1,t+.01)),c2=sidePt(j,Math.max(0,t-.01)),tl=dist(c1,c2)||1;px=c0[0];py=c0[1];ux=(c1[0]-c2[0])/tl;uy=(c1[1]-c2[1])/tl;nx=-uy;ny=ux;if((cx-px)*nx+(cy-py)*ny>0){nx=-nx;ny=-ny}}
       if(px<1||py<1||px>w-2||py>h-2)continue;tot++;var bp=0,bn=0;
       for(var o=-1.5;o<=1.5;o+=.75){var X=Math.round(px+nx*o),Y=Math.round(py+ny*o);if(X<1||Y<1||X>w-2||Y>h-2)continue;var ii=Y*w+X,gx=G.gx[ii],gy=G.gy[ii];
         var gs=gx*nx+gy*ny,gt=Math.abs(gx*ux+gy*uy);if(Math.abs(gs)>1.8*gt){if(gs>bp)bp=gs;if(-gs>bn)bn=-gs}}
@@ -2250,6 +2254,16 @@ function quadTrim(G,Q){
   }
   return Q;
 }
+/* ogni lato spostato di d px verso l'interno */
+function quadInset(Q,d){
+  if(!d)return Q;var cx=(Q[0][0]+Q[1][0]+Q[2][0]+Q[3][0])/4,cy=(Q[0][1]+Q[1][1]+Q[2][1]+Q[3][1])/4,Ls=[];
+  for(var j=0;j<4;j++){var a=Q[j],b=Q[(j+1)%4],L=dist(a,b),nx=-(b[1]-a[1])/L,ny=(b[0]-a[0])/L;if((cx-a[0])*nx+(cy-a[1])*ny<0){nx=-nx;ny=-ny}
+    Ls.push([[a[0]+nx*d,a[1]+ny*d],[b[0]+nx*d,b[1]+ny*d]])}
+  function X(p1,p2,p3,p4){var dd=(p1[0]-p2[0])*(p3[1]-p4[1])-(p1[1]-p2[1])*(p3[0]-p4[0]);if(Math.abs(dd)<1e-6)return null;
+    var t=((p1[0]-p3[0])*(p3[1]-p4[1])-(p1[1]-p3[1])*(p3[0]-p4[0]))/dd;return [p1[0]+t*(p2[0]-p1[0]),p1[1]+t*(p2[1]-p1[1])]}
+  var out=[];for(j=0;j<4;j++){var c=X(Ls[(j+3)%4][0],Ls[(j+3)%4][1],Ls[j][0],Ls[j][1]);if(!c)return Q;out.push(c)}
+  return out;
+}
 function inQuad(Q,p){for(var j=0;j<4;j++){var a=Q[j],b=Q[(j+1)%4];if((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])<0)return false}return true}
 function detectPage(work){
   var G=edgeGrad(work),k=G.k,E=CFG.scan.edges,cands=[];
@@ -2268,7 +2282,7 @@ function detectPage(work){
     gr=quadTrim(G,gr);
     cands.push({g:gr,seg:false,pre:pre})}
   if(!cands.length)return null;
-  cands.forEach(function(c){var r=quadScoreG(G,c.g);c.s=r.s;c.sup=r.sup;c.cont=r.cont;c.min=Math.min.apply(0,r.sup.filter(function(v){return v>=0}).concat([1]))});
+  cands.forEach(function(c){var r=quadScoreG(G,c.g,c.mids&&c.mids.map(function(p){return [p[0]*k,p[1]*k]}));c.s=r.s;c.sup=r.sup;c.cont=r.cont;c.min=Math.min.apply(0,r.sup.filter(function(v){return v>=0}).concat([1]))});
   /* la maschera, quando c'è, ha già i lati curvi: vince anche se ha un po' meno contorno (segBias); e vince comunque se il
      quadrilatero dei lati dritti le sta dentro (era una piega o un riquadro stampato) purché ogni suo lato abbia un po' di contorno */
   var ed=cands[cands.length-1].seg?null:cands[cands.length-1],best=null;
@@ -2279,8 +2293,11 @@ function detectPage(work){
   /* un lato spostato su un contorno debole abbassa il punteggio: conta quello di prima */
   if(Math.max(best.s,best.pre||-1)<=0)return null;
   if(best.seg)return {q:best.q,mids:best.mids,edge:false};
-  var m=edgeMids(G,best.g);
-  return {q:best.g.map(function(p){return [p[0]/k,p[1]/k]}),mids:m.map(function(p){return [p[0]/k,p[1]/k]}),edge:true};
+  /* lati appena dentro il contorno (il passaggio chiaro/scuro sta a metà pixel: senza, resta un filo di sfondo) */
+  var g=quadInset(best.g,E.inset);
+  /* curvatura dei lati solo se segue il contorno meglio dei lati dritti (una copertina rigida resta dritta) */
+  var m=edgeMids(G,g),ms=quadScoreG(G,g,m).s,ss=quadScoreG(G,g).s;if(ms<ss+E.curveGain*Math.max(1,ss))m=projMids(g);
+  return {q:g.map(function(p){return [p[0]/k,p[1]/k]}),mids:m.map(function(p){return [p[0]/k,p[1]/k]}),edge:true};
 }
 /* punteggio di un quadrilatero in coordinate della foto (per scegliere tra proposta e correzione automatica) */
 function quadScore(work,q){var G=edgeGrad(work),k=G.k;return quadScoreG(G,q.map(function(p){return [p[0]*k,p[1]*k]})).s}
@@ -2840,6 +2857,14 @@ async function pageCanvas(r){
   var ratio=Math.max(W,H)/Math.min(W,H);
   if(ratio>1.25&&ratio<1.6){if(H>=W)H=W*Math.SQRT2;else W=H*Math.SQRT2}
   var k=Math.min(1,2400/Math.max(W,H));W=Math.max(1,Math.round(W*k));H=Math.max(1,Math.round(H*k));
+  /* angoli o lati fuori dalla foto (foglio che esce dall'inquadratura): lì la pagina è bianca, non la riga del bordo ripetuta */
+  var pts=q.concat(r.mids||[]),x0=Math.min.apply(0,pts.map(function(p){return p[0]})),y0=Math.min.apply(0,pts.map(function(p){return p[1]}));
+  var x1=Math.max.apply(0,pts.map(function(p){return p[0]})),y1=Math.max.apply(0,pts.map(function(p){return p[1]})),ww=r.work.width,wh=r.work.height;
+  if(x0<-1||y0<-1||x1>ww+1||y1>wh+1){
+    var L=Math.ceil(Math.max(0,-x0))+2,T=Math.ceil(Math.max(0,-y0))+2,R=Math.ceil(Math.max(0,x1-ww))+2,B=Math.ceil(Math.max(0,y1-wh))+2;
+    var pad=document.createElement("canvas");pad.width=ww+L+R;pad.height=wh+T+B;var pg=pad.getContext("2d");pg.fillStyle="#fff";pg.fillRect(0,0,pad.width,pad.height);pg.drawImage(r.work,L,T);
+    var sh=function(p){return [p[0]+L,p[1]+T]};r={work:pad,q:q.map(sh),mids:(r.mids||projMids(q)).map(sh),style:r.style};q=r.q;
+  }
   var t0=performance.now(),gcv=await glPage(r.work,q,r.mids,W,H,r.style);
   if(gcv){perf("gl",t0);return gcv}
   t0=performance.now();

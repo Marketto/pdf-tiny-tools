@@ -53,10 +53,11 @@ window.CONFIG = {
        dei keep quadrilateri migliori ogni lato si sposta fino a sideRange della profondità, inclinandosi di ±sideTilt px, dove il punteggio sale (in fuori solo su carta: colori meno decisi di paperSat)
        (in dentro solo se la striscia lasciata fuori ha tratti scuri in meno di cutInk dei punti);
        un lato con contorno sotto trimFrom passa dove finisce il contorno di un lato vicino, se manca almeno trimMin prima dell'angolo
-       (ruotando fino a trimTurn gradi perché la striscia tolta abbia tratti scuri in meno di trimInk dei punti); gli angoli possono uscire dalla foto
+       (ruotando fino a trimTurn gradi perché la striscia tolta abbia tratti scuri in meno di trimInk dei punti);
+       alla fine i lati rientrano di inset px e si curvano solo se così il contorno sotto di loro cresce di almeno curveGain; gli angoli possono uscire dalla foto
        fino a outside del lato; il foglio occupa almeno minArea della foto; il punteggio dei bordi trovati con la maschera vale segBias volte,
        e vincono se contengono quelli dei lati dritti e ogni loro lato ha almeno segMin di contorno */
-    edges: { size: 480, minGrad: 3, lines: 28, miss: 1, unseen: 0.3, cont: 2, contReach: 0.04, contPaper: 60, contInk: 50, grow: 1, growGrad: 1.5, growSup: 0.6, growSat: 60, keep: 5, sideRange: 0.3, sideTilt: 12, cutInk: 0.4, paperSat: 35, trimFrom: 0.3, trimMin: 0.1, trimTurn: 30, trimInk: 0.03, outside: 0.15, minArea: 0.08, segBias: 1.1, segMin: 0.3 },
+    edges: { size: 480, minGrad: 3, lines: 28, miss: 1, unseen: 0.3, cont: 2, contReach: 0.04, contPaper: 60, contInk: 50, grow: 1, growGrad: 1.5, growSup: 0.6, growSat: 60, keep: 5, sideRange: 0.3, sideTilt: 12, cutInk: 0.4, paperSat: 35, trimFrom: 0.3, trimMin: 0.1, trimTurn: 30, trimInk: 0.03, inset: 0.8, curveGain: 0.03, outside: 0.15, minArea: 0.08, segBias: 1.1, segMin: 0.3 },
     /* ombre delle pieghe (R-SCN-29): analisi su una copia con il lato lungo di size px; luce fine con raggio fine, luce del foglio con
        raggio coarse (frazioni della pagina); bordo netto = pendenza della luce oltre sharp per pixel; la luce fine parte dal foglio pulito
        (luce ≥ seed di quella del foglio) e si allarga solo cambiando di meno di step per pixel; schiarimento al massimo maxGain;
