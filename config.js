@@ -53,6 +53,8 @@ window.CONFIG = {
        stretti lungo la linea (along) e larghi di traverso (across), in frazioni della pagina; spostamenti al massimo maxShift della pagina;
        servono almeno minLines linee, altrimenti la pagina resta com'è; passes = passate di correzione, composte in una sola; una linea vale se
        ha inchiostro su almeno cover della sua lunghezza */
+    /* SPERIMENTALE, spento (R-SCN-27): pieghe nette come cerniere tra falde piatte */
+    crease: { on: false, win: 0.03, min: 0.04, noise: 4, tol: 0.012, minPts: 6, span: 0.4, maxTilt: 0.5, max: 3 },
     unfold: { passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
   },
   ui: {
