@@ -3059,16 +3059,30 @@ function ufPoly(lines,W,H,vert,da,dt){
   for(k=0;k<P.length;k++){e=0;for(i=0;i<m;i++)e+=c[i]*X[k][i];sr+=w[k]*(z[k]-e)*(z[k]-e);st+=w[k]*(z[k]-mz)*(z[k]-mz)}
   return {f:function(x,y){var b=basis(x,y),s=0;for(var i=0;i<m;i++)s+=c[i]*b[i];return s},r2:st>0?1-sr/st:0,rms:Math.sqrt(st/sw)};
 }
+/* tremolio delle linee: per ogni linea, lo scarto dalla parabola che la segue meglio (la carta piega piano, la mano trema) */
+function ufWobble(lines,vert){
+  return lines.filter(function(l){return l.length>=10}).map(function(l){
+    var n=l.length,S=[0,0,0,0,0],T=[0,0,0],x0=vert?l[0][1]:l[0][0],x1=vert?l[n-1][1]:l[n-1][0],sc=Math.max(1,(x1-x0)/2),mid=(x0+x1)/2;
+    var X=l.map(function(p){return ((vert?p[1]:p[0])-mid)/sc});
+    for(var i=0;i<n;i++){var x=X[i],z=l[i][2],xx=1;for(var k=0;k<5;k++){S[k]+=xx;if(k<3)T[k]+=xx*z;xx*=x}}
+    var A=[[S[0],S[1],S[2]],[S[1],S[2],S[3]],[S[2],S[3],S[4]]],B=T.slice();
+    for(var c=0;c<3;c++){var pv=A[c][c]||1e-9;for(var r=0;r<3;r++){if(r===c)continue;var f=A[r][c]/pv;for(var q=c;q<3;q++)A[r][q]-=f*A[c][q];B[r]-=f*B[c]}}
+    var co=[B[0]/(A[0][0]||1e-9),B[1]/(A[1][1]||1e-9),B[2]/(A[2][2]||1e-9)],e=0;
+    for(i=0;i<n;i++){var d=l[i][2]-(co[0]+co[1]*X[i]+co[2]*X[i]*X[i]);e+=d*d}
+    return Math.sqrt(e/n);
+  });
+}
 function unfoldField(cv,pass,model){
   var U=CFG.scan.unfold,B=ufBin(cv,U.size),bw=B.bw,W=B.W,H=B.H,i;
   var hl=ufLines(bw,W,H,U),vl=ufLines(ufT(bw,W,H),H,W,U).map(function(l){return l.map(function(p){return [p[1],p[0],p[2]]})});
   if(hl.length+vl.length<U.minLines)return null;
   var G=U.grid,C=CFG.scan.crease;model=model||U.model||"local";
   if(model==="smooth"||(model==="both"&&!pass)||(U.guard&&!pass)){
-    /* le linee si piegano insieme come un foglio, oppure ognuna per conto suo (scrittura a mano)? */
     var ph=hl.length>=2?ufPoly(hl,W,H,false,3,2):null,pv=vl.length>=2?ufPoly(vl,W,H,true,3,2):null;
-    if(PERF)(window.__unf=window.__unf||[]).push({pass:pass,h:hl.length,v:vl.length,r2h:ph&&+ph.r2.toFixed(2),r2v:pv&&+pv.r2.toFixed(2),rmsh:ph&&+ph.rms.toFixed(2)});
-    if(U.guard&&!pass&&(!ph||ph.r2<U.r2)&&(!pv||pv.r2<U.r2))return false;
+    var wb=ufWobble(hl,false).concat(ufWobble(vl,true)).sort(function(x,y){return x-y}),wob=wb.length?wb[wb.length>>1]:0;
+    if(PERF)(window.__unf=window.__unf||[]).push({pass:pass,h:hl.length,v:vl.length,r2h:ph&&+ph.r2.toFixed(2),r2v:pv&&+pv.r2.toFixed(2),wob:+wob.toFixed(2)});
+    /* scrittura a mano: le righe tremano attorno alla loro curva molto più di quanto la carta possa piegarsi; non si distende */
+    if(U.guard&&!pass&&wob>U.maxWobble)return false;
     if(model==="smooth"||(model==="both"&&!pass)){
       var Dy=new Float32Array(G*G),Dx=new Float32Array(G*G),mx2=0;
       for(var gy=0;gy<G;gy++)for(var gx=0;gx<G;gx++){var X=gx*(W-1)/(G-1),Y=gy*(H-1)/(G-1),j=gy*G+gx;

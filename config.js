@@ -67,10 +67,13 @@ window.CONFIG = {
        e piatta (larga almeno 4 volte l'altezza, alta al massimo maxH); la mappa si calcola su una griglia grid×grid con pesi gaussiani
        stretti lungo la linea (along) e larghi di traverso (across), in frazioni della pagina; spostamenti al massimo maxShift della pagina;
        servono almeno minLines linee, altrimenti la pagina resta com'è; passes = passate di correzione, composte in una sola; una linea vale se
-       ha inchiostro su almeno cover della sua lunghezza; una pagina con più di maxColor di colori decisi non si distende */
+       ha inchiostro su almeno cover della sua lunghezza; una pagina con più di maxColor di colori decisi non si distende;
+       con guard, nemmeno una pagina le cui linee tremano (scarto mediano dalla loro parabola) più di maxWobble px: è scritta a mano;
+       model: local = campioni vicini, smooth = superficie liscia (polinomio, accettata se spiega almeno r2 degli scarti),
+       both = liscia poi locale, pick = prova quelli in pick e tiene quello che lascia le linee più dritte (almeno gain volte) */
     /* SPERIMENTALE, spento (R-SCN-27): pieghe nette come cerniere tra falde piatte */
     crease: { on: false, win: 0.03, min: 0.04, noise: 4, tol: 0.012, minPts: 6, span: 0.4, maxTilt: 0.5, max: 3 },
-    unfold: { maxColor: 0.15, model: "local", pick: ["local", "both"], gain: 0.9, guard: false, r2: 0.4, passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
+    unfold: { maxColor: 0.15, model: "local", pick: ["local", "both"], gain: 0.9, guard: true, maxWobble: 2.2, r2: 0.4, passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
   },
   ui: {
     /* il riquadro del lettore si aggiorna al massimo ogni tanti millisecondi (R-APP-07) */
