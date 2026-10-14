@@ -655,6 +655,48 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Pieghe: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- Cattura: ombre delle pieghe (R-SCN-29): un'ombra morbida si schiarisce, una casella grigia stampata resta
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  const shot = async (on) => {
+    if (!on) await page.route("**/config.js", async (r) => r.fulfill({ contentType: "text/javascript", body: (await (await fetch(url + "config.js")).text()) + ";window.CONFIG.scan.shade.on=false" }));
+    await page.goto(url + "?perf=1"); await page.waitForTimeout(600);
+    const photo = Buffer.from(await page.evaluate(async () => {
+      const c = document.createElement("canvas"); c.width = 1200; c.height = 1600; const g = c.getContext("2d");
+      g.fillStyle = "#2d3a4a"; g.fillRect(0, 0, 1200, 1600); g.fillStyle = "#f4f2ec"; g.fillRect(150, 150, 900, 1300);
+      /* ombra morbida verticale (una piega) e una casella grigia stampata con il bordo */
+      const gr = g.createLinearGradient(500, 0, 700, 0); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(.45, "rgba(0,0,0,.08)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = gr; g.fillRect(500, 150, 200, 1300);
+      g.fillStyle = "#c8c8c8"; g.fillRect(760, 900, 220, 120); g.strokeStyle = "#222"; g.lineWidth = 3; g.strokeRect(760, 900, 220, 120);
+      g.fillStyle = "#222"; g.font = "34px serif"; for (let i = 0; i < 10; i++) g.fillText("Riga di prova numero " + i, 220, 300 + i * 52);
+      return [...new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/jpeg", .93))).arrayBuffer())];
+    }));
+    await page.click("#camBtn");
+    await page.setInputFiles("#galInput", { name: "ombra.jpg", mimeType: "image/jpeg", buffer: photo });
+    await page.waitForFunction(() => document.querySelectorAll("#capture .thumb").length === 1 && document.getElementById("loader").hidden, null, { timeout: 120000 });
+    const r = await page.evaluate(async () => {
+      const im = document.querySelector("#capture .thumb img"); await new Promise((r) => (im.complete && im.naturalWidth ? r() : (im.onload = r)));
+      const bmp = await createImageBitmap(await (await fetch(im.src)).blob()), W = 300, H = Math.round(300 * bmp.height / bmp.width), c = document.createElement("canvas"); c.width = W; c.height = H;
+      const g = c.getContext("2d"); g.drawImage(bmp, 0, 0, W, H); const d = g.getImageData(0, 0, W, H).data;
+      const avg = (x0, y0, x1, y1) => { let s = 0, n = 0; for (let y = Math.round(y0 * H); y < y1 * H; y++) for (let x = Math.round(x0 * W); x < x1 * W; x++) { s += d[(y * W + x) * 4 + 1]; n++; } return s / n; };
+      /* coordinate sulla pagina raddrizzata: il foglio va da 150 a 1050 e da 150 a 1450 */
+      const fx = (x) => (x - 150) / 900, fy = (y) => (y - 150) / 1300;
+      return { shadow: avg(fx(600), fy(1100), fx(610), fy(1300)), paper: avg(fx(300), fy(1100), fx(400), fy(1300)), box: avg(fx(800), fy(940), fx(940), fy(990)), shade: (window.__perf || []).some((x) => x[0] === "shade") };
+    });
+    if (!on) await page.unroute("**/config.js");
+    return r;
+  };
+  const off = await shot(false), on = await shot(true);
+  const gap = (o) => o.paper - o.shadow, boxRel = (o) => o.box / o.paper;
+  check(on.shade && gap(off) > 8 && gap(on) < gap(off) * .5, `Cattura: l'ombra di una piega si schiarisce (scarto dalla carta ${gap(off).toFixed(0)} → ${gap(on).toFixed(0)})`);
+  check(Math.abs(boxRel(on) - boxRel(off)) < .04, `Cattura: la casella grigia stampata resta com'è (${(boxRel(off) * 100).toFixed(0)}% → ${(boxRel(on) * 100).toFixed(0)}% della carta)`);
+  check(errors.length === 0, `Ombre: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
 // --- Cattura: orientamento (Tesseract), raddrizzamento del testo, calamita e controllo dei bordi (R-SCN-20…24)
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 500, height: 900 }, acceptDownloads: true });
