@@ -533,25 +533,32 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await shot(() => page.click("#capture .add"));
   await page.waitForSelector("#scanner:not([hidden])"); await page.click("#scanOk");
   await page.waitForFunction(() => document.querySelectorAll("#capture .thumb").length === 2 && document.getElementById("loader").hidden, null, { timeout: 30000 });
-  check(await page.locator("#capture .tools button").count() === 5, "Cattura: strumenti della pagina selezionata (guarda, ruota, bordi, rifai, elimina)");
-  // linguette ai lati della striscia (R-SCN-19): spostano la pagina selezionata
+  check(await page.locator("#capture .tools > .btn").count() === 3 && await page.locator("#capture .moveBar .btn").count() === 3, "Cattura: strumenti della pagina (guarda, ruota, rifai) e sotto la striscia «Prima | Elimina | Dopo»");
+  // «Prima» e «Dopo» spostano la pagina selezionata (R-SCN-19)
   const ord0 = await page.evaluate(() => [...document.querySelectorAll("#capture .thumb img")].map((i) => i.src).join());
-  check(await page.locator("#capture .stripWrap .mv").count() === 2 && await page.evaluate(() => document.querySelector("#capture .stripWrap .mv.r").disabled), "Cattura: linguette ‹ › ai lati della striscia, avanti spenta sull'ultima pagina");
-  await page.click("#capture .stripWrap .mv.l");
+  check(await page.evaluate(() => document.querySelector("#capture .moveBar .btn:last-child").disabled), "Cattura: «Dopo» spento sull'ultima pagina");
+  await page.click("#capture .moveBar .btn >> nth=0");
   const ord1 = await page.evaluate(() => [...document.querySelectorAll("#capture .thumb img")].map((i) => i.src).join());
   const sel1 = await page.evaluate(() => [...document.querySelectorAll("#capture .thumb")].findIndex((t) => t.getAttribute("aria-pressed") === "true"));
-  check(ord0 !== ord1 && sel1 === 0, `Cattura: la linguetta sposta indietro la pagina selezionata, che resta selezionata (${sel1})`);
-  await page.click("#capture .stripWrap .mv.r");
+  check(ord0 !== ord1 && sel1 === 0, `Cattura: «Prima» sposta indietro la pagina selezionata, che resta selezionata (${sel1})`);
+  await page.click("#capture .moveBar .btn >> nth=2");
   // raddrizzamento automatico o angoli a mano (R-SCN-32)
   check(await page.evaluate(() => document.querySelector("#capture .straightSeg button").getAttribute("aria-pressed") === "true"), "Cattura: raddrizzamento automatico di serie");
+  await page.click("#capture .straightSeg button >> nth=0");
+  check(await page.evaluate(() => document.getElementById("scanner").hidden && document.getElementById("loader").hidden), "Cattura: «Automatico» già acceso non fa niente");
   await page.click("#capture .straightSeg button >> nth=1");
   await page.waitForSelector("#scanner:not([hidden])"); await page.click("#scanOk");
   await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector("#capture .straightSeg button:nth-child(2)").getAttribute("aria-pressed") === "true", null, { timeout: 30000 });
   check(!!(await page.$("#capture .straightTip")), "Cattura: «Angoli a mano» passa dall'editor e lo dice sotto la scelta");
+  await page.click("#capture .straightSeg button >> nth=1");
+  const reopened = await page.waitForSelector("#scanner:not([hidden])", { timeout: 3000 }).then(() => true, () => false);
+  await page.click("#scanCancel").catch(() => {});
+  await page.waitForFunction(() => document.getElementById("scanner").hidden, null, { timeout: 3000 }).catch(() => {});
+  check(reopened && await page.evaluate(() => document.querySelector("#capture .straightSeg button:nth-child(2)").getAttribute("aria-pressed") === "true"), "Cattura: «Angoli a mano» già acceso riapre l'editor per ritoccarli (Annulla lascia com'era)");
   await page.click("#capture .straightSeg button >> nth=0");
   await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector("#capture .straightSeg button").getAttribute("aria-pressed") === "true", null, { timeout: 30000 });
   check(!(await page.$("#capture .straightTip")), "Cattura: riscegliendo «Automatico» la pagina torna come proposta");
-  await page.click("#capture .tools button >> nth=1");
+  await page.click("#capture .tools > .btn >> nth=1");
   await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelectorAll("#capture .thumb").length === 2, null, { timeout: 30000 });
   await page.waitForFunction(() => [...document.querySelectorAll("#capture .thumb img")].every((i) => i.complete && i.naturalWidth));
   const dims = await page.evaluate(() => [...document.querySelectorAll("#capture .thumb img")].map((i) => i.naturalWidth > i.naturalHeight));

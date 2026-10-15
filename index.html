@@ -265,22 +265,20 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .capture .seg{margin-bottom:12px}
 .seg.sm button{font-size:15px;padding:6px 4px}
 .strip{display:flex;align-items:flex-start;gap:12px;overflow-x:auto;padding:6px 6px 12px}
-.stripWrap .strip{padding-inline:24px}
 .thumb{flex:none;width:86px;position:relative;border:var(--line);border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 var(--ink);padding:0;cursor:pointer}
 .thumb img,.card img{display:block;width:100%;pointer-events:none}
 .thumb[aria-pressed="true"]{outline:4px solid var(--acc-s);outline-offset:2px}
 .num{position:absolute;inset-inline-start:4px;top:4px;background:var(--ink);color:var(--paper);font:700 12px/1.5 var(--body);border-radius:999px;padding:0 7px}
 .chip{position:absolute;inset-inline-end:4px;bottom:4px;background:var(--acc);border:2px solid var(--ink);font:700 11px/1.4 var(--body);border-radius:999px;padding:0 6px;color:var(--ink)}
 .add{flex:none;width:86px;min-height:110px;border:3px dashed var(--ink);border-radius:10px;display:grid;place-items:center;font:40px var(--display);background:#fff;color:var(--ink);cursor:pointer}
-.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.tools .btn,.moveBar .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:0;padding:8px 4px;font-size:15px;box-shadow:3px 3px 0 var(--ink)}
+.moveBar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
+.moveBar .btn:disabled{opacity:.4;box-shadow:none}
 .straightSeg button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .straightTip{margin:-6px 0 10px;font-size:14px}
-.stripWrap{position:relative}
-.stripWrap .mv{position:absolute;top:50%;transform:translateY(-60%);z-index:3;width:28px;height:46px;padding:0;display:grid;place-items:center;border:var(--line);border-radius:8px;background:var(--acc-s);color:var(--paper);box-shadow:2px 2px 0 var(--ink)}
-.stripWrap .mv.l{inset-inline-start:-10px}.stripWrap .mv.r{inset-inline-end:-10px}
-.stripWrap .mv:disabled{opacity:.35;box-shadow:none}
 .ib.on{background:var(--acc-s);color:var(--paper)}
-.tools .btn,.ib{display:inline-flex;align-items:center;gap:6px;font-size:15px;padding:6px 10px;box-shadow:3px 3px 0 var(--ink)}
+.ib{display:inline-flex;align-items:center;gap:6px;font-size:15px;padding:6px 10px;box-shadow:3px 3px 0 var(--ink)}
 .capEmpty{margin:4px 0 0;color:var(--muted);font-weight:700}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
 .card{border:var(--line);border-radius:14px;background:#fff;padding:8px;box-shadow:3px 3px 0 var(--ink);position:relative;cursor:grab}
@@ -2871,9 +2869,10 @@ var ICON={
   cam:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.2h3.6l1.7-2.6h7.4l1.7 2.6H21v10.6H3z" fill="currentColor"/><circle cx="12" cy="13.4" r="3.4" stroke="var(--paper)"/></svg>',
   gal:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 17l5-5 4 4 3-3 6 6"/></svg>',
   rot:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-3-6.2M20 4v5h-5"/></svg>',
-  crop:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 2v16h16M2 6h16v16"/></svg>',
   redo:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.2h3.6l1.7-2.6h7.4l1.7 2.6H21v10.6H3z"/><circle cx="12" cy="13.4" r="3"/></svg>',
   del:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+  prev:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M4 5v14M20 12H9M13 7l-5 5 5 5"/></svg>',
+  next:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M20 5v14M4 12h11M11 7l5 5-5 5"/></svg>',
   wand:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M4 20L14.5 9.5"/><path d="M17 3v4M15 5h4M20.5 9.5v3M19 11h3M10 3.5v2.5M8.75 4.75h2.5"/></svg>',
   hand:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6h12v12H6z" stroke-dasharray="3 3"/><circle cx="6" cy="6" r="2.4" fill="currentColor"/><circle cx="18" cy="6" r="2.4" fill="currentColor"/><circle cx="18" cy="18" r="2.4" fill="currentColor"/><circle cx="6" cy="18" r="2.4" fill="currentColor"/></svg>',
   look:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M10.5 7.5v6M7.5 10.5h6"/></svg>',
@@ -3251,19 +3250,10 @@ async function galleryFiles(files){
   if(list.length){cap.pages=cap.pages.concat(list);cap.sel=cap.pages.length-1;snapFlash()}
   capRender();
 }
-async function capEdges(i){
-  var p=cap.pages[i];if(!p)return;
-  capTarget=i;
-  var r=await editCorners(p.work,{q:p.q,mids:p.mids});
-  if(r==="retake")return;
-  capTarget=-1;
-  if(!r)return;
-  p.work=r.work;p.q=r.q;p.mids=r.mids;p.refined=false;p.auto=null;p.unf=undefined;
-  capRebuild([p]);
-}
 /* raddrizzamento automatico o angoli a mano (R-SCN-32) */
 async function capManual(i,on){
-  var p=cap.pages[i];if(!p||!!p.manual===on)return;
+  /* Automatico già acceso: niente; «Angoli a mano» già acceso: si riapre l'editor per ritoccarli */
+  var p=cap.pages[i];if(!p||(!on&&!p.manual))return;
   if(on){
     capTarget=i;
     var r=await editCorners(p.work,{q:p.q,mids:p.mids});
@@ -3431,9 +3421,11 @@ function capRender(){
       var r2=el("div","row2");
       r2.appendChild(ibtn("alt ib",ICON.look,t("viewBtn"),function(){viewOpen(i)},true));
       r2.appendChild(ibtn("alt ib",ICON.rot,t("rotate"),function(){rotatePage(i)},true));
-      r2.appendChild(ibtn("alt ib",ICON.crop,t("edges"),function(){capEdges(i)},true));
-      var mb=ibtn("alt ib"+(p.manual?" on":""),p.manual?ICON.hand:ICON.wand,t("straight")+": "+t(p.manual?"straightHand":"straightAuto"),function(){capManual(i,!p.manual)},true);
-      mb.setAttribute("aria-pressed",String(!!p.manual));mb.title=t("straight")+": "+t(p.manual?"straightHand":"straightAuto");r2.appendChild(mb);
+      /* raddrizzamento (R-SCN-32): due pulsanti, quello attuale acceso */
+      [[false,ICON.wand,"straightAuto"],[true,ICON.hand,"straightHand"]].forEach(function(x){
+        var mb=ibtn("alt ib"+(!!p.manual===x[0]?" on":""),x[1],t("straight")+": "+t(x[2]),function(){capManual(i,x[0])},true);
+        mb.setAttribute("aria-pressed",String(!!p.manual===x[0]));mb.title=t(x[2]);r2.appendChild(mb);
+      });
       r2.appendChild(ibtn("alt ib",ICON.redo,t("retake"),function(){shoot(i)},true));
       r2.appendChild(ibtn("danger ib",ICON.del,t("delPage"),function(){capDelete(i)},true));
       c.appendChild(r2);
@@ -3476,27 +3468,28 @@ function capRender(){
     });
     var add=el("button","add","+");add.type="button";add.setAttribute("aria-label",t("addPage"));add.addEventListener("click",function(){shoot()});
     strip.appendChild(add);
-    var i=cap.sel,sw=el("div","stripWrap");sw.appendChild(strip);
-    /* linguette ai lati della striscia: spostano la pagina selezionata (R-SCN-19) */
-    if(n>1&&i>=0){
-      var lt=ibtn("mv l",ICON.l,t("moveL"),function(){capMove(i,i-1)},true);lt.disabled=i===0;
-      var rt=ibtn("mv r",ICON.r,t("moveR"),function(){capMove(i,i+1)},true);rt.disabled=i===n-1;
-      sw.appendChild(lt);sw.appendChild(rt);
+    var i=cap.sel;p2.appendChild(strip);
+    /* sotto la striscia: sposta prima, elimina, sposta dopo (R-SCN-19) */
+    if(i>=0&&cap.pages[i]){
+      var mv=el("div","moveBar");
+      var lt=ibtn("alt",ICON.prev,t("movePrev"),function(){capMove(i,i-1)});lt.setAttribute("aria-label",t("moveL"));lt.disabled=i===0;
+      var rt=el("button","btn alt");rt.type="button";rt.appendChild(document.createTextNode(t("moveNext")));rt.insertAdjacentHTML("beforeend",ICON.next);
+      rt.setAttribute("aria-label",t("moveR"));rt.disabled=i===n-1;rt.addEventListener("click",function(){capMove(i,i+1)});
+      mv.appendChild(lt);mv.appendChild(ibtn("danger",ICON.del,t("delPage"),function(){capDelete(i)}));mv.appendChild(rt);
+      p2.appendChild(mv);
     }
-    p2.appendChild(sw);
     var selT=strip.children[i];if(selT)requestAnimationFrame(function(){var a=selT.offsetLeft-strip.clientWidth/2+selT.offsetWidth/2;strip.scrollLeft=Math.max(0,a)});
     if(i>=0&&cap.pages[i]){
       p2.appendChild(el("p","lab",t("pageN",{n:nf(i+1)})));
       var tl=el("div","tools");
       tl.appendChild(ibtn("alt",ICON.look,t("viewBtn"),function(){viewOpen(i)}));
       tl.appendChild(ibtn("alt",ICON.rot,t("rotate"),function(){rotatePage(i)}));
-      tl.appendChild(ibtn("alt",ICON.crop,t("edges"),function(){capEdges(i)}));
       tl.appendChild(ibtn("alt",ICON.redo,t("retake"),function(){shoot(i)}));
-      tl.appendChild(ibtn("danger",ICON.del,t("delPage"),function(){capDelete(i)}));
-      p2.appendChild(tl);
       var pg=cap.pages[i];
+      p2.appendChild(tl);
+      /* raddrizzamento (R-SCN-32): la voce attuale accesa */
       p2.appendChild(el("p","lab",t("straight")));
-      var sg=el("div","seg sm straightSeg");
+      var sg=el("div","seg sm straightSeg");sg.setAttribute("role","group");sg.setAttribute("aria-label",t("straight"));
       [[false,ICON.wand,"straightAuto"],[true,ICON.hand,"straightHand"]].forEach(function(x){
         var b=el("button");b.type="button";b.innerHTML=x[1];b.appendChild(document.createTextNode(t(x[2])));
         b.setAttribute("aria-pressed",String(!!pg.manual===x[0]));b.addEventListener("click",function(){capManual(i,x[0])});sg.appendChild(b);
