@@ -8,7 +8,7 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 |---|---|
 | `index.html` | Tutta l'app: markup, CSS e JavaScript in un file solo |
 | `config.js` | Tutte le soglie e i parametri numerici (`window.CONFIG`), commentati con il requisito |
-| `i18n.js` | Tutti i testi, 13 lingue (`window.I18N`) |
+| `i18n.js` | Tutti i testi, 39 lingue (`window.I18N`) |
 | `engine.js` | Motore delle immagini di PDF e JPG, eseguito nei worker in parallelo (o nella pagina) |
 | `sw.js` | Cache offline (service worker) |
 | `manifest.webmanifest`, `icons/`, `favicon.ico` | Installazione come app |
@@ -44,7 +44,7 @@ Se una richiesta tocca più righe, fai una cosa alla volta e chiudi sempre con `
 ## Regole che valgono sempre
 
 - **Niente build e niente dipendenze nel sito.** Non introdurre npm, bundler o CDN nell'app: le librerie stanno in `vendor/`. Le uniche dipendenze ammesse sono quelle di sviluppo in `tools/`.
-- **Ogni testo visibile passa da `i18n.js`**, in tutte le 13 lingue, con gli stessi segnaposto `{…}`. Mai stringhe scritte direttamente in `index.html` (fanno eccezione i testi italiani di riserva già presenti nel markup).
+- **Ogni testo visibile passa da `i18n.js`**, in tutte le 39 lingue, con gli stessi segnaposto `{…}`. Mai stringhe scritte direttamente in `index.html` (fanno eccezione i testi italiani di riserva già presenti nel markup).
 - **I file dell'utente non lasciano il dispositivo.** Nessuna chiamata di rete con contenuti o nomi dei file. L'unica telemetria ammessa sono le statistiche anonime di R-PRI-05 (GoatCounter, senza cookie, disattivabili): non aggiungerne altre senza una voce nei requisiti.
 - **Gli originali non si toccano** se non dopo la conferma esplicita già prevista (pulsante «Sovrascrivi gli originali»).
 - **La mascotte ha una sola fonte**, `tools/mascot.mjs`. Non ritoccare a mano gli SVG dentro `index.html` o in `icons/`: si rigenerano.

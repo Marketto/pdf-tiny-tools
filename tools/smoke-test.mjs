@@ -27,7 +27,7 @@ browser.newContext = async (o = {}) => { const c = await newContext(o); if (!o.a
 let failed = 0;
 const check = (ok, what) => { console.log((ok ? "✓ " : "✗ ") + what); if (!ok) failed++; };
 
-for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"], ["ar-EG", "ar", "rtl"], ["zh-CN", "zh", "ltr"], ["ja-JP", "en", "ltr"]]) {
+for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"], ["ar-EG", "ar", "rtl"], ["zh-CN", "zh", "ltr"], ["ja-JP", "en", "ltr"], ["nb-NO", "no", "ltr"], ["el-GR", "el", "ltr"], ["uk-UA", "uk", "ltr"]]) {
   const ctx = await browser.newContext({ locale, viewport: { width: 400, height: 900 } });
   const page = await ctx.newPage();
   const errors = [];

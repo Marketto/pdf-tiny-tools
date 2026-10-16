@@ -37,7 +37,7 @@ L'app ha quattro modalità, PDF, JPG, video e TUTTO, ma un solo testo per ogni c
 
 1. Copia il blocco `en`, cambia la sigla (codice ISO a due lettere) e traduci.
 2. Imposta `name` (nome della lingua nella lingua stessa) e `dir` (`ltr` o `rtl`).
-3. Se l'alfabeto non è latino, controlla che i font in `--display` e `--body` (in `index.html`) lo coprano; altrimenti aggiungi un font a Google Fonts nella riga `<link>` e nelle due pile, e la lingua alle regole `:lang(...)` che ingrossano i titoli.
+3. Se l'alfabeto non è latino, controlla che i font in `--display` e `--body` (in `index.html`) lo coprano (oggi: Rubik per il cirillico, Commissioner per il greco, i Baloo per devanagari, bengalese e arabo); altrimenti aggiungi un font a Google Fonts nella riga `<link>` e nelle due pile, e la lingua alle regole `:lang(...)` che ingrossano i titoli.
 4. Aggiorna l'elenco delle lingue in `README.md`.
 5. Esegui `node tools/check-i18n.mjs` e la skill `verifica`.
 

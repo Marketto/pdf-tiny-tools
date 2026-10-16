@@ -8,7 +8,7 @@ Tutto il JavaScript è in `index.html`, dentro un'unica funzione, diviso da comm
 
 | Sezione (marcatore) | Funzioni principali | Requisiti |
 |---|---|---|
-| `lingue` | `pickLang`, `t`, `applyLang`, `showTitle`, `turnDrum`, `fitTitle`, `unsaved`, `stopWork`, `capOff`, `placeOpts`, `allLevel` (TUT-03: imposta lo stesso livello in `lvl`, `jlvl`, `vlvl`), `setMode`, `isPdf`, `kindOf`, `wants` | I18N, MOD, TUT |
+| `lingue` | `pickLang` (browser `nb`/`nn` → `no`, `in` → `id`), `t`, `applyLang`, `showTitle`, `turnDrum`, `fitTitle`, `unsaved`, `stopWork`, `capOff`, `placeOpts`, `allLevel` (TUT-03: imposta lo stesso livello in `lvl`, `jlvl`, `vlvl`), `setMode`, `isPdf`, `kindOf`, `wants` | I18N, MOD, TUT |
 | `carico` | `addFile`, `walkHandle`, `walkEntry`, `loaderOn`, `loaderOff` | CAR |
 | `vista` | `render`, `sumShow` (riepilogo, LST-04), `suggestStill` (da `workEnd`, tutte le modalità), `suggestAsk` (LST-05) | LST, SAV-08 |
 | `motore` | `squeezePdf` (immagini in parallelo), `squeezeImage` (controlli e sostituzione nel PDF), `squeezeJpg`, `lvlOf`, `jpgOpts`, `squashList`, `workEnd`, gestore di `goBtn` | CMP, JPG, TUT-04 |
@@ -33,7 +33,7 @@ Fuori dallo script principale: registrazione del service worker in fondo a `inde
 | Altro file | Ruolo |
 |---|---|
 | `config.js` | `window.CONFIG`: soglie e parametri. `levels.{soft,mid,hard}` ha per ogni livello `pdf {q, max}`, `jpg {q, side}` (0 = misure originali), `video {ssim, box}` (`box` = `[1920,1080]` o 0); poi soglie di risparmio, scarto rapido e ricerca dei video, audio, video grandi, ritmi. In `index.html` `CFG=window.CONFIG`; `LV(k)`, `AAC`, `SAFE`, `FMIN`/`FMAX`/`FSTEP` ne derivano, e i sottotitoli dei livelli prendono i numeri da qui (`lvlTexts`, DOC-03). Va in CORE di `sw.js` e nella copia di `pages.yml`. |
-| `i18n.js` | `window.I18N`: un oggetto per lingua, stesse chiavi. Regole nella skill `traduzioni`. |
+| `i18n.js` | `window.I18N`: un oggetto per lingua (39), stesse chiavi; il menu le ordina per nome. Regole nella skill `traduzioni`. Caratteri (Google Fonts, pile `--display`/`--body`): Lilita One e Baloo 2 per il latino, Baloo Da 2 e Baloo Bhaijaan 2 per bengalese e arabo, Rubik per il cirillico (titoli a 900 con `:lang`), Commissioner per il greco. |
 | `engine.js` | Motore delle immagini (`self.Engine`: `recompress`, `squeezeJpgFile`, `jpgMeta` (EXIF e profilo colore), `exifSegment`, `canWork`): gira nei worker o, dove non possono disegnare, nella pagina. |
 | `tools/bench.mjs` | Misura i tempi (PDF, JPG, scansione, analisi video) con file di prova fissi; dentro l'app le misure si accendono con `?perf=1` (`perf()`, `window.__perf`). |
 | `sw.js` | Cache offline: rete prima per pagina e testi, cache prima per `vendor/`, `icons/`, font. |
@@ -116,7 +116,7 @@ Sezioni `bordi` e `orientamento` in `index.html`, dopo `detectPage`.
 
 ## PDF ricercabile e caricamento pigro (SCN-25, APP-04)
 - `loadScript(src)` aggiunge uno script una volta sola. JSZip non è più nella pagina: `zipLib()` lo carica al primo ZIP. `sw.js` tiene in `CORE` solo pagina, testi, pdf-lib e icone; Mediabunny, JSZip e Tesseract entrano in cache al primo uso («cache prima» per `vendor/`).
-- `autoOrient` conserva anche `script` (da `worker.detect()`). `ocrLangFor(script)` sceglie la lingua (vedi SCN-25). I dati stanno in `vendor/tesseract/lang/<lingua>.traineddata.gz` (`@tesseract.js-data/*`, modelli `4.0.0_best_int`).
+- `autoOrient` conserva anche `script` (da `worker.detect()`). `ocrLangFor(script)` sceglie la lingua (vedi SCN-25): `LATIN` e `CYRL` mappano la lingua dell'app sul codice Tesseract per l'alfabeto latino e cirillico, il greco va su `ell`. I dati stanno in `vendor/tesseract/lang/<lingua>.traineddata.gz` (`@tesseract.js-data/*`, modelli `4.0.0_best_int`).
 - `capSave` in PDF, con la casella `#ocrText` accesa: un secondo worker LSTM (`ocrRecWorker(lingua)`, `reinitialize` se la lingua cambia) riconosce ogni pagina con `{pdfTextOnly:true}` e uscita `{pdf:true}`; la pagina di solo testo, con il carattere invisibile `GlyphLessFont` di Tesseract (codifica Unicode, vale per ogni alfabeto), si incolla sopra l'immagine con `embedPdf` + `drawPage` alla stessa misura: nelle prove le parole cadono entro mezzo punto da quelle dell'immagine. Errori: la pagina resta senza testo. La casella è `ocrBox()` (in A nel pannello Salva, in B sotto la griglia, solo in PDF), memorizzata in `localStorage.ocrText`. Circa 1 s a pagina al computer.
 
 ## Worker (APP-09)

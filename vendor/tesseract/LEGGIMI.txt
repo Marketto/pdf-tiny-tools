@@ -3,5 +3,5 @@ Copiati così come sono dai pacchetti npm:
 - tesseract.js 7.0.0 (Apache-2.0): tesseract.min.js, worker.min.js — LICENSE-tesseract.js.md
 - tesseract.js-core 6.1.2 (Apache-2.0): tesseract-core-simd.wasm.js (motore con modello «legacy», serve per l'orientamento) — LICENSE-tesseract-core.txt
 - @tesseract.js-data/osd 1.0.0: 4.0.0_best_int/osd.traineddata.gz (dati di Tesseract, Apache-2.0)
-- @tesseract.js-data/<lingua> 1.0.0: lang/<lingua>.traineddata.gz, modelli 4.0.0_best_int (ita eng spa fra por deu ind rus ara urd hin ben chi_sim)
+- @tesseract.js-data/<lingua> 1.0.0: lang/<lingua>.traineddata.gz, modelli 4.0.0_best_int (ita eng spa fra por deu ind rus ara urd hin ben chi_sim, e per le lingue europee bul ces hrv dan nld est fin ell hun gle lav lit mlt pol ron slk slv swe ukr nor isl srp sqi mkd bos bel)
 Si scaricano solo al primo uso (i dati di una lingua solo al primo PDF ricercabile in quella lingua); poi li tiene la cache offline (sw.js, «cache prima» per vendor/).

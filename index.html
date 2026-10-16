@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="Schiaccia PDF">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Baloo+2:wght@500;700&family=Baloo+Da+2:wght@500;700&family=Baloo+Bhaijaan+2:wght@500;700&family=Rubik:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Baloo+2:wght@500;700&family=Baloo+Da+2:wght@500;700&family=Baloo+Bhaijaan+2:wght@500;700&family=Rubik:wght@500;700;900&family=Commissioner:wght@500;700;900&display=swap">
 <style>
 /* Layout: un banco da officina a fumetti. Colonna unica: pressa-mascotte, vassoio di carico, leva della forza, pila dei risultati. */
 :root{
@@ -27,8 +27,8 @@
   --acc-l:#ffd3df;--acc:#ffb3c7;--acc-s:#ef5b8b;
   --vid:#d6c2ff;
   --muted:#5b5a70;
-  --display:"Lilita One","Baloo 2","Baloo Da 2","Baloo Bhaijaan 2","Rubik","Arial Rounded MT Bold","PingFang SC","Microsoft YaHei","Noto Sans SC","Trebuchet MS",sans-serif;
-  --body:"Baloo 2","Baloo Da 2","Baloo Bhaijaan 2","Rubik","PingFang SC","Microsoft YaHei","Noto Sans SC","Trebuchet MS","Segoe UI",sans-serif;
+  --display:"Lilita One","Baloo 2","Baloo Da 2","Baloo Bhaijaan 2","Rubik","Commissioner","Arial Rounded MT Bold","PingFang SC","Microsoft YaHei","Noto Sans SC","Trebuchet MS",sans-serif;
+  --body:"Baloo 2","Baloo Da 2","Baloo Bhaijaan 2","Rubik","Commissioner","PingFang SC","Microsoft YaHei","Noto Sans SC","Trebuchet MS","Segoe UI",sans-serif;
   --line:3px solid var(--ink);
   --drop:5px 5px 0 var(--ink);
 }
@@ -370,8 +370,8 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .langbar select:focus-visible{outline:4px solid var(--acc-s);outline-offset:3px}
 [dir="rtl"] h1,[dir="rtl"] .btn.go{letter-spacing:0}
 [dir="rtl"] .tag{transform:rotate(2deg)}
-:lang(zh) h1,:lang(hi) h1,:lang(bn) h1,:lang(ar) h1,:lang(ur) h1,:lang(ru) h1{font-weight:900;line-height:1.1}
-:lang(zh) .tag,:lang(zh) .btn,:lang(zh) .lvl b,:lang(zh) .badge,:lang(zh) .total strong,:lang(ru) .tag,:lang(ru) .btn,:lang(ru) .lvl b,:lang(ru) .badge,:lang(ru) .total strong,:lang(hi) .tag,:lang(hi) .btn,:lang(hi) .lvl b,:lang(hi) .badge,:lang(hi) .total strong,:lang(bn) .tag,:lang(bn) .btn,:lang(bn) .lvl b,:lang(bn) .badge,:lang(bn) .total strong,:lang(ar) .tag,:lang(ar) .btn,:lang(ar) .lvl b,:lang(ar) .badge,:lang(ar) .total strong,:lang(ur) .tag,:lang(ur) .btn,:lang(ur) .lvl b,:lang(ur) .badge,:lang(ur) .total strong{font-weight:700}
+:lang(zh) h1,:lang(hi) h1,:lang(bn) h1,:lang(ar) h1,:lang(ur) h1,:lang(ru) h1,:lang(uk) h1,:lang(bg) h1,:lang(sr) h1,:lang(mk) h1,:lang(be) h1,:lang(el) h1{font-weight:900;line-height:1.1}
+:lang(zh) .tag,:lang(zh) .btn,:lang(zh) .lvl b,:lang(zh) .badge,:lang(zh) .total strong,:lang(ru) .tag,:lang(ru) .btn,:lang(ru) .lvl b,:lang(ru) .badge,:lang(ru) .total strong,:lang(hi) .tag,:lang(hi) .btn,:lang(hi) .lvl b,:lang(hi) .badge,:lang(hi) .total strong,:lang(bn) .tag,:lang(bn) .btn,:lang(bn) .lvl b,:lang(bn) .badge,:lang(bn) .total strong,:lang(ar) .tag,:lang(ar) .btn,:lang(ar) .lvl b,:lang(ar) .badge,:lang(ar) .total strong,:lang(ur) .tag,:lang(ur) .btn,:lang(ur) .lvl b,:lang(ur) .badge,:lang(ur) .total strong,:lang(uk) .tag,:lang(uk) .btn,:lang(uk) .lvl b,:lang(uk) .badge,:lang(uk) .total strong,:lang(bg) .tag,:lang(bg) .btn,:lang(bg) .lvl b,:lang(bg) .badge,:lang(bg) .total strong,:lang(sr) .tag,:lang(sr) .btn,:lang(sr) .lvl b,:lang(sr) .badge,:lang(sr) .total strong,:lang(mk) .tag,:lang(mk) .btn,:lang(mk) .lvl b,:lang(mk) .badge,:lang(mk) .total strong,:lang(be) .tag,:lang(be) .btn,:lang(be) .lvl b,:lang(be) .badge,:lang(be) .total strong,:lang(el) .tag,:lang(el) .btn,:lang(el) .lvl b,:lang(el) .badge,:lang(el) .total strong{font-weight:700}
 details{font-size:15px}
 details summary{cursor:pointer;font-weight:700}
 details p{margin:8px 0 0;max-width:65ch}
@@ -640,7 +640,7 @@ var I=window.I18N||{},lang="it";
 function pickLang(){
   try{var st=localStorage.getItem("lang");if(st&&I[st])return st}catch(e){}
   var l=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||"en"];
-  for(var i=0;i<l.length;i++){var c=String(l[i]).toLowerCase().split("-")[0];if(c==="in")c="id";if(I[c])return c}
+  for(var i=0;i<l.length;i++){var c=String(l[i]).toLowerCase().split("-")[0];if(c==="in")c="id";if(c==="nb"||c==="nn")c="no";if(I[c])return c}
   return I.en?"en":"it";
 }
 /* In modalità JPG vale la variante "chiaveJ" se esiste, in modalità video "chiaveV"; altrimenti lo stesso testo
@@ -2668,11 +2668,12 @@ async function autoOrient(cv){
   return {deg:deg,skew:skew,script:script};
 }
 /* ---------- PDF ricercabile (R-SCN-25): lingua dal sistema di scrittura, dati scaricati solo quando servono ---------- */
-var LATIN={it:"ita",en:"eng",es:"spa",fr:"fra",pt:"por",de:"deu",id:"ind"};
+var LATIN={it:"ita",en:"eng",es:"spa",fr:"fra",pt:"por",de:"deu",id:"ind",cs:"ces",hr:"hrv",da:"dan",nl:"nld",et:"est",fi:"fin",hu:"hun",ga:"gle",lv:"lav",lt:"lit",mt:"mlt",pl:"pol",ro:"ron",sk:"slk",sl:"slv",sv:"swe",no:"nor",is:"isl",sq:"sqi",bs:"bos"},
+    CYRL={ru:"rus",uk:"ukr",bg:"bul",sr:"srp",mk:"mkd",be:"bel"};
 function ocrLangFor(script){
   if(!script)return LATIN[lang]||"eng";
   if(script==="Latin")return LATIN[lang]||"eng";
-  return {Cyrillic:"rus",Arabic:lang==="ur"?"urd":"ara",Devanagari:"hin",Bengali:"ben",Han:"chi_sim",HanS:"chi_sim"}[script]||null;
+  return {Cyrillic:CYRL[lang]||"rus",Greek:"ell",Arabic:lang==="ur"?"urd":"ara",Devanagari:"hin",Bengali:"ben",Han:"chi_sim",HanS:"chi_sim"}[script]||null;
 }
 var recP=null,recLang="",recSeen={};
 async function ocrRecWorker(code,onNew){
