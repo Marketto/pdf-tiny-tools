@@ -1,6 +1,6 @@
 # Schiaccia PDF (e JPG, e video, e tutto insieme)
 
-Compressore di PDF a fumetti che gira tutto nel browser: carichi i PDF pieni di immagini, scegli la forza, salvi le versioni leggere. In tutte le modalità le forze sono tre: Carezza (predefinita: qualità alta, misure originali), Stretta (più leggera, misure originali) e Martellata (come Stretta, e in più riduce immagini, foto e video più grandi). I file non lasciano mai il dispositivo.
+Compressore di PDF a fumetti che gira tutto nel browser: carichi i PDF pieni di immagini, scegli la forza, salvi le versioni leggere. In tutte le modalità le forze sono tre: Carezza (predefinita: qualità alta, misure originali), Stretta (più leggera, misure originali) e Martellata (come Stretta, e in più riduce immagini, foto e video più grandi). I file non lasciano mai il dispositivo; l'app conta solo statistiche d'uso anonime e senza cookie (GoatCounter), disattivabili dalla riga in fondo alla pagina.
 
 - **PDF**: ricomprime in JPEG le immagini dentro il documento; testo, link e pagine restano come sono.
 - **JPG**: toccando la parola «PDF» nel titolo, che ruota come un rullo, l'app passa alle foto: le foto si ricomprimono con la forza scelta, e data, luogo e profilo colore restano sempre.

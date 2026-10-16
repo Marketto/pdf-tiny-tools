@@ -193,6 +193,7 @@ h1 .f-all{transform:rotateX(-270deg) translateZ(.5em);color:#c9a6ff}
 .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:4px 4px 0 var(--ink)}
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
 .hint{font-size:15px;color:var(--muted);margin:14px 0 0}
+.statsRow{color:var(--ink);text-align:center;margin:18px 12px 0;font-size:14px}
 @media (hover:none) and (pointer:coarse){
   .tray{border:0;padding:0;background:none}
   .tray>p,.hint.desk{display:none}
@@ -522,6 +523,7 @@ details p{margin:8px 0 0;max-width:65ch}
   </section>
   <div id="capture" class="capture"></div>
   <p id="capMsg" class="capMsg" role="status" aria-live="polite"></p>
+  <p class="hint statsRow" id="statsRow" hidden><span id="statsState"></span> <button type="button" class="linkish" id="statsBtn"></button></p>
 </div>
 
 <div class="loader" id="loader" role="dialog" aria-modal="true" aria-labelledby="loaderTitle" hidden>
@@ -600,6 +602,29 @@ var $=function(id){return document.getElementById(id)};
 /* misure dei tempi, solo con ?perf=1 (per confrontare prima e dopo un'ottimizzazione): window.__perf = [[etichetta, ms], …] */
 var PERF=/[?&]perf=1/.test(location.search);if(PERF)window.__perf=[];
 function perf(label,t0){if(PERF)window.__perf.push([label,Math.round(performance.now()-t0)])}
+/* statistiche d'uso anonime (R-PRI-05): un conteggio = una richiesta a GoatCounter, senza cookie né script esterni.
+   Solo sul sito pubblicato con il codice configurato; ?stats=test le raccoglie in window.__stats senza rete (prove) */
+var STATS=(function(){
+  var C=CFG.stats||{},test=/[?&]stats=test/.test(location.search);
+  var on=test||(!!C.code&&location.hostname===C.host);
+  var dnt=navigator.doNotTrack==="1"||window.doNotTrack==="1"||navigator.globalPrivacyControl===true;
+  function off(){try{return localStorage.getItem("stats")==="0"}catch(e){return false}}
+  if(test)window.__stats=[];
+  return {
+    on:on,dnt:dnt,off:off,
+    set:function(v){try{localStorage.setItem("stats",v?"1":"0")}catch(e){}},
+    hit:function(path,event){
+      if(!on||dnt||off())return;
+      if(test){window.__stats.push(path);return}
+      try{
+        var q="p="+encodeURIComponent(path)+(event?"&e=true":"")+"&s="+encodeURIComponent(screen.width+","+screen.height+","+(window.devicePixelRatio||1))+"&rnd="+Math.random().toString(36).slice(2);
+        var img=new Image();img.referrerPolicy="no-referrer";img.src="https://"+C.code+".goatcounter.com/count?"+q;
+      }catch(e){}
+    }
+  };
+})();
+function stat(path){STATS.hit(path,true)}
+function bucket(n){return n<=1?"1":n<=5?"2-5":n<=20?"6-20":"20+"}
 /* caricamento pigro (R-APP-04): uno script si aggiunge alla pagina solo la prima volta che serve */
 var scriptP={};
 function loadScript(src){
@@ -647,6 +672,7 @@ function each(sel,fn){Array.prototype.forEach.call(document.querySelectorAll(sel
 function applyLang(){
   var r=document.documentElement;r.lang=lang;r.dir=t("dir");
   document.title=t("title");
+  try{statsRow()}catch(e){}
   var md=document.querySelector('meta[name="description"]');if(md)md.content=t("desc");
   each("[data-i18n]",function(n){n.textContent=t(n.getAttribute("data-i18n"))});
   each("[data-i18n-html]",function(n){n.innerHTML=t(n.getAttribute("data-i18n-html"))});
@@ -1188,6 +1214,9 @@ async function squashList(list,jpg){
 function workEnd(){
   busy=false;press.classList.remove("busy");render();music.setMood("calm");bgEnd();
   if(abortWork)return;
+  /* statistiche (R-PRI-05): modalità, livello, file per fascia */
+  var nDone=items.filter(function(x){return x.status==="done"||x.status==="kept"}).length;
+  if(nDone){var lk={pdf:"lvl",jpg:"jlvl",video:"vlvl",all:"alvl"}[mode]||"lvl";stat("schiaccia/"+mode+"/"+lvlOf(lk));stat("file/"+bucket(nDone))}
   setTimeout(suggestStill,400);
   /* lavoro finito: la pagina scorre fino ai pulsanti per salvare (R-VID-20) */
   setTimeout(function(){var tb=$("total");if(tb&&!tb.hidden&&$("modal").hidden)try{tb.scrollIntoView({behavior:calm?"auto":"smooth",block:"center"})}catch(e){}},700);
@@ -3556,7 +3585,11 @@ async function capSave(){
   var z=await zip.generateAsync({type:"blob",compression:"STORE"});
   if(await saveBlob(base+".zip",z))capDone(t("savedZip",{name:savedAs,n:nf(pages.length)}));
 }
-function capDone(msg){capClear();capRender();say(msg);music.festa()}
+function capDone(msg){
+  /* statistiche (R-PRI-05): scansione salvata, pagine per fascia, angoli a mano */
+  stat("cattura/"+mode);stat("pagine/"+bucket(cap.pages.length));if(cap.pages.some(function(p){return p.manual}))stat("cattura/angoli-a-mano");
+  capClear();capRender();say(msg);music.festa();
+}
 /* il verbo del titolo: Schiaccia ⇄ Cattura (R-SCN-14/15/18) */
 async function setAction(a,sure){
   if(a===act||loading||busy&&!sure||a==="capture"&&capOff())return;
@@ -4349,8 +4382,18 @@ var standalone=(window.matchMedia&&matchMedia("(display-mode: standalone)").matc
 var ua=navigator.userAgent||"";
 var isIOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferred=e;if(!standalone)instBtn.hidden=false});
-window.addEventListener("appinstalled",function(){deferred=null;instBtn.hidden=true;iosHint.hidden=true});
+window.addEventListener("appinstalled",function(){deferred=null;instBtn.hidden=true;iosHint.hidden=true;stat("installata")});
 if(isIOS&&!standalone)instBtn.hidden=false;
+/* statistiche (R-PRI-05): un'apertura, da app installata o da browser, con la lingua; riga in fondo con l'interruttore */
+STATS.hit("/",false);stat("avvio/"+(standalone?"app":"browser"));stat("lingua/"+lang);
+function statsRow(){
+  var row=$("statsRow");if(!STATS.on){row.hidden=true;return}
+  row.hidden=false;var off=STATS.dnt||STATS.off();
+  $("statsState").textContent=t(STATS.dnt?"statsDnt":off?"statsOffNote":"statsNote");
+  $("statsBtn").hidden=STATS.dnt;$("statsBtn").textContent=t(off?"statsOn":"statsOff");
+}
+$("statsBtn").addEventListener("click",function(){STATS.set(STATS.off());statsRow()});
+statsRow();
 if(isIOS)$("pickDir").hidden=true;
 instBtn.addEventListener("click",async function(){
   if(deferred){

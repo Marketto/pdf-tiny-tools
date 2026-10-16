@@ -62,6 +62,25 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `${locale}: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- statistiche anonime (R-PRI-05): niente di niente in locale; con ?stats=test i conteggi si raccolgono senza rete
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 } });
+  const page = await ctx.newPage(), gc = [];
+  page.on("request", (r) => { if (/goatcounter/.test(r.url())) gc.push(r.url()); });
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url);
+  check(await page.evaluate(() => document.getElementById("statsRow").hidden && window.__stats === undefined), "Statistiche: in locale spente e riga nascosta");
+  await page.goto(url + (url.includes("?") ? "&" : "?") + "stats=test");
+  const st = await page.evaluate(() => window.__stats.slice());
+  check(["/", "avvio/browser", "lingua/it"].every((x) => st.includes(x)), `Statistiche: apertura, avvio da browser e lingua (${st.join(", ")})`);
+  check(!(await page.evaluate(() => document.getElementById("statsRow").hidden)) && /anonime/.test(await page.innerText("#statsRow")), "Statistiche: riga in fondo con l'interruttore");
+  await page.click("#statsBtn");
+  await page.goto(url + (url.includes("?") ? "&" : "?") + "stats=test");
+  check((await page.evaluate(() => window.__stats.length)) === 0 && /disattivate/.test(await page.innerText("#statsRow")), "Statistiche: disattivate restano spente dopo un ricaricamento");
+  await page.click("#statsBtn");
+  check(gc.length === 0, `Statistiche: nessuna richiesta a GoatCounter nelle prove (${gc.length})`);
+  await ctx.close();
+}
 // --- secondo piano: domanda la prima volta, audio e riquadro del lettore con l'avanzamento durante il lavoro (R-APP-05…07)
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 }, askBg: true });

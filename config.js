@@ -80,6 +80,9 @@ window.CONFIG = {
        né una pagina le cui linee tremano (scarto mediano dalla loro parabola) più di maxWobble px: è scritta a mano */
     unfold: { maxColor: 0.15, maxWobble: 2.2, passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
   },
+  /* statistiche d'uso anonime (R-PRI-05): codice del sito GoatCounter, scritto qui dal flusso di pubblicazione
+     dalla variabile GC_CODE del repository; vuoto = nessun conteggio. host = solo su questo sito, mai in locale */
+  stats: { code: "", host: "marketto.github.io" },
   ui: {
     /* il riquadro del lettore si aggiorna al massimo ogni tanti millisecondi (R-APP-07) */
     mediaEvery: 20000,

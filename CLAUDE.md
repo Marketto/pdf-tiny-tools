@@ -45,7 +45,7 @@ Se una richiesta tocca più righe, fai una cosa alla volta e chiudi sempre con `
 
 - **Niente build e niente dipendenze nel sito.** Non introdurre npm, bundler o CDN nell'app: le librerie stanno in `vendor/`. Le uniche dipendenze ammesse sono quelle di sviluppo in `tools/`.
 - **Ogni testo visibile passa da `i18n.js`**, in tutte le 13 lingue, con gli stessi segnaposto `{…}`. Mai stringhe scritte direttamente in `index.html` (fanno eccezione i testi italiani di riserva già presenti nel markup).
-- **I file dell'utente non lasciano il dispositivo.** Nessuna chiamata di rete con contenuti o nomi dei file, nessuna telemetria.
+- **I file dell'utente non lasciano il dispositivo.** Nessuna chiamata di rete con contenuti o nomi dei file. L'unica telemetria ammessa sono le statistiche anonime di R-PRI-05 (GoatCounter, senza cookie, disattivabili): non aggiungerne altre senza una voce nei requisiti.
 - **Gli originali non si toccano** se non dopo la conferma esplicita già prevista (pulsante «Sovrascrivi gli originali»).
 - **La mascotte ha una sola fonte**, `tools/mascot.mjs`. Non ritoccare a mano gli SVG dentro `index.html` o in `icons/`: si rigenerano.
 - **Prima la documentazione, poi il codice.** Ogni richiesta del proprietario diventa prima una voce in `docs/REQUISITI.md` (nuovo codice o voce modificata) e, se cambia la struttura, il piano in `docs/ARCHITETTURA.md`; solo dopo si implementa, e alla fine si riallinea `ARCHITETTURA.md` a ciò che è stato fatto, con README e skill toccati. Una sola fonte per ogni informazione: rimanda invece di ripetere.

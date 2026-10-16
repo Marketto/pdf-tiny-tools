@@ -205,3 +205,11 @@ Sezione `lavoro e pausa` in `index.html`.
 
 ## Limiti noti
 PDF: CMYK, JBIG2, JPEG 2000, CCITT non ricompressi; PDF con password saltati; tutto in RAM. Foto: colori ad ampia gamma un po' spenti; HEIC non leggibile. Video: HDR non ricodificati; video grandi su Safari prima della 26 saltati (manca la scrittura nella cartella privata); soglia sicura stimata, non misurata; con l'app in secondo piano la codifica può fermarsi; date e luogo nei metadati conservati solo se Mediabunny li riconosce. Scansione: rilevamento del foglio, calamita e controllo dei bordi deboli su sfondo chiaro (foglio bianco su tavolo bianco); orientamento incerto su pagine con poco testo (resta com'è); raddrizzamento fine pensato per righe di testo orizzontali; pieghe interne non corrette; ombre nette attenuate ma con alone. Cartelle: non scrivibili su iPhone, Firefox, Safari.
+
+## Statistiche anonime (PRI-05)
+- `STATS` (dopo `perf`, in cima allo script): attivo se `CFG.stats.code` non è vuoto e la pagina è su `CFG.stats.host`, oppure con `?stats=test` (i conteggi vanno in `window.__stats`, nessuna rete: lo usa lo smoke test). Spento con «Do Not Track» o «Global Privacy Control» e con `localStorage.stats = "0"`.
+- `STATS.hit(path, event)` crea un'immagine verso `https://<code>.goatcounter.com/count?p=…&e=true&s=…` (`referrerPolicy: no-referrer`): nessuno script esterno, nessun cookie; il service worker non intercetta altri domini. `stat(path)` = evento; `bucket(n)` = fasce 1, 2-5, 6-20, 20+.
+- Conteggi: all'avvio `/` (visita), `avvio/app|browser` (da `standalone`), `lingua/<xx>`; `installata` su `appinstalled`; a fine compressione in `workEnd` `schiaccia/<modalità>/<livello>` e `file/<fascia>`; al salvataggio in Cattura (`capDone`) `cattura/<modalità>`, `pagine/<fascia>`, `cattura/angoli-a-mano`.
+- Riga `#statsRow` in fondo all'app (visibile solo quando `STATS.on`): stato e pulsante `#statsBtn` per spegnere/riaccendere; `statsRow()` la ridisegna, anche al cambio di lingua (`applyLang`).
+- Pubblicazione: `pages.yml` scrive in `_site/config.js` il codice dalla variabile del repository `GC_CODE` (solo lettere minuscole, cifre e trattini); senza variabile `code` resta vuoto e non parte niente.
+
