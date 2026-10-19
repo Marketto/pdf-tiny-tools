@@ -40,6 +40,7 @@ const sum = (page, l) => page.evaluate((l) => window.__perf.filter((x) => x[0] =
   await page.evaluate(async (NOISE) => {
     const dt = new DataTransfer();
     for (let f = 0; f < 2; f++) {
+      if (!window.PDFLib) await new Promise((res) => { const s = document.createElement("script"); s.src = "vendor/pdf-lib.min.js"; s.onload = res; document.head.appendChild(s); });
       const doc = await PDFLib.PDFDocument.create();
       for (let k = 0; k < 6; k++) {
         const c = document.createElement("canvas"); c.width = 2000; c.height = 1500; const g = c.getContext("2d"), d = g.createImageData(2000, 1500);

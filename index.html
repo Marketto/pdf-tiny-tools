@@ -583,8 +583,20 @@ details p{margin:8px 0 0;max-width:65ch}
 <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
 
 <script src="config.js"></script>
-<script src="i18n.js"></script>
-<script src="vendor/pdf-lib.min.js"></script>
+<script src="i18n/index.js"></script>
+<script>
+/* lingua all'avvio (R-I18N-01): si scarica solo il file dei testi della lingua in uso */
+(function(){
+  var L=window.LANGS||{},c="";
+  try{var st=localStorage.getItem("lang");if(st&&L[st])c=st}catch(e){}
+  var l=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||"en"];
+  for(var i=0;i<l.length&&!c;i++){var x=String(l[i]).toLowerCase().split("-")[0];if(x==="in")x="id";if(x==="nb"||x==="nn")x="no";if(L[x])c=x}
+  window.LANG0=c||"en";
+  document.write('<script src="i18n/'+window.LANG0+'.js"><\/script>');
+})();
+</script>
+<script>/* senza rete e senza copia della lingua scelta: ripiega su italiano e inglese */
+if(!window.I18N||!window.I18N[window.LANG0])document.write('<script src="i18n/it.js"><\/script><script src="i18n/en.js"><\/script>');</script>
 <script>
 (function(){
 "use strict";
@@ -637,11 +649,10 @@ var rowsEl=$("rows"),msgEl=$("msg"),goBtn=$("go"),press=$("press");
 
 /* ---------- lingue ---------- */
 var I=window.I18N||{},lang="it";
+/* la lingua la sceglie lo script in testa (window.LANG0), che scarica solo quel file di testi */
 function pickLang(){
-  try{var st=localStorage.getItem("lang");if(st&&I[st])return st}catch(e){}
-  var l=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||"en"];
-  for(var i=0;i<l.length;i++){var c=String(l[i]).toLowerCase().split("-")[0];if(c==="in")c="id";if(c==="nb"||c==="nn")c="no";if(I[c])return c}
-  return I.en?"en":"it";
+  if(I[window.LANG0])return window.LANG0;
+  return I.en?"en":I.it?"it":Object.keys(I)[0]||"it";
 }
 /* In modalità JPG vale la variante "chiaveJ" se esiste, in modalità video "chiaveV"; altrimenti lo stesso testo
    con «PDF» sostituito da «JPG» o dalla parola «video» della lingua (chiave vWord). */
@@ -1049,7 +1060,9 @@ function render(){
 }
 
 /* ---------- motore ---------- */
+/* pdf-lib si carica alla prima compressione di un PDF o al primo salvataggio di Cattura (R-APP-04) */
 var L=window.PDFLib||{};
+async function pdfLib(){if(!window.PDFLib)try{await loadScript("vendor/pdf-lib.min.js")}catch(e){}L=window.PDFLib||{};return L.PDFDocument?L:null}
 function N(s){return L.PDFName.of(s)}
 function num(d,k){var v=d.lookup(N(k));return v instanceof L.PDFNumber?v.asNumber():undefined}
 function comps(d){
@@ -1162,6 +1175,7 @@ async function squeezePdf(it,preset,onPct){
 }
 async function squeezePdf0(it,preset,onPct){
   var bytes=new Uint8Array(await it.file.arrayBuffer());
+  await pdfLib();
   var doc=await L.PDFDocument.load(bytes,{updateMetadata:false});
   var ctx=doc.context,all=ctx.enumerateIndirectObjects(),masks={},todo=[];
   all.forEach(function(p){
@@ -1229,7 +1243,7 @@ function workEnd(){
 async function goNow(){
   if(busy||!items.length)return;
   var todo=items.filter(function(x){return !x.scan&&!x.keepOut}),pdfs=todo.filter(function(x){return x.kind==="pdf"});
-  if(pdfs.length&&!L.PDFDocument){say(t("engine"),true);return}
+  if(pdfs.length&&!(await pdfLib())){say(t("engine"),true);return}
   await bgAsk();if(busy)return;
   busy=true;press.classList.add("busy");say("");music.setMood("drive");bgBegin();
   for(var i=0;i<todo.length;i++){var it=todo[i];if(it.tmpName)await dropTmp(it);it.status="wait";it.out=null;it.jobOut=null;it.note="";it.pct=0;it.plan=null;it.size=it.file.size}
@@ -2647,7 +2661,7 @@ async function autoOrient(cv){
   var deg=0,script=null;
   if(!ocrBad){
     try{
-      var w=await ocrWorker(),small=scaledGray(cv,1600),r=(await w.detect(small)).data;small.width=small.height=0;
+      var w=await ocrWorker();ocrTouch();var small=scaledGray(cv,1600),r=(await w.detect(small)).data;small.width=small.height=0;ocrTouch();
       if(r&&r.orientation_degrees!=null&&r.orientation_confidence>=2)deg=r.orientation_degrees;
       else if(r&&r.orientation_degrees!=null){
         /* Tesseract incerto (scrittura a mano, poche righe): le righe della pagina dicono se il testo corre in verticale;
@@ -2687,8 +2701,17 @@ async function ocrRecWorker(code,onNew){
   }
   var w=await recP;
   if(recLang!==code){await w.reinitialize(code,1);recLang=code}
-  recSeen[code]=1;
+  recSeen[code]=1;ocrTouch();
   return w;
+}
+/* i motori di Tesseract occupano decine di MB: si spengono un minuto dopo l'ultimo uso o uscendo da Cattura,
+   e si riaccendono da soli alla prossima pagina (R-APP-17) */
+var ocrIdle=0;
+function ocrTouch(){clearTimeout(ocrIdle);ocrIdle=setTimeout(ocrFree,CFG.scan.ocrIdleMs||60000)}
+function ocrFree(){
+  clearTimeout(ocrIdle);
+  if(ocrP){var p=ocrP;ocrP=null;p.then(function(w){w.terminate()}).catch(function(){})}
+  if(recP){var q=recP;recP=null;recLang="";q.then(function(w){w.terminate()}).catch(function(){})}
 }
 function ocrOn(){try{return localStorage.getItem("ocrText")!=="0"}catch(e){return true}}
 
@@ -3543,7 +3566,7 @@ if(capWide.addEventListener)capWide.addEventListener("change",capRender);
 async function capSave(){
   var pages=cap.pages.slice();if(!pages.length)return;
   if(mode==="pdf"){
-    if(!L.PDFDocument){say(t("engine"),true);return}
+    if(!(await pdfLib())){say(t("engine"),true);return}
     loaderOn("scan",t("buildPdf"));
     var blob=null;
     try{
@@ -3558,7 +3581,7 @@ async function capSave(){
           $("loaderTitle").textContent=t("ocrRead",{i:nf(i+1),n:nf(pages.length)});
           var w=await ocrRecWorker(code,function(){$("loaderN").textContent=t("ocrLang")});
           $("loaderN").textContent="";
-          var r=await w.recognize(pages[i].blob,{pdfTextOnly:true},{pdf:true,text:false,blocks:false});
+          var r=await w.recognize(pages[i].blob,{pdfTextOnly:true},{pdf:true,text:false,blocks:false});ocrTouch();
           if(r&&r.data&&r.data.pdf){var emb=(await doc.embedPdf(new Uint8Array(r.data.pdf),[0]))[0];pg.drawPage(emb,{x:0,y:0,width:pw,height:ph})}
         }catch(e){$("loaderN").textContent=""}
       }
@@ -3602,7 +3625,7 @@ async function setAction(a,sure){
     if(!lv)return;
   }
   if(act==="squash"){if(lv==="pause")await pauseJob();else if(lose){await stopWork();if(jobId)jobDrop(jobId)}if(items.length){reset();tmpClean()}}
-  else capClear();
+  else{capClear();ocrFree()}
   act=a;document.body.classList.toggle("act-cap",a==="capture");
   say("");applyLang();turnVerb();
   try{window.scrollTo({top:0,behavior:"smooth"})}catch(e){}
@@ -3620,13 +3643,16 @@ $("galInput").addEventListener("change",function(e){
 
 /* ---------- avvio ---------- */
 var sel=$("lang");
-Object.keys(I).sort(function(a,b){return I[a].name.localeCompare(I[b].name)}).forEach(function(k){
-  var o=document.createElement("option");o.value=k;o.textContent=I[k].name;sel.appendChild(o);
+var LANGS=window.LANGS||{};
+Object.keys(LANGS).sort(function(a,b){return LANGS[a].name.localeCompare(LANGS[b].name)}).forEach(function(k){
+  var o=document.createElement("option");o.value=k;o.textContent=LANGS[k].name;sel.appendChild(o);
 });
+/* una lingua mai usata si scarica quando la si sceglie; senza rete resta quella attuale (R-I18N-01) */
 sel.addEventListener("change",function(){
-  if(!I[sel.value])return;
-  lang=sel.value;try{localStorage.setItem("lang",lang)}catch(e){}
-  say("");applyLang();
+  var v=sel.value;if(!LANGS[v])return;
+  function go(){lang=v;try{localStorage.setItem("lang",lang)}catch(e){}say("");applyLang()}
+  if(I[v])return go();
+  loadScript("i18n/"+v+".js").then(function(){if(!I[v])throw new Error(v);go()}).catch(function(){sel.value=lang;say(t("langNet"),true)});
 });
 lang=pickLang();sel.value=lang;
 /* la cartella privata dei video grandi non sopravvive a una sessione (R-VID-16) */
@@ -4421,6 +4447,12 @@ if("serviceWorker" in navigator&&location.protocol==="https:"){
     if(idle){reloaded=true;try{sessionStorage.setItem("swReload",Date.now())}catch(e){}location.reload()}
   });
   navigator.serviceWorker.register("sw.js").catch(function(){});
+  /* pdf-lib non serve all'avvio, ma senza rete deve esserci: con l'app ferma lo si chiede una volta,
+     così il service worker lo mette tra i moduli che restano (R-APP-04, R-APP-16) */
+  setTimeout(function(){
+    if(!navigator.serviceWorker.controller||window.PDFLib)return;
+    (window.requestIdleCallback||setTimeout)(function(){fetch("vendor/pdf-lib.min.js").catch(function(){})});
+  },4000);
 }
 </script>
 </body>

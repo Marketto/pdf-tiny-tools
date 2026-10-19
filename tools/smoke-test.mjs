@@ -23,18 +23,36 @@ try { ({ chromium } = await import("playwright")); } catch { ({ chromium } = awa
 const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 // la domanda sul lavoro in secondo piano (R-APP-06) è già risposta «no» in tutte le prove, tranne quella che la prova
 const newContext = browser.newContext.bind(browser);
-browser.newContext = async (o = {}) => { const c = await newContext(o); if (!o.askBg) await c.addInitScript(() => { try { if (localStorage.getItem("bg") === null) localStorage.setItem("bg", "0"); } catch {} }); return c; };
+browser.newContext = async (o = {}) => { const c = await newContext(o); if (!o.askBg) await c.addInitScript(() => { try { if (localStorage.getItem("bg") === null) localStorage.setItem("bg", "0"); } catch {} });
+  // pdf-lib non si carica più all'avvio (R-APP-04): le prove che costruiscono PDF lo chiedono così
+  await c.addInitScript(() => { window.__pdflib = () => window.PDFLib ? Promise.resolve(window.PDFLib) : new Promise((res, rej) => { const s = document.createElement("script"); s.src = "vendor/pdf-lib.min.js"; s.onload = () => res(window.PDFLib); s.onerror = rej; document.head.appendChild(s); }); });
+  return c; };
 let failed = 0;
 const check = (ok, what) => { console.log((ok ? "✓ " : "✗ ") + what); if (!ok) failed++; };
 
 for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"], ["ar-EG", "ar", "rtl"], ["zh-CN", "zh", "ltr"], ["ja-JP", "en", "ltr"], ["nb-NO", "no", "ltr"], ["el-GR", "el", "ltr"], ["uk-UA", "uk", "ltr"]]) {
   const ctx = await browser.newContext({ locale, viewport: { width: 400, height: 900 } });
   const page = await ctx.newPage();
-  const errors = [];
+  const errors = [], reqs = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  page.on("request", (r) => reqs.push(r.url()));
   await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
   await page.goto(url);
   const info = await page.evaluate(() => ({ lang: document.documentElement.lang, dir: document.documentElement.dir, w: document.documentElement.scrollWidth }));
+  // all'avvio solo i testi della lingua in uso e niente pdf-lib (R-I18N-01, R-APP-04)
+  const texts = reqs.filter((u) => /\/i18n\/[a-z]{2}\.js/.test(u)).map((u) => u.split("/").pop());
+  check(texts.length === 1 && texts[0] === lang + ".js" && !reqs.some((u) => /pdf-lib/.test(u)), `${locale}: all'avvio solo i testi «${texts.join(", ")}», senza pdf-lib`);
+  if (lang === "it") {
+    // cambio lingua dal menu: si scarica solo quella scelta; senza rete una lingua mai scaricata non si può scegliere
+    await page.selectOption("#lang", "de"); await page.waitForFunction(() => document.documentElement.lang === "de");
+    check(reqs.some((u) => /\/i18n\/de\.js/.test(u)), "Lingue: scegliendo il tedesco si scaricano i suoi testi");
+    await ctx.setOffline(true);
+    await page.selectOption("#lang", "fi"); await page.waitForTimeout(800);
+    const off = await page.evaluate(() => ({ lang: document.documentElement.lang, sel: document.getElementById("lang").value, msg: document.getElementById("msg").textContent }));
+    check(off.lang === "de" && off.sel === "de" && /Internet/i.test(off.msg), `Lingue: senza rete il finlandese mai scaricato non si sceglie (${off.lang}, «${off.msg.slice(0, 40)}»)`);
+    await ctx.setOffline(false);
+    await page.selectOption("#lang", "it"); await page.waitForFunction(() => document.documentElement.lang === "it");
+  }
   check(info.lang === lang && info.dir === dir, `${locale}: lingua ${info.lang}, direzione ${info.dir}`);
   check(info.w <= 400, `${locale}: nessuno scorrimento orizzontale a 400 px`);
 
@@ -46,7 +64,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
       for (let i = 0; i < d.data.length; i += 4) { const v = (i / 4 % 1800) / 7 + Math.random() * 90; d.data[i] = v; d.data[i + 1] = v * .8; d.data[i + 2] = 255 - v; d.data[i + 3] = 255; }
       g.putImageData(d, 0, 0);
       const png = await new Promise((r) => c.toBlob(async (b) => r(new Uint8Array(await b.arrayBuffer())), "image/png"));
-      const doc = await PDFLib.PDFDocument.create(), img = await doc.embedPng(png);
+      const doc = await (await __pdflib()).PDFDocument.create(), img = await doc.embedPng(png);
       doc.addPage([600, 400]).drawImage(img, { x: 0, y: 0, width: 600, height: 400 });
       const bytes = await doc.save();
       const dt = new DataTransfer(); dt.items.add(new File([bytes], "prova.pdf", { type: "application/pdf" }));
@@ -218,7 +236,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     const c = document.createElement("canvas"); c.width = 1600; c.height = 1200; const g = c.getContext("2d");
     for (let y = 0; y < 1200; y += 40) for (let x = 0; x < 1600; x += 40) { g.fillStyle = `hsl(${(x + y) % 360},60%,${40 + (x * y) % 30}%)`; g.fillRect(x, y, 40, 40); }
     const jb = await new Promise((r) => c.toBlob(r, "image/jpeg", .55));
-    const doc = await PDFLib.PDFDocument.create(); const img = await doc.embedJpg(new Uint8Array(await jb.arrayBuffer())); doc.addPage([800, 600]).drawImage(img, { x: 0, y: 0, width: 800, height: 600 });
+    const doc = await (await __pdflib()).PDFDocument.create(); const img = await doc.embedJpg(new Uint8Array(await jb.arrayBuffer())); doc.addPage([800, 600]).drawImage(img, { x: 0, y: 0, width: 800, height: 600 });
     const dt = new DataTransfer(); dt.items.add(new File([await doc.save()], "leggero.pdf", { type: "application/pdf" }));
     const input = document.getElementById("pickFiles"); input.files = dt.files; input.dispatchEvent(new Event("change", { bubbles: true }));
   });
@@ -412,7 +430,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     const src = new M.CanvasSource(cv, { codec: "vp9", bitrate: 6e6 }); o.addVideoTrack(src, { frameRate: 30 }); await o.start();
     for (let i = 0; i < 90; i++) { gg.fillStyle = `hsl(${i * 3},70%,55%)`; gg.fillRect(0, 0, 640, 360); for (let k = 0; k < 300; k++) { gg.fillStyle = `rgba(0,0,0,${Math.random() * .4})`; gg.fillRect(Math.random() * 640, Math.random() * 360, 6, 6); } await src.add(i / 30, 1 / 30); }
     await o.finalize();
-    const doc = await PDFLib.PDFDocument.create(); const img = await doc.embedJpg(new Uint8Array(await jb.arrayBuffer())); doc.addPage([600, 450]).drawImage(img, { x: 0, y: 0, width: 600, height: 450 });
+    const doc = await (await __pdflib()).PDFDocument.create(); const img = await doc.embedJpg(new Uint8Array(await jb.arrayBuffer())); doc.addPage([600, 450]).drawImage(img, { x: 0, y: 0, width: 600, height: 450 });
     dt.items.add(new File([tgt.buffer], "clip.mp4", { type: "video/mp4" }));
     dt.items.add(new File([jb], "foto.jpg", { type: "image/jpeg" }));
     dt.items.add(new File(["x"], "nota.txt", { type: "text/plain" }));
@@ -610,7 +628,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#capture .btn.ok")]);
   const { readFile: read } = await import("node:fs/promises");
   const pdf = await read(await dl.path());
-  const pages = await page.evaluate(async (b) => (await PDFLib.PDFDocument.load(new Uint8Array(b))).getPageCount(), [...pdf]);
+  const pages = await page.evaluate(async (b) => (await (await __pdflib()).PDFDocument.load(new Uint8Array(b))).getPageCount(), [...pdf]);
   check(/\.pdf$/.test(dl.suggestedFilename()) && pages === 2, `Cattura: PDF di ${pages} pagine salvato (${dl.suggestedFilename()})`);
   check(await page.locator("#capture .thumb").count() === 0, "Cattura: dopo il salvataggio la schermata si svuota");
   await shot(() => page.click("#capture .capBig .btn.go"));
@@ -803,7 +821,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   const { readFile: readP } = await import("node:fs/promises");
   const pdfB = await readP(await dl.path());
   const font = await page.evaluate(async (b) => {
-    const P = PDFLib, doc = await P.PDFDocument.load(new Uint8Array(b)), res = doc.getPage(0).node.Resources(), xo = res.lookup(P.PDFName.of("XObject")), names = [];
+    const P = await __pdflib(), doc = await P.PDFDocument.load(new Uint8Array(b)), res = doc.getPage(0).node.Resources(), xo = res.lookup(P.PDFName.of("XObject")), names = [];
     for (const [, ref] of xo.entries()) { const st = doc.context.lookup(ref), r2 = st.dict.lookup(P.PDFName.of("Resources")), f = r2 && r2.lookup(P.PDFName.of("Font")); if (f) for (const [, fr] of f.entries()) names.push(String(doc.context.lookup(fr).lookup(P.PDFName.of("BaseFont")))); }
     return names.join(",");
   }, [...pdfB]);

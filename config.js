@@ -44,6 +44,7 @@ window.CONFIG = {
     safe: { memPerGbMB: 128, maxMB: 1024, defaultMB: 300 }
   },
   scan: {
+    ocrIdleMs: 60000,      // R-APP-17: dopo quanto tempo senza usarli si spengono i motori di Tesseract
     /* bordi dai lati dritti (R-SCN-31), tutto su una copia con il lato lungo di size px (misure in px di quella copia):
        - contorno = pendenza oltre minGrad; si prendono le lines rette più forti; gli angoli possono uscire dalla foto fino a outside,
          il foglio occupa almeno minArea della foto;

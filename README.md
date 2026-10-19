@@ -16,7 +16,7 @@ Compressore di PDF a fumetti che gira tutto nel browser: carichi i PDF pieni di 
 
 L'interfaccia sceglie da sola la lingua del browser e si può cambiare dal menu in alto; la scelta viene ricordata. Sono disponibili: italiano, inglese, cinese, hindi, spagnolo, francese, arabo, bengalese, portoghese, russo, urdu, indonesiano e tedesco, e tutte le altre lingue europee: albanese, bielorusso, bosniaco, bulgaro, ceco, croato, danese, estone, finlandese, greco, irlandese, islandese, lettone, lituano, macedone, maltese, norvegese, olandese, polacco, rumeno, serbo, slovacco, sloveno, svedese, ucraino e ungherese (39 in tutto). Se la lingua del browser non è tra queste, si usa l'inglese.
 
-I testi stanno tutti in `i18n.js`: per aggiungere una lingua basta copiare un blocco, cambiare la sigla e tradurre i valori.
+I testi stanno in `i18n/`, un file per lingua: l'app scarica solo quello della lingua in uso. Per aggiungere una lingua basta copiare un file, cambiare la sigla, tradurre i valori e aggiungerla all'elenco `i18n/index.js`.
 
 ## Installazione
 

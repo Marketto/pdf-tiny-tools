@@ -1,15 +1,15 @@
 ---
 name: traduzioni
-description: Aggiungere, correggere o rivedere i testi dell'interfaccia e le traduzioni in i18n.js, oppure aggiungere una lingua nuova. Da usare per qualsiasi testo visibile nell'app.
+description: Aggiungere, correggere o rivedere i testi dell'interfaccia e le traduzioni in i18n/, oppure aggiungere una lingua nuova. Da usare per qualsiasi testo visibile nell'app.
 ---
 
 # Testi e traduzioni
 
-Tutti i testi stanno in `i18n.js`, un oggetto per lingua con le stesse chiavi. L'italiano (`it`) è la lingua di riferimento, l'inglese (`en`) quella di riserva quando il browser parla una lingua non prevista.
+Tutti i testi stanno in `i18n/`: un file per lingua (`i18n/it.js` definisce `window.I18N.it`), tutti con le stesse chiavi, più l'elenco `i18n/index.js` (nome e direzione di ogni lingua, per il menu). L'app scarica solo il file della lingua in uso. L'italiano (`it`) è la lingua di riferimento, l'inglese (`en`) quella di riserva quando il browser parla una lingua non prevista.
 
 ## Aggiungere o cambiare un testo
 
-1. Aggiungi la chiave a **tutte** le lingue, nella stessa posizione. Non lasciare lingue indietro.
+1. Aggiungi la chiave a **tutti** i file di `i18n/`, nella stessa posizione. Non lasciare lingue indietro.
 2. Nel markup usa `data-i18n="chiave"` (testo), `data-i18n-html="chiave"` (se contiene tag) o `data-i18n-aria="chiave"` (etichetta per lettori di schermo). Nel codice usa `t("chiave", {n: …})`.
 3. Esegui `node tools/check-i18n.mjs` finché non segnala zero problemi.
 
@@ -35,8 +35,8 @@ L'app ha quattro modalità, PDF, JPG, video e TUTTO, ma un solo testo per ogni c
 
 ## Aggiungere una lingua
 
-1. Copia il blocco `en`, cambia la sigla (codice ISO a due lettere) e traduci.
-2. Imposta `name` (nome della lingua nella lingua stessa) e `dir` (`ltr` o `rtl`).
+1. Copia `i18n/en.js` in `i18n/xx.js` (sigla ISO a due lettere), cambia la sigla nella prima riga (`….xx={`) e traduci.
+2. Aggiungi la lingua a `i18n/index.js` con `name` (nome della lingua nella lingua stessa) e `dir` (`ltr` o `rtl`); il controllo verifica che coincidano con quelli del file.
 3. Se l'alfabeto non è latino, controlla che i font in `--display` e `--body` (in `index.html`) lo coprano (oggi: Rubik per il cirillico, Commissioner per il greco, i Baloo per devanagari, bengalese e arabo); altrimenti aggiungi un font a Google Fonts nella riga `<link>` e nelle due pile, e la lingua alle regole `:lang(...)` che ingrossano i titoli.
 4. Aggiorna l'elenco delle lingue in `README.md`.
 5. Esegui `node tools/check-i18n.mjs` e la skill `verifica`.

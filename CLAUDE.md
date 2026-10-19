@@ -8,11 +8,11 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 |---|---|
 | `index.html` | Tutta l'app: markup, CSS e JavaScript in un file solo |
 | `config.js` | Tutte le soglie e i parametri numerici (`window.CONFIG`), commentati con il requisito |
-| `i18n.js` | Tutti i testi, 39 lingue (`window.I18N`) |
+| `i18n/` | Tutti i testi: un file per lingua (`i18n/it.js`…, 39 lingue, `window.I18N`) e l'elenco `i18n/index.js`; se ne carica solo quella in uso |
 | `engine.js` | Motore delle immagini di PDF e JPG, eseguito nei worker in parallelo (o nella pagina) |
 | `sw.js` | Cache offline (service worker) |
 | `manifest.webmanifest`, `icons/`, `favicon.ico` | Installazione come app |
-| `vendor/` | pdf-lib, JSZip, Mediabunny (video) e Tesseract (orientamento delle scansioni), copiati così come sono: non modificarli |
+| `vendor/` | pdf-lib, JSZip, Mediabunny (video) e Tesseract (orientamento delle scansioni), copiati così come sono: non modificarli. Si scaricano solo quando servono e restano sul dispositivo tra una versione e l'altra (R-APP-16) |
 | `tools/` | Strumenti di sviluppo (controlli, prova nel browser, icone) |
 | `.claude/` | Skill e agenti descritti sotto |
 | `docs/` | Requisiti, architettura e guida al lavoro con gli agenti |
@@ -23,7 +23,7 @@ Cosa deve fare l'app: `docs/REQUISITI.md` (voci con codice `R-AREA-nn`). Come è
 
 1. Requisito: `grep -n "R-SCN" docs/REQUISITI.md` (aree: PRI MOD CAR CMP JPG VID TUT SCN LST SAV UI AUD I18N APP REL DOC).
 2. Dove sta nel codice: tabella «Mappa del codice» in `docs/ARCHITETTURA.md`, poi `grep -n -- "---------- scansione" index.html` e leggi solo quella sezione.
-3. Testi: `grep -n "chiave:" i18n.js | head -13` (una riga per lingua).
+3. Testi: `grep -n "chiave:" i18n/*.js` (una riga per lingua).
 4. Non leggere `vendor/` né le parti SVG generate tra `<!-- mascot:… -->`.
 
 ## Smistamento: a chi tocca cosa
@@ -44,7 +44,7 @@ Se una richiesta tocca più righe, fai una cosa alla volta e chiudi sempre con `
 ## Regole che valgono sempre
 
 - **Niente build e niente dipendenze nel sito.** Non introdurre npm, bundler o CDN nell'app: le librerie stanno in `vendor/`. Le uniche dipendenze ammesse sono quelle di sviluppo in `tools/`.
-- **Ogni testo visibile passa da `i18n.js`**, in tutte le 39 lingue, con gli stessi segnaposto `{…}`. Mai stringhe scritte direttamente in `index.html` (fanno eccezione i testi italiani di riserva già presenti nel markup).
+- **Ogni testo visibile passa da `i18n/`**, in tutte le 39 lingue, con gli stessi segnaposto `{…}`. Mai stringhe scritte direttamente in `index.html` (fanno eccezione i testi italiani di riserva già presenti nel markup).
 - **I file dell'utente non lasciano il dispositivo.** Nessuna chiamata di rete con contenuti o nomi dei file. L'unica telemetria ammessa sono le statistiche anonime di R-PRI-05 (GoatCounter, senza cookie, disattivabili): non aggiungerne altre senza una voce nei requisiti.
 - **Gli originali non si toccano** se non dopo la conferma esplicita già prevista (pulsante «Sovrascrivi gli originali»).
 - **La mascotte ha una sola fonte**, `tools/mascot.mjs`. Non ritoccare a mano gli SVG dentro `index.html` o in `icons/`: si rigenerano.

@@ -28,7 +28,9 @@ jobs:
         # Solo i file dell'app: strumenti, documentazione e configurazione degli agenti restano fuori.
         run: |
           mkdir _site
-          cp -r index.html config.js i18n.js engine.js sw.js manifest.webmanifest favicon.ico icons vendor _site/
+          cp -r index.html config.js i18n engine.js sw.js manifest.webmanifest favicon.ico icons vendor _site/
+          # Impronte dei moduli (R-APP-16): il service worker riscarica solo quelli cambiati
+          node tools/moduli.mjs _site
           touch _site/.nojekyll
           # Nuova versione della cache offline a ogni pubblicazione
           sed -i -E "s/schiaccia-pdf-v[0-9]+/schiaccia-pdf-${GITHUB_SHA::7}/" _site/sw.js
