@@ -179,6 +179,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video--tutto) · [C
 - R-I18N-01 Lingua dal browser, modificabile da menu, ricordata. All'avvio si caricano solo i testi della lingua in uso (un file per lingua); le altre si scaricano quando si scelgono dal menu. Se la lingua scelta non è mai stata scaricata e manca la rete, resta quella attuale e un messaggio lo dice.
 - R-I18N-02 Le dodici lingue più parlate più l'italiano, e tutte le lingue europee: le ufficiali dell'Unione (bulgaro, ceco, croato, danese, estone, finlandese, greco, irlandese, lettone, lituano, maltese, olandese, polacco, rumeno, slovacco, sloveno, svedese, ungherese, oltre a quelle già presenti) e ucraino, norvegese, islandese, serbo (in cirillico), albanese, macedone, bosniaco e bielorusso; 39 in tutto. Inglese di riserva; traduzioni a senso. Il browser in norvegese «nb» o «nn» sceglie il norvegese. Ogni alfabeto ha un carattere che lo copre (anche il greco).
 - R-I18N-03 Arabo e urdu da destra a sinistra.
+- R-I18N-04 Dopo un aggiornamento non devono mai comparire i nomi interni dei testi al posto delle frasi: se la pagina nuova riceve i testi della versione prima (ancora in mano al service worker vecchio), li richiede appena arriva il service worker nuovo e li rimette a posto da sola, senza ricaricare.
 
 ## APP · Installazione e condivisione
 - R-APP-01 Installabile su Android e iPhone, con pulsante «Installa»; su iPhone mostra i passaggi.

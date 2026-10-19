@@ -787,7 +787,27 @@ function t(k,p){
   if(mode==="jpg"&&k!=="h1")str=str.replace(/PDF/g,"JPG").replace(/pdf/g,"jpg");
   if((mode==="video"||mode==="all")&&k!=="h1"&&k!=="vWord"&&k!=="aWord"&&!(mode==="all"&&/A$/.test(k))&&!(d[k+sx]||e[k+sx])){var w=t(mode==="all"?"aWord":"vWord");if(mode==="all")str=str.split(w+" PDF").join(w);if(/^PDF/.test(str))str=w.charAt(0).toUpperCase()+w.slice(1)+str.slice(3);str=str.replace(/PDF/g,w).replace(/pdf/g,w)}
   if(p)for(var x in p)str=str.split("{"+x+"}").join(p[x]);
+  if(str===k&&I[lang])textMiss=true;
   return str;
+}
+/* testi vecchi (R-I18N-04): subito dopo un aggiornamento la pagina nuova può ricevere dal service worker della versione
+   prima il file dei testi vecchio, senza le chiavi nuove. Allora, appena il service worker nuovo prende il comando
+   (o dopo 10 s), il file si richiede e i testi si rimettono a posto, senza ricaricare la pagina */
+var textMiss=false,textFix=false;
+function textCheck(){
+  if(!textMiss||textFix)return;textFix=true;
+  var sw=navigator.serviceWorker,done=false;
+  function again(){
+    if(done)return;done=true;textMiss=false;
+    var l=lang,old=I[l],r="?r="+Date.now();
+    delete I[l];
+    loadScript("i18n/"+l+".js"+r).then(function(){
+      if(!I[l])I[l]=old;
+      return l==="en"?null:loadScript("i18n/en.js"+r).catch(function(){});
+    },function(){I[l]=old}).then(function(){$("title").removeAttribute("data-lang");applyLang();if(tour.on)tourShow()});
+  }
+  if(sw&&sw.controller){sw.addEventListener("controllerchange",function(){setTimeout(again,300)});setTimeout(again,10000)}
+  else again();
 }
 /* sottotitoli dei livelli, con i numeri presi da config.js (R-CMP-01, R-DOC-03) */
 function lvlTexts(){
@@ -816,6 +836,7 @@ function applyLang(){
   if(typeof bgShowState==="function"&&$("bgChange"))bgShowState();
   if($("demoMeta")){$("demoMeta").textContent=fmt(19293798)+" → "+fmt(3250586);$("demoPct").textContent="−"+nf(83)+"%"}
   render();capRender();if(window.Compila)Compila.render();
+  setTimeout(textCheck,0);
 }
 
 function say(txt,bad){var m=act!=="squash"?$("capMsg"):msgEl;m.textContent=txt||"";m.className=(m===msgEl?"":"capMsg ")+(bad?"bad":"")}
