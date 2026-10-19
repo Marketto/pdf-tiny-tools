@@ -938,9 +938,11 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   });
   await page.click("#actBtn");await page.waitForTimeout(300);
   await page.setInputFiles("#galInput", { name: "modulo.png", mimeType: "image/png", buffer: Buffer.from(png) });
-  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector(".giroAsk"), null, { timeout: 120000 }).catch(() => {});
-  check(await page.locator(".giroAsk").isVisible(), `Giro: Cattura si accorge del modulo (${await page.locator(".giroAsk p").textContent().catch(() => "nessuna domanda")})`);
-  await page.click(".giroAsk .btn.ok");
+  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector(".fillCheck"), null, { timeout: 120000 }).catch(() => {});
+  check(await page.locator(".fillCheck").isVisible() && !(await page.locator(".fillCheck input").isChecked()), `Giro: Cattura si accorge del modulo, casella «Rendi compilabile» spenta (${await page.locator(".fillCheck small").textContent().catch(() => "nessuna casella")})`);
+  await page.click(".fillCheck .bx");
+  check(/Avanti/.test(await page.locator(".capGo").first().textContent().catch(() => "")), "Giro: accesa la casella, il salvataggio diventa «Avanti: rendi compilabile»");
+  await page.click(".capGo");
   await page.waitForTimeout(500);
   await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector(".fbox"), null, { timeout: 180000 }).catch(() => {});
   const n = await page.evaluate(() => window.__cpl ? window.__cpl.fields.length : 0);
@@ -950,8 +952,8 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.waitForTimeout(300);await page.click("#actBtn");await page.waitForTimeout(300);await page.click("#actBtn");
   await page.waitForSelector("#fill .fillTray");
   await page.setInputFiles("#fill input[type=file]", { name: "modulo.png", mimeType: "image/png", buffer: Buffer.from(png) });
-  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector(".giroBand") && document.querySelector(".capGo"), null, { timeout: 120000 }).catch(() => {});
-  check(await page.locator(".giroBand").isVisible() && /Avanti/.test(await page.locator(".capGo").first().textContent()), "Giro: da Compila una foto va in Cattura con la fascia e «Avanti: rendi compilabile»");
+  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector(".fillCheck") && document.querySelector(".capGo"), null, { timeout: 120000 }).catch(() => {});
+  check(await page.locator(".fillCheck input").isChecked() && /Avanti/.test(await page.locator(".capGo").first().textContent()), "Giro: da Compila una foto va in Cattura con «Rendi compilabile» già accesa e «Avanti: rendi compilabile»");
   check(errors.length === 0, `Giro: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }

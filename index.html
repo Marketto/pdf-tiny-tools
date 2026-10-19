@@ -382,16 +382,9 @@ body.act-fill #capMsg{display:block}
 @keyframes lensGo{0%{transform:translate(-10%,-5%)}15%{transform:translate(110%,10%)}30%{transform:translate(0,45%)}45%{transform:translate(105%,80%)}60%{transform:translate(5%,120%)}75%{transform:translate(100%,150%)}90%{transform:translate(30%,60%)}100%{transform:translate(-10%,-5%)}}
 @keyframes bobY{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
 /* giro unico Cattura → Compila (R-CPL-12/13) */
-.giroBand{display:flex;gap:10px;align-items:center;background:#ffd23f;border:var(--line);border-radius:16px;padding:10px 12px;box-shadow:3px 3px 0 var(--ink)}
-.giroBand .two{flex:1;display:flex;flex-direction:column;line-height:1.2}
-.giroBand b{font-family:var(--display);font-weight:400;font-size:19px}
-.giroBand small{font-weight:700;font-size:14px}
-.giroBand .btn{margin:0;flex:none}
-.giroAsk{background:#ffd23f;border:var(--line);border-radius:16px;padding:12px;margin-top:14px}
-.giroAsk p{margin:0 0 10px;font-weight:700;line-height:1.25}
-.giroAsk .acts{margin:0}
 .capGo{display:flex;align-items:center;justify-content:center;gap:8px}
-.giroOnly{display:block;margin:12px auto 0}
+.fillCheck{margin-top:14px}.fillCheck+.btns{margin-top:18px}.fillCheck .two{display:flex;flex-direction:column;line-height:1.2}
+.fillCheck small{font-weight:600;font-size:14px;color:var(--muted)}
 /* giro di benvenuto e novità (R-BEN): velo scuro con un buco sull'elemento di cui si parla */
 .tour{position:fixed;inset:0;z-index:30}
 .tourHole{position:fixed;border:4px solid #ffd23f;border-radius:18px;box-shadow:0 0 0 4000px rgba(27,26,46,.62);transition:all .35s cubic-bezier(.3,.7,.3,1);pointer-events:none}
@@ -402,12 +395,13 @@ body.act-fill #capMsg{display:block}
 .tourBox h2{margin:8px 0 0;font:400 28px/1.05 var(--display)}
 .tourBox p{margin:0;font-size:17px;font-weight:600;line-height:1.3}
 .tourTag{align-self:flex-start;font-size:15px;font-weight:800;background:#ffd23f;border:3px solid var(--ink);border-radius:999px;padding:0 12px;transform:rotate(-3deg);margin-top:6px}
-.tourBar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px}
-.tourDots{display:flex;gap:6px}
+/* «Salta» a sinistra, pallini al centro, «Avanti» a destra */
+.tourBar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;margin-top:6px}
+.tourDots{display:flex;gap:6px;justify-content:center}
 .tourDots span{width:10px;height:10px;border-radius:999px;background:var(--paper);border:2px solid var(--ink)}
 .tourDots span.on{width:22px;background:var(--acc-s)}
-.tourBar .acts2{display:flex;gap:8px;align-items:center;margin-inline-start:auto}
-.tourBar .btn{margin:0;font-size:18px;padding:6px 20px;width:auto}
+.tourBar .btn{margin:0;font-size:18px;padding:6px 16px;width:auto}
+.tourBar .btn.alt{font-size:17px}
 @media (prefers-reduced-motion:reduce){.tourHole,.tourBox{transition:none}.lensGlass,.lensMasc,.lensPage .lm{animation:none}}
 .loader .pg{transform-box:fill-box;transform-origin:center;animation:straighten 2.6s cubic-bezier(.5,0,.3,1) infinite}
 .loader .beam,.loader .beamLine{animation:beam 1.3s ease-in-out infinite alternate}
@@ -693,7 +687,7 @@ details p{margin:8px 0 0;max-width:65ch}
     <span class="tourTag" id="tourTag" hidden></span>
     <h2 id="tourT"></h2>
     <p id="tourP"></p>
-    <div class="tourBar"><div class="tourDots" id="tourDots" role="img"></div><div class="acts2"><button type="button" class="linkish" id="tourSkip" data-i18n="tourSkip">Salta</button><button type="button" class="btn go" id="tourNext"></button></div></div>
+    <div class="tourBar"><button type="button" class="btn alt" id="tourSkip" data-i18n="tourSkip">Salta</button><div class="tourDots" id="tourDots" role="img"></div><button type="button" class="btn go" id="tourNext"></button></div>
   </div>
 </div>
 
@@ -3608,12 +3602,10 @@ function capRender(){
   var box=$("capture");if(!box)return;
   box.textContent="";
   if(act!=="capture")return;
-  var n=cap.pages.length,giro=cap.giro&&mode==="pdf";
-  /* giro unico (R-CPL-12): fascia in alto, «Togli» lo spegne */
-  if(giro){
-    var gb=el("div","giroBand"),gt=el("span","two");gt.appendChild(el("b",null,t("giroBand")));gt.appendChild(el("small",null,t("giroBandSub")));
-    gb.appendChild(gt);var gx=ibtn("alt sm","",t("giroOff"),function(){cap.giro=false;capRender();formScan()});gb.appendChild(gx);box.appendChild(gb);
-  }
+  var n=cap.pages.length;
+  /* casella «Rendi compilabile» (R-CPL-12/13): compare a pagine fatte, se sono un modulo o se si arriva da Compila;
+     accesa arrivando da Compila. Accesa, il salvataggio diventa «Avanti: rendi compilabile» */
+  var fillBox=mode==="pdf"&&n>0&&(cap.giro||formSeen()>0),giro=fillBox&&cap.giro;
   formScan();
   if(capWide.matches){
     /* proposta B: griglia di schede e barra fissa */
@@ -3653,8 +3645,7 @@ function capRender(){
     pn.appendChild(grid);
     if(n)pn.appendChild(el("p","lab",capInfo()));
     if(mode==="pdf"&&!giro)pn.appendChild(ocrBox());
-    if(giro&&n){var so=el("button","linkish giroOnly",t("giroOnlyPdf"));so.type="button";so.addEventListener("click",capSave);pn.appendChild(so)}
-    else if(!giro&&mode==="pdf"&&n&&formSeen())pn.appendChild(giroAsk());
+    if(fillBox)pn.appendChild(fillCheck());
     box.appendChild(pn);
     var dock=el("div","dock");
     dock.appendChild(ibtn("go",ICON.cam,t("shootShort"),function(){shoot()}));
@@ -3715,26 +3706,20 @@ function capRender(){
     }
   }
   box.appendChild(p2);
-  var p3=panel(t(giro?"giroS3":"capS3"));
-  var seenN=0;cap.pages.forEach(function(p){seenN+=p.formN||0});
-  if(n)p3.appendChild(el("p","lab",giro&&seenN?capInfo()+" · "+t("giroSeen",{n:nf(seenN)}):capInfo()));
-  /* giro acceso: «Avanti: rendi compilabile» e sotto «Salva solo il PDF» (R-CPL-12); testo ricercabile sempre acceso in Compila */
-  if(giro){
-    var gbt=el("div","btns"),gn=ibtn("ok capGo",ICON.next,t("giroNext"),capToFill);gn.disabled=!n;gbt.appendChild(gn);p3.appendChild(gbt);
-    if(n){var so2=el("button","linkish giroOnly",t("giroOnlyPdf"));so2.type="button";so2.addEventListener("click",capSave);p3.appendChild(so2)}
-  }else{
-    if(mode==="pdf")p3.appendChild(ocrBox());
-    /* Cattura si accorge del modulo (R-CPL-13): domanda al posto del pulsante */
-    if(mode==="pdf"&&n&&formSeen())p3.appendChild(giroAsk());
-    else{var bt=el("div","btns"),sv2=ibtn("ok","",saveLabel(),capSave);sv2.disabled=!n;bt.appendChild(sv2);p3.appendChild(bt)}
-  }
+  var p3=panel(t("capS3"));
+  if(n)p3.appendChild(el("p","lab",capInfo()));
+  /* con «Rendi compilabile» accesa il testo ricercabile lo mette Compila, sempre: la casella non serve */
+  if(mode==="pdf"&&!giro)p3.appendChild(ocrBox());
+  if(fillBox)p3.appendChild(fillCheck());
+  var bt=el("div","btns"),sv2=giro?ibtn("ok capGo",ICON.next,t("giroNext"),capToFill):ibtn("ok","",saveLabel(),capSave);sv2.disabled=!n;bt.appendChild(sv2);p3.appendChild(bt);
   box.appendChild(p3);
 }
-function giroAsk(){
-  var g=el("div","giroAsk");g.appendChild(el("p",null,t("giroAsk",{n:nf(formSeen())})));
-  var a=el("div","acts");a.appendChild(ibtn("ok capGo","",t("giroMake"),capToFill));a.appendChild(ibtn("alt","",t("giroPlain"),capSave));g.appendChild(a);
-  setTimeout(function(){fitBtns(a)},0);
-  return g;
+function fillCheck(){
+  var l=el("label","check fillCheck"),c=document.createElement("input");c.type="checkbox";c.checked=!!cap.giro;
+  c.addEventListener("change",function(){cap.giro=c.checked;capRender()});
+  var tx=el("span","two");tx.appendChild(el("span",null,t("giroMake")));
+  var seen=formSeen();if(seen)tx.appendChild(el("small",null,t("giroAsk",{n:nf(seen)})));
+  l.appendChild(c);l.appendChild(checkBx());l.appendChild(tx);return l;
 }
 if(capWide.addEventListener)capWide.addEventListener("change",capRender);
 /* salvataggio: PDF unico; JPG uno, oppure cartella o ZIP */
@@ -4666,7 +4651,7 @@ function tourShow(){
   $("tourT").textContent=tr(st.t);$("tourP").textContent=tr(st.p);
   var tag=$("tourTag");tag.hidden=!st.news;if(st.news)tag.textContent=tr("newsTag").split("{v}").join(st.news.v);
   $("tourNext").textContent=st.news?t("newsTry"):last?t("tourGo"):t("tourNext");
-  var dots=$("tourDots");dots.textContent="";dots.hidden=tour.steps.length<2;
+  var dots=$("tourDots");dots.textContent="";dots.style.visibility=tour.steps.length<2?"hidden":"";
   dots.setAttribute("aria-label",t("tourStep",{i:nf(tour.i+1),n:nf(tour.steps.length)}));
   tour.steps.forEach(function(x,j){dots.appendChild(el("span",j===tour.i?"on":null))});
   /* il verbo mostra la faccia di cui si parla, senza cambiare azione */
