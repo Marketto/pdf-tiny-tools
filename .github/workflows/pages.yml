@@ -28,7 +28,7 @@ jobs:
         # Solo i file dell'app: strumenti, documentazione e configurazione degli agenti restano fuori.
         run: |
           mkdir _site
-          cp -r index.html config.js i18n engine.js sw.js manifest.webmanifest favicon.ico icons vendor _site/
+          cp -r index.html config.js i18n engine.js compila.js compila sw.js manifest.webmanifest favicon.ico icons vendor _site/
           # Impronte dei moduli (R-APP-16): il service worker riscarica solo quelli cambiati
           node tools/moduli.mjs _site
           touch _site/.nojekyll

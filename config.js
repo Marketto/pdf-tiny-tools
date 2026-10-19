@@ -62,6 +62,9 @@ window.CONFIG = {
        - bordi della maschera (R-SCN-09/28): punteggio × segBias (× segGoodBias se ogni lato ha almeno segGood di contorno); vincono anche
          se contengono quelli dei lati dritti e ogni loro lato ha almeno segMin di contorno;
        - pagina finita: lo sfondo scuro (sotto cleanDark, senza colore) attaccato ai bordi entro cleanBand diventa bianco */
+    /* immagini che sono già una scansione (R-SCN-33): se almeno share del contorno (fascia del 2%) è carta chiara (tutti i canali
+       almeno white, differenza tra i canali al massimo sat), la pagina è l'immagine intera */
+    flat: { share: 0.97, white: 215, sat: 30 },
     edges: { size: 480, minGrad: 3, lines: 28, outside: 0.15, minArea: 0.08,
       miss: 1, unseen: 0.3, cont: 2, contReach: 0.1, contPaper: 60, contInk: 50, growSat: 60,
       keep: 5, sideRange: 0.3, sideTilt: 12, paperSat: 35, cutInk: 0.4,
@@ -81,6 +84,15 @@ window.CONFIG = {
        né una pagina le cui linee tremano (scarto mediano dalla loro parabola) più di maxWobble px: è scritta a mano */
     unfold: { maxColor: 0.15, maxWobble: 2.2, passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
   },
+  /* Compila (R-CPL): minWords = parole del testo vero del PDF sotto cui si legge la pagina con Tesseract; maxPages = pagine lette al massimo;
+     listShow = voci di una lista mostrate prima di «… altre N»; fontMin/fontMax = grandezza del testo nei campi (punti);
+     money = simbolo degli importi; formMin = spazi vuoti (righe e caselle) che Cattura deve vedere in una pagina per proporre
+     «Rendi compilabile» (R-CPL-13); regions = paesi dell'elenco pronto «Paesi», nomi dalla lingua dell'app */
+  fill: { minWords: 8, maxPages: 12, listShow: 8, fontMin: 9, fontMax: 12, money: " €", formMin: 6,
+    regions: "ad ae af al am ao ar at au az ba bd be bf bg bh bi bj bo br bt bw by bz ca cd cf cg ch ci cl cm cn co cr cu cv cy cz de dj dk do dz ec ee eg er es et fi fj fr ga gb ge gh gm gn gq gr gt gw gy hn hr ht hu id ie il in iq ir is it jm jo jp ke kg kh km kp kr kw kz la lb li lk lr ls lt lu lv ly ma mc md me mg mk ml mm mn mr mt mu mv mw mx my mz na ne ng ni nl no np nz om pa pe pg ph pk pl pt py qa ro rs ru rw sa sb sc sd se sg si sk sl sm sn so sr ss st sv sy sz td tg th tj tl tm tn to tr tt tw tz ua ug us uy uz va ve vn vu ws ye za zm zw" },
+  /* novità per versione (R-BEN-03): una voce per funzione nuova, con i testi (chiavi <key>T e <key>P) e dove porta «Provalo!».
+     Le versioni con sole correzioni non hanno voci: per loro niente fumetti */
+  news: [ { v: "4.0.0", key: "newsFill", go: "fill" } ],
   /* statistiche d'uso anonime (R-PRI-05): codice del sito GoatCounter, scritto qui dal flusso di pubblicazione
      dalla variabile GC_CODE del repository; vuoto = nessun conteggio. host = solo su questo sito, mai in locale */
   stats: { code: "", host: "marketto.github.io" },

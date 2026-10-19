@@ -1,0 +1,4 @@
+pdf.js nel browser: Compila disegna le pagine dei PDF da rendere compilabili e ne legge il testo (R-CPL-03, R-CPL-15).
+Copiati così come sono dal pacchetto npm pdfjs-dist 4.10.38 (Apache-2.0), versione «legacy» per i browser meno recenti:
+- pdf.min.mjs, pdf.worker.min.mjs — licenza in LICENSE.txt
+Si scaricano solo la prima volta che si apre un PDF in Compila; poi restano tra i moduli (sw.js, R-APP-16).

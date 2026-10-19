@@ -24,6 +24,8 @@ const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePa
 // la domanda sul lavoro in secondo piano (R-APP-06) è già risposta «no» in tutte le prove, tranne quella che la prova
 const newContext = browser.newContext.bind(browser);
 browser.newContext = async (o = {}) => { const c = await newContext(o); if (!o.askBg) await c.addInitScript(() => { try { if (localStorage.getItem("bg") === null) localStorage.setItem("bg", "0"); } catch {} });
+  // il giro di benvenuto (R-BEN-01) è già visto in tutte le prove, tranne quella che lo prova
+  if (!o.tour) await c.addInitScript(() => { try { if (localStorage.getItem("tour") === null) localStorage.setItem("tour", "1"); } catch {} });
   // pdf-lib non si carica più all'avvio (R-APP-04): le prove che costruiscono PDF lo chiedono così
   await c.addInitScript(() => { window.__pdflib = () => window.PDFLib ? Promise.resolve(window.PDFLib) : new Promise((res, rej) => { const s = document.createElement("script"); s.src = "vendor/pdf-lib.min.js"; s.onload = () => res(window.PDFLib); s.onerror = rej; document.head.appendChild(s); }); });
   return c; };
@@ -636,9 +638,11 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.waitForSelector("#capture .thumb", { timeout: 30000 });
   await page.click("#actBtn");
   await page.waitForSelector("#modal:not([hidden])");
-  check(true, "Cattura: tornare a Schiaccia con pagine non salvate chiede conferma");
+  check(true, "Cattura: passare a Compila con pagine non salvate chiede conferma");
   await page.click("#modalBtns button >> nth=0");
-  check(await page.evaluate(() => !document.body.classList.contains("act-cap") && getComputedStyle(document.getElementById("go")).display !== "none"), "Cattura: confermando si torna a Schiaccia");
+  check(await page.evaluate(() => document.body.classList.contains("act-fill")), "Cattura: confermando il verbo passa a Compila (Schiaccia → Cattura → Compila)");
+  await page.click("#actBtn");await page.waitForTimeout(300);
+  check(await page.evaluate(() => !document.body.classList.contains("act-cap") && !document.body.classList.contains("act-fill") && getComputedStyle(document.getElementById("go")).display !== "none"), "Cattura: da Compila il verbo torna a Schiaccia");
   for (let k = 0; k < 4 && !(await page.evaluate(() => document.body.classList.contains("mode-video"))); k++) { await page.click("#modeBtn"); await page.waitForTimeout(150); }
   await page.click("#actBtn", { force: true });
   check(await page.evaluate(() => document.body.classList.contains("mode-video") && !document.body.classList.contains("act-cap")), "Cattura: in modalità video il verbo non cambia");
@@ -829,6 +833,126 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   const langs = reqs.filter((u) => /lang\/\w+\.traineddata/.test(u)).map((u) => u.split("/").pop());
   check(langs.length === 1 && /^ita\./.test(langs[0]), `Caricamento pigro: al salvataggio scaricata solo la lingua che serve (${langs.join(", ")})`);
   check(errors.length === 0, `Orientamento e bordi: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
+// --- benvenuto (R-BEN): giro del primo avvio una volta sola, novità con ?news=1, «Provalo!» porta a Compila
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 }, askBg: true, tour: true });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url);
+  await page.waitForSelector("#tour:not([hidden])", { timeout: 5000 }).catch(() => {});
+  check(await page.locator("#tour").isVisible(), "Benvenuto: al primo avvio compare il giro con la mascotte");
+  const titles = [];
+  for (let i = 0; i < 4; i++) { titles.push(await page.locator("#tourT").textContent()); if (i < 3) { await page.click("#tourNext"); await page.waitForTimeout(150); } }
+  const hole = await page.evaluate(() => { const h = document.getElementById("tourHole").getBoundingClientRect(), v = document.getElementById("actBtn").getBoundingClientRect(); return !document.getElementById("tourHole").classList.contains("none") && h.left <= v.left && h.right >= v.right - 2; });
+  check(titles.length === 4 && new Set(titles).size === 4 && hole, `Benvenuto: quattro fumetti, l'ultimo illumina il verbo del titolo (${titles.join(" / ")})`);
+  check(/Iniziamo/.test(await page.locator("#tourNext").textContent()), "Benvenuto: l'ultimo fumetto ha «Iniziamo!»");
+  await page.click("#tourNext");
+  check(await page.locator("#tour").isHidden(), "Benvenuto: «Iniziamo!» chiude il giro");
+  await page.reload();await page.waitForTimeout(1200);
+  check(await page.locator("#tour").isHidden(), "Benvenuto: alla seconda apertura il giro non torna");
+  await page.click("#tourAgain");await page.waitForTimeout(500);
+  check(await page.locator("#tour").isVisible(), "Benvenuto: «Rivedi il giro» lo fa ripartire");
+  await page.click("#tourSkip");
+  check(await page.locator("#tour").isHidden(), "Benvenuto: «Salta» lo chiude");
+  await page.goto(url + "?news=1");await page.waitForSelector("#tour:not([hidden])", { timeout: 5000 }).catch(() => {});
+  check(/Novità/.test(await page.locator("#tourTag").textContent()) && /Provalo/.test(await page.locator("#tourNext").textContent()), "Novità: fumetto con la versione e «Provalo!»");
+  await page.click("#tourNext");await page.waitForTimeout(900);
+  check(await page.evaluate(() => document.body.classList.contains("act-fill")), "Novità: «Provalo!» porta a Compila");
+  check(errors.length === 0, `Benvenuto: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
+// --- Compila (R-CPL): terza faccia del verbo, PDF con righe, caselle e caselle in fila → campi, prova, due salvataggi
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 } });
+  const page = await ctx.newPage();
+  const errors = [], reqs = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("request", (r) => reqs.push(r.url()));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.addInitScript(() => { delete window.showSaveFilePicker; delete window.showDirectoryPicker; });
+  await page.goto(url);await page.waitForTimeout(600);
+  check(!reqs.some((u) => /compila|pdfjs/.test(u)), "Compila: niente codice di Compila né pdf.js all'avvio");
+  await page.click("#actBtn");await page.waitForTimeout(300);await page.click("#actBtn");
+  await page.waitForSelector("#fill .fillTray", { timeout: 15000 });
+  const t1 = await page.evaluate(() => ({ fill: document.body.classList.contains("act-fill"), lock: document.getElementById("modeBtn").getAria ? 0 : document.getElementById("modeBtn").getAttribute("aria-disabled"), sq: !!document.querySelector("section.squash:not([style*=none])") && getComputedStyle(document.querySelector("section.squash")).display }));
+  check(t1.fill && t1.lock === "true" && t1.sq === "none", "Compila: dal verbo (Schiaccia → Cattura → Compila), rullo della modalità fermo su PDF, schermata propria");
+  const pdfBytes = await page.evaluate(async () => {
+    const P = await __pdflib(), d = await P.PDFDocument.create(), p = d.addPage([595, 842]), f = await d.embedFont(P.StandardFonts.Helvetica);
+    const T = (s, x, y) => p.drawText(s, { x, y, size: 11, font: f }), L = (a, b, y) => p.drawLine({ start: { x: a, y }, end: { x: b, y }, thickness: .8 }), B = (x, y, s = 10) => p.drawRectangle({ x, y, width: s, height: s, borderWidth: 1, borderColor: P.rgb(0, 0, 0) });
+    T("Cognome", 60, 720); L(115, 300, 718); T("Nome", 320, 720); L(355, 535, 718);
+    T("Data di nascita", 60, 690); L(145, 260, 688); T("Telefono", 280, 690); L(330, 535, 688);
+    T("Codice fiscale", 60, 630); for (let i = 0; i < 16; i++) B(150 + i * 14, 626, 14);
+    B(60, 560); T("Accetto le condizioni del servizio", 76, 562);
+    T("Firma", 360, 420); L(400, 535, 418);
+    return [...await d.save()];
+  });
+  await page.setInputFiles("#fill input[type=file]", { name: "iscrizione.pdf", mimeType: "application/pdf", buffer: Buffer.from(pdfBytes) });
+  await page.waitForTimeout(500);
+  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector(".fbox"), null, { timeout: 120000 });
+  const F = await page.evaluate(() => window.__cpl.fields.map((f) => f.type + ":" + f.name + (f.comb ? "×" + f.comb : "")));
+  const want = ["text:Cognome", "text:Nome", "date:Data di nascita", "number:Telefono", "text:Codice fiscale×16", "check:Accetto le condizioni del servizio", "sign:Firma"];
+  check(want.every((w) => F.includes(w)) && F.length === want.length, `Compila: campi trovati con nome e tipo (${F.join(", ")})`);
+  check(reqs.some((u) => /vendor\/pdfjs\/pdf\.min\.mjs/.test(u)) && reqs.some((u) => /compila\/lingue\/it\.js/.test(u)), "Compila: pdf.js e parole della lingua scaricati solo ora");
+  await page.locator(".fbox").nth(F.indexOf("number:Telefono")).click();
+  await page.waitForSelector(".fsheet");
+  await page.locator(".ftypes button").nth(3).click();
+  check(await page.locator(".flist").isVisible() && await page.locator(".fready .btn").count() >= 3, "Compila: «Lista» apre voci ed elenchi pronti");
+  await page.locator(".fsheet .acts .btn.danger").click();
+  check(await page.evaluate(() => window.__cpl.fields.length) === want.length - 1, "Compila: «Elimina campo» toglie il campo");
+  await page.click(".fillBar .btn:nth-child(2)");await page.waitForSelector(".ftry");
+  check(await page.locator(".ftry input[type=date]").count() === 1 && await page.locator(".ftry input[type=checkbox]").count() === 1, "Prova: calendario sulla data e spunta sulla casella");
+  await page.locator(".ftry .ftin").first().fill("Giulia");
+  await page.locator(".ftry input[type=date]").fill("1990-03-14");
+  await page.click("#fill .acts .btn.ok");await page.waitForSelector(".fbig");
+  const saves = [];
+  for (const k of [0, 1]) { const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 120000 }), page.locator(".fbig").nth(k).click()]); const { readFile: rf } = await import("node:fs/promises"); saves.push({ name: dl.suggestedFilename(), b: [...await rf(await dl.path())] }); }
+  const chk = await page.evaluate(async (S) => {
+    const P = await __pdflib(), out = [];
+    for (const s of S) { const d = await P.PDFDocument.load(new Uint8Array(s.b)), fo = d.getForm(); out.push({ name: s.name, n: fo.getFields().length, cog: fo.getTextField("Cognome").getText() || "", data: fo.getTextField("Data di nascita").getText() || "", cf: fo.getTextField("Codice fiscale").getMaxLength(), js: !!fo.getTextField("Data di nascita").acroField.dict.get(P.PDFName.of("AA")) }); }
+    return out;
+  }, saves);
+  check(chk[0].name === "iscrizione-modello.pdf" && chk[0].n === want.length - 1 && !chk[0].cog && chk[0].cf === 16 && chk[0].js, `Salva modello: PDF compilabile vuoto, ${chk[0].n} campi, codice fiscale da 16, data con formato (${chk[0].name})`);
+  check(chk[1].name === "iscrizione-compilato.pdf" && chk[1].cog === "Giulia" && chk[1].data === "14/03/1990", `Salva prova compilata: file a parte con i dati (${chk[1].name}: ${chk[1].cog}, ${chk[1].data})`);
+  check(errors.length === 0, `Compila: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
+// --- giro unico (R-CPL-12/13): Cattura si accorge del modulo; con il giro la fascia e «Avanti: rendi compilabile»
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url);await page.waitForTimeout(600);
+  /* foto finta di un modulo: foglio bianco su fondo scuro, etichette e righe */
+  const png = await page.evaluate(async () => {
+    const c = document.createElement("canvas"); c.width = 1400; c.height = 1900; const g = c.getContext("2d");
+    g.fillStyle = "#3a3a3a"; g.fillRect(0, 0, c.width, c.height); g.fillStyle = "#fff"; g.fillRect(100, 100, 1200, 1700);
+    g.fillStyle = "#000"; g.font = "28px Arial"; g.strokeStyle = "#000"; g.lineWidth = 2;
+    ["Cognome", "Nome", "Indirizzo", "Telefono", "Data", "Firma"].forEach((s, i) => { const y = 300 + i * 150; g.fillText(s, 180, y); g.beginPath(); g.moveTo(400, y + 4); g.lineTo(1200, y + 4); g.stroke(); });
+    return [...new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/png"))).arrayBuffer())];
+  });
+  await page.click("#actBtn");await page.waitForTimeout(300);
+  await page.setInputFiles("#galInput", { name: "modulo.png", mimeType: "image/png", buffer: Buffer.from(png) });
+  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector(".giroAsk"), null, { timeout: 120000 }).catch(() => {});
+  check(await page.locator(".giroAsk").isVisible(), `Giro: Cattura si accorge del modulo (${await page.locator(".giroAsk p").textContent().catch(() => "nessuna domanda")})`);
+  await page.click(".giroAsk .btn.ok");
+  await page.waitForTimeout(500);
+  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector(".fbox"), null, { timeout: 180000 }).catch(() => {});
+  const n = await page.evaluate(() => window.__cpl ? window.__cpl.fields.length : 0);
+  check(await page.evaluate(() => document.body.classList.contains("act-fill")) && n >= 5, `Giro: «Rendi compilabile» porta le pagine in Compila (${n} campi)`);
+  /* da Compila: «Scegli PDF o foto» con una foto apre Cattura con la fascia del giro e «Avanti» */
+  await page.click("#actBtn");if (await page.locator("#modal").isVisible()) await page.click("#modalBtns .danger");
+  await page.waitForTimeout(300);await page.click("#actBtn");await page.waitForTimeout(300);await page.click("#actBtn");
+  await page.waitForSelector("#fill .fillTray");
+  await page.setInputFiles("#fill input[type=file]", { name: "modulo.png", mimeType: "image/png", buffer: Buffer.from(png) });
+  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector(".giroBand") && document.querySelector(".capGo"), null, { timeout: 120000 }).catch(() => {});
+  check(await page.locator(".giroBand").isVisible() && /Avanti/.test(await page.locator(".capGo").first().textContent()), "Giro: da Compila una foto va in Cattura con la fascia e «Avanti: rendi compilabile»");
+  check(errors.length === 0, `Giro: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
 await browser.close(); server.close();

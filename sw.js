@@ -1,7 +1,7 @@
 // Cache offline. Il nome qui sotto viene cambiato a ogni pubblicazione da .github/workflows/pages.yml:
 // non modificarlo a mano.
 const CACHE="schiaccia-pdf-v3";
-// Moduli scaricati quando servono (librerie in vendor/, testi delle lingue in i18n/, font): questa cache
+// Moduli scaricati quando servono (librerie in vendor/, testi delle lingue in i18n/, Compila e i suoi dati, font): questa cache
 // non cambia nome e sopravvive agli aggiornamenti (R-APP-16). Ogni modulo è salvato con la sua impronta,
 // presa da moduli.json (generato da tools/moduli.mjs alla pubblicazione): se una versione nuova cambia
 // un modulo, quello si riscarica la prima volta che serve; gli altri restano.
@@ -40,7 +40,7 @@ async function modMap(){
   return MAP;
 }
 function rel(u){return decodeURIComponent(u.pathname.slice(BASE.pathname.length))}
-function isMod(p){return /^vendor\//.test(p)||/^i18n\/[a-z]{2}\.js$/.test(p)}
+function isMod(p){return /^vendor\//.test(p)||/^i18n\/[a-z]{2}\.js$/.test(p)||p==="compila.js"||/^compila\//.test(p)}
 
 // Modulo: dalla cache se c'è con l'impronta giusta; altrimenti dalla rete, e la copia vecchia dello stesso
 // file si toglie. Senza rete, meglio la copia vecchia che niente.

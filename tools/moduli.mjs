@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Scrive <cartella>/moduli.json: per ogni modulo scaricato quando serve (vendor/, i18n/<sigla>.js) l'impronta
+// Scrive <cartella>/moduli.json: per ogni modulo scaricato quando serve (vendor/, i18n/<sigla>.js, compila.js e compila/) l'impronta
 // del contenuto. Il service worker la usa per tenere i moduli tra una versione e l'altra e riscaricare
 // solo quelli cambiati (R-APP-16). Lo esegue la pubblicazione (pages.yml) sulla cartella del sito.
 // Uso: node tools/moduli.mjs _site
@@ -17,6 +17,8 @@ function walk(dir) {
   }
 }
 walk(join(site, "vendor"));
+walk(join(site, "compila"));
+out["compila.js"] = createHash("sha256").update(readFileSync(join(site, "compila.js"))).digest("hex").slice(0, 12);
 for (const f of readdirSync(join(site, "i18n"))) if (/^[a-z]{2}\.js$/.test(f)) out["i18n/" + f] = createHash("sha256").update(readFileSync(join(site, "i18n", f))).digest("hex").slice(0, 12);
 writeFileSync(join(site, "moduli.json"), JSON.stringify(out, null, 0));
 console.log(`moduli.json: ${Object.keys(out).length} moduli`);
