@@ -37,6 +37,24 @@ const camera = () =>
 const flash = () =>
   `<g class="m-flash"><path transform="translate(432 104) scale(1.1)" d="M0 -30l9 20l22 -6l-14 18l16 16l-22 -2l-4 22l-9 -20l-20 10l8 -21l-20 -12l23 -2z" fill="#fff36b" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/></g>`;
 
+// Accessori di Compila (R-UI-14, proposta C): occhialini a mezzaluna e penna infilata di lato (dentro la testa, così la
+// seguono), timbro davanti ai fogli e bollino con la spunta al posto della scintilla. Li mostra la classe act-fill su <body>.
+const halfGlasses = () =>
+  `<g class="m-fglasses"><g stroke="${INK}" stroke-width="8" stroke-linecap="round"><path d="M164 236h68q-4 30 -34 30q-30 0 -34 -30z" fill="#fff" fill-opacity=".3"/>` +
+  `<path d="M280 236h68q-4 30 -34 30q-30 0 -34 -30z" fill="#fff" fill-opacity=".3"/><path d="M232 238q24 -10 48 0" fill="none"/></g></g>`;
+const pen = () =>
+  `<g class="m-pen"><g transform="translate(118 150) rotate(-24) scale(.85)" stroke="${INK}" stroke-width="8" stroke-linejoin="round">` +
+  `<rect x="-14" y="-80" width="28" height="120" rx="8" fill="#9ad7ff"/><rect x="-14" y="-80" width="28" height="26" rx="8" fill="#7b5cff"/>` +
+  `<path d="M-14 40h28l-14 34z" fill="#fff6dc"/><path d="M-5 62l5 12l5-12z" fill="${INK}" stroke-width="4"/><path d="M14 -64v44" stroke-width="7" fill="none"/></g></g>`;
+const stamp = () =>
+  `<g class="m-stamp"><g transform="translate(256 376)" stroke="${INK}" stroke-width="10" stroke-linejoin="round">` +
+  `<circle cx="0" cy="-58" r="22" fill="#ff7fa3"/><rect x="-11" y="-42" width="22" height="30" fill="#cdb8ff"/>` +
+  `<rect x="-62" y="-14" width="124" height="40" rx="12" fill="#e3d6ff"/><rect x="-54" y="26" width="108" height="14" rx="4" fill="#ef5b8b"/>` +
+  `<circle cx="-9" cy="-64" r="6" fill="#fff" stroke="none"/></g></g>`;
+const checkBadge = () =>
+  `<g class="m-check"><g transform="translate(432 104)"><circle r="28" fill="#3ddc97" stroke="${INK}" stroke-width="6"/>` +
+  `<path d="M-12 1l8 9l16 -18" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g></g>`;
+
 // Oggetto sotto la pressa, uno per modalità (R-UI-09): foglio (PDF), Polaroid (JPG), ciak (video). La pagina mostra
 // quello giusto con le classi s-pdf / s-jpg / s-vid; nelle icone c'è solo il foglio.
 const UNDER = {
@@ -73,7 +91,7 @@ const stars = () => `<g class="m-stars" display="none">${star(92, 120, .6, HOLO[
 
 // icon: base più stretta e niente scintilla, per stare nel ritaglio tondo di Android.
 // hand: manina che si allunga verso l'archivio (solo nel loader).
-// gear: accessori di Cattura (solo nella testata della pagina).
+// gear: accessori di Cattura e di Compila (solo nella testata della pagina).
 // holo: prefisso degli id per l'aspetto olografico di TUTTO (pagina e loader); vuoto = niente.
 export function mascot({ icon = false, hand = false, gear = false, holo = "" } = {}) {
   const [bx, bw] = icon ? [116, 280] : [84, 344];
@@ -85,8 +103,8 @@ export function mascot({ icon = false, hand = false, gear = false, holo = "" } =
     `<g class="p-sheets">${under(icon)}</g>` +
     `<rect x="${bx}" y="392" width="${bw}" height="50" rx="25" fill="#a48cf0"/></g>` +
     `${holo ? holoDefs(holo) : ""}<g class="p-head">${holo ? horn() : ""}<rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="${INK}" stroke-width="10"/>` +
-    `${holo ? gas(holo) : ""}${face(!icon)}${gear ? glasses() : ""}</g>` +
-    `${gear ? camera() : ""}${paw}${spark}${gear ? flash() : ""}${holo && gear ? stars() : ""}`;
+    `${holo ? gas(holo) : ""}${face(!icon)}${gear ? glasses() + halfGlasses() + pen() : ""}</g>` +
+    `${gear ? camera() + stamp() : ""}${paw}${spark}${gear ? flash() + checkBadge() : ""}${holo && gear ? stars() : ""}`;
 }
 
 export const pageSvg = () =>

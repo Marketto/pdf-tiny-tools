@@ -31,6 +31,9 @@
   --body:"Baloo 2","Baloo Da 2","Baloo Bhaijaan 2","Rubik","Commissioner","PingFang SC","Microsoft YaHei","Noto Sans SC","Trebuchet MS","Segoe UI",sans-serif;
   --line:3px solid var(--ink);
   --drop:5px 5px 0 var(--ink);
+  /* scala unica dei pulsanti (R-UI-15): grande per l'azione principale di un passo, normale, piccolo per strumenti e barre */
+  --h-lg:56px;--h-md:48px;--h-sm:40px;--fs-lg:22px;--fs-md:19px;--fs-sm:16px;
+  --sh:4px 4px 0 var(--ink);--sh-sm:3px 3px 0 var(--ink);
 }
 [hidden]{display:none!important}
 *{box-sizing:border-box}
@@ -124,9 +127,13 @@ h1 .f-all{transform:rotateX(-270deg) translateZ(.5em);color:#c9a6ff}
 .press .p-sheets{transform-box:fill-box;transform-origin:50% 100%}
 .press .p-spark{transform-box:fill-box;transform-origin:center;animation:twinkle 2.4s ease-in-out infinite}
 /* accessori di Cattura (R-UI-07): entrano con un piccolo rimbalzo; il flash lampeggia a ogni foto (classe snap) */
-.press .m-glasses,.press .m-camera,.press .m-flash{opacity:0;transform:scale(.5);transform-box:fill-box;transform-origin:center;transition:opacity .25s,transform .4s cubic-bezier(.3,1.6,.5,1)}
+.press .m-glasses,.press .m-camera,.press .m-flash,.press .m-fglasses,.press .m-pen,.press .m-stamp,.press .m-check{opacity:0;transform:scale(.5);transform-box:fill-box;transform-origin:center;transition:opacity .25s,transform .4s cubic-bezier(.3,1.6,.5,1)}
 .act-cap .press .m-glasses,.act-cap .press .m-camera,.act-cap .press .m-flash{opacity:1;transform:none}
 .act-cap .press .m-camera{transition-delay:.08s}.act-cap .press .m-flash{transition-delay:.16s}
+/* accessori di Compila (R-UI-14) */
+.act-fill .press .m-fglasses,.act-fill .press .m-pen,.act-fill .press .m-stamp,.act-fill .press .m-check{opacity:1;transform:none}
+.act-fill .press .m-pen{transition-delay:.06s}.act-fill .press .m-stamp{transition-delay:.12s}.act-fill .press .m-check{transition-delay:.18s}
+.act-fill .press .p-spark{visibility:hidden}
 .act-cap .press .p-spark{visibility:hidden}
 .act-cap.snap .press .m-flash{animation:flashPop .6s ease-out}
 @keyframes flashPop{30%{transform:scale(1.7) rotate(20deg);filter:brightness(1.4)}}
@@ -175,29 +182,33 @@ h1 .f-all{transform:rotateX(-270deg) translateZ(.5em);color:#c9a6ff}
 .tray.over{background:var(--acc);transform:scale(1.015)}
 .tray p{margin:0 0 14px;font-weight:700}
 .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.btn{font-family:var(--display);font-size:19px;color:var(--ink);background:var(--acc);border:var(--line);border-radius:14px;
-  padding:9px 18px;box-shadow:4px 4px 0 var(--ink);cursor:pointer;display:inline-block;line-height:1.2;transition:transform .08s,box-shadow .08s}
+.btn{font-family:var(--display);font-size:var(--fs-md);color:var(--ink);background:var(--acc);border:var(--line);border-radius:14px;
+  min-height:var(--h-md);padding:6px 18px;box-shadow:var(--sh);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;line-height:1.15;transition:transform .08s,box-shadow .08s}
+.btn[hidden]{display:none}
 .btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
 .btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+/* misure della scala (R-UI-15) */
+.btn.lg,.btn.go{font-size:var(--fs-lg);min-height:var(--h-lg);padding:8px 22px}
+.btn.sm,.tools .btn,.moveBar .btn,.fillBar .btn,.tourBar .btn,.fzoom .btn,.ib{font-size:var(--fs-sm);min-height:var(--h-sm);padding:4px 12px;box-shadow:var(--sh-sm)}
+.btn.sm:hover,.tools .btn:hover,.moveBar .btn:hover,.fillBar .btn:hover,.tourBar .btn:hover,.fzoom .btn:hover,.ib:hover{box-shadow:4px 4px 0 var(--ink)}
 .btn:focus-visible,.lvl input:focus-visible+span,label.btn:focus-within{outline:4px solid var(--acc-s);outline-offset:3px}
 .btn.alt{background:var(--paper)}
-.btn.go{background:var(--acc-s);color:var(--paper);font-size:26px;padding:12px 28px;width:100%;letter-spacing:.5px}
+.btn.go{background:var(--acc-s);color:var(--paper);width:100%;letter-spacing:.5px}
 .btn.ok{background:var(--acc)}
 .btn.danger{background:var(--tomato);color:var(--paper)}
 .sure{border:var(--line);border-radius:14px;background:var(--acc);padding:14px;margin-top:14px;text-align:center}
 .sure p{margin:0 0 12px;font-weight:700}
-.btn.sm{font-size:16px;padding:5px 12px;box-shadow:3px 3px 0 var(--ink)}
+
 .linkish{background:none;border:0;padding:0;font:inherit;color:var(--ink);text-decoration:underline;cursor:pointer;font-weight:700}
 .vMemRow:has(#vForget[hidden]){display:none}
 .btn.off{opacity:.45;cursor:not-allowed;pointer-events:none}
-.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:4px 4px 0 var(--ink)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none}
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
 .hint{font-size:15px;color:var(--muted);margin:14px 0 0}
 .statsRow{color:var(--ink);text-align:center;margin:18px 12px 0;font-size:14px}
 @media (hover:none) and (pointer:coarse){
   .tray{border:0;padding:0;background:none}
   .tray>p,.hint.desk{display:none}
-  .tray .btn{flex:1 1 150px;text-align:center;font-size:21px;padding:14px 16px}
 }
 .snd{padding:5px 9px;line-height:0}
 /* finestre di dialogo: conferme e scelta di prefisso o suffisso */
@@ -208,12 +219,13 @@ h1 .f-all{transform:rotateX(-270deg) translateZ(.5em);color:#c9a6ff}
 #modalBtns{margin-top:18px}
 /* pulsanti di finestre e schermate (R-UI-13): larghi uguale, in riga se le scritte ci stanno, altrimenti in colonna */
 #modalBtns,.acts{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:12px}
-#modalBtns.stack,.acts.stack{grid-auto-flow:row}
+#modalBtns.stack,.acts.stack,.acts.pickBtns{grid-auto-flow:row}
+.acts.pickBtns>.btn{white-space:normal}
 #modalBtns>.btn,.acts>.btn{width:100%;margin:0;white-space:nowrap;display:flex;justify-content:center;align-items:center;gap:6px;text-align:center}
 #modalBtns.stack>.btn,.acts.stack>.btn{white-space:normal}
 .acts .btn svg{width:18px;height:18px;flex:none}
 .seg{display:flex;border:var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
-.seg button{flex:1;font-family:var(--display);font-size:19px;color:var(--ink);background:#fff;border:0;padding:8px 10px;cursor:pointer}
+.seg button{flex:1;font-family:var(--display);font-size:var(--fs-sm);color:var(--ink);background:#fff;border:0;min-height:calc(var(--h-sm) - 6px);padding:4px 8px;cursor:pointer}
 .seg button+button{border-inline-start:var(--line)}
 .seg button[aria-pressed="true"]{background:var(--acc-s);color:var(--paper)}
 .seg button:focus-visible{outline:4px solid var(--ink);outline-offset:-4px}
@@ -261,13 +273,12 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .act-fill #modeBtn{cursor:default}.act-fill #modeBtn .chev{visibility:hidden}
 .mode-video #actBtn,.mode-all #actBtn{cursor:default}
 .capBig{display:flex;flex-direction:column;gap:12px}
-.capBig .btn,.dock .btn{display:flex;align-items:center;justify-content:center;gap:10px}
-.capBig .btn.go{font-size:22px}
+.capBig .btn,.dock .btn{display:flex}
 .grid+.lab{margin-top:16px}
 .btn svg{flex:none}
 .lab{font-weight:700;margin:4px 0 8px}
 .capture .seg{margin-bottom:12px}
-.seg.sm button{font-size:15px;padding:6px 4px}
+.seg.sm button{padding:4px}
 .strip{display:flex;align-items:flex-start;gap:12px;overflow-x:auto;padding:6px 6px 12px}
 .thumb{flex:none;width:86px;position:relative;border:var(--line);border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 var(--ink);padding:0;cursor:pointer}
 .thumb img,.card img{display:block;width:100%;pointer-events:none}
@@ -276,13 +287,13 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .chip{position:absolute;inset-inline-end:4px;bottom:4px;background:var(--acc);border:2px solid var(--ink);font:700 11px/1.4 var(--body);border-radius:999px;padding:0 6px;color:var(--ink)}
 .add{flex:none;width:86px;min-height:110px;border:3px dashed var(--ink);border-radius:10px;display:grid;place-items:center;font:40px var(--display);background:#fff;color:var(--ink);cursor:pointer}
 .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.tools .btn,.moveBar .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:0;padding:8px 4px;font-size:15px;box-shadow:3px 3px 0 var(--ink)}
+.tools .btn,.moveBar .btn{gap:6px;width:100%;margin:0;padding:4px}
 .moveBar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
 .moveBar .btn:disabled{opacity:.4;box-shadow:none}
 .straightSeg button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .straightTip{margin:-6px 0 10px;font-size:14px}
 .ib.on{background:var(--acc-s);color:var(--paper)}
-.ib{display:inline-flex;align-items:center;gap:6px;font-size:15px;padding:6px 10px;box-shadow:3px 3px 0 var(--ink)}
+.ib{gap:6px;padding:4px 10px}
 .capEmpty{margin:4px 0 0;color:var(--muted);font-weight:700}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
 .card{border:var(--line);border-radius:14px;background:#fff;padding:8px;box-shadow:3px 3px 0 var(--ink);position:relative;cursor:grab}
@@ -291,7 +302,7 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .card .num{inset-inline-start:12px;top:12px}
 .card select{width:100%;margin-top:8px;font:700 14px var(--body);border:2px solid var(--ink);border-radius:8px;padding:4px;background:var(--acc-l);color:var(--ink)}
 .card .row2{display:flex;justify-content:space-between;gap:6px;margin-top:8px}
-.ib{padding:0;width:38px;height:38px;justify-content:center;border-radius:10px}
+.ib{padding:0;width:var(--h-sm);height:var(--h-sm);border-radius:10px}
 .addcard{border:3px dashed var(--ink);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font:20px var(--display);background:#fff;min-height:220px;gap:6px;padding:10px;color:var(--ink);cursor:pointer}
 .addcard small{font:600 13px var(--body);color:var(--muted)}
 .dock{position:sticky;bottom:0;z-index:5;display:flex;gap:12px;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));background:var(--paper);border:var(--line);border-radius:18px 18px 0 0;box-shadow:0 -3px 0 var(--ink)}
@@ -311,8 +322,7 @@ body.act-fill #capMsg{display:block}
 .fillTray{display:flex;flex-direction:column;gap:12px}
 .fillTray p{margin:0;font-weight:700}
 .fillPick{display:flex;flex-direction:column;gap:12px}
-.fillPick .btn{display:flex;align-items:center;justify-content:center;gap:10px;margin:0}
-.fillCam{font-size:21px!important;padding:8px 12px!important}
+.fillPick .btn{display:flex;margin:0}
 .btn .two{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;text-align:start}
 .btn .two small{font:700 14px/1.2 var(--body)}
 .fillHint{display:flex;gap:10px;align-items:center;background:#ffd23f;border:var(--line);border-radius:16px;padding:10px 12px;font-weight:700;line-height:1.25}
@@ -323,7 +333,7 @@ body.act-fill #capMsg{display:block}
 .fscroll{overflow-x:auto;margin:0 -8px;padding:14px 8px 4px}
 .fscroll .fpage{width:calc(var(--z,1)*100%)}
 .fscroll.z1 .fbox:not(.sel) .ftag span{display:none}
-.fzoom{display:inline-flex;gap:6px;margin-inline-start:auto}.fzoom .btn{margin:0;padding:0 12px;min-width:38px}
+.fzoom{display:inline-flex;gap:6px;margin-inline-start:auto}.fzoom .btn{margin:0;min-width:var(--h-sm)}
 .fpage{position:relative;width:100%;border:var(--line);border-radius:8px;overflow:hidden;background:#fff;margin-bottom:14px;box-shadow:3px 3px 0 var(--ink);touch-action:pan-y}
 .fpage>img{display:block;width:100%;height:100%;user-select:none;-webkit-user-drag:none;pointer-events:none}
 .fbox{position:absolute;padding:0;margin:0;border:2px solid var(--c);background:color-mix(in srgb,var(--c) 22%,transparent);border-radius:3px;cursor:pointer;min-width:6px;min-height:6px}
@@ -335,17 +345,23 @@ body.act-fill #capMsg{display:block}
 .fdraw{position:absolute;inset:0;z-index:3;cursor:crosshair;touch-action:none;background:color-mix(in srgb,var(--acc) 12%,transparent)}
 .fghost{position:absolute;border:2px dashed var(--ink);background:color-mix(in srgb,#7b5cff 25%,transparent)}
 .fillBar{position:sticky;bottom:0;z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 0 calc(6px + env(safe-area-inset-bottom,0px));background:var(--paper)}
-.fillBar .btn{display:flex;align-items:center;justify-content:center;gap:6px;margin:0;padding:8px 4px;font-size:17px}
+.fillBar .btn{display:flex;gap:6px;margin:0;padding:4px}
 .fillBar .btn.on{background:var(--acc-s);color:var(--paper)}
 .fsheet{position:fixed;left:0;right:0;bottom:0;z-index:12;max-height:72vh;overflow:auto;background:var(--paper);border:var(--line);border-bottom:0;border-radius:22px 22px 0 0;box-shadow:0 -4px 0 var(--ink);padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));max-width:620px;margin:0 auto}
 .fsheet h3{margin:0 0 4px;font:400 24px/1.1 var(--display)}
 .fsheet .hint{margin:0 0 8px}
 .flab{display:block;font-weight:700;margin:10px 0 6px}
 .fin{display:block;width:100%;box-sizing:border-box;font:700 17px var(--body);border:var(--line);border-radius:10px;padding:6px 10px;background:#fff;color:var(--ink);margin-top:4px}
-.ftypes{flex-wrap:wrap}
-.ftypes button{display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:14px!important;min-width:30%}
-.ftypes button b{font-size:11px}
-.ftypes button[aria-pressed="true"]{background:var(--c);color:#fff}
+/* tipo del campo: un tipo per riga (R-CPL-07, proposta A) */
+.ftypes{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.ftype{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--h-md);border:var(--line);border-radius:14px;background:#fff;padding:4px 10px;font:400 var(--fs-md) var(--display);color:var(--ink);text-align:start;box-shadow:var(--sh-sm);cursor:pointer}
+.ftype .ic{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--c);color:#fff;font:800 13px var(--body);border:2px solid var(--ink)}
+.ftype .ic svg{width:18px;height:18px}
+.ftype .nm{flex:1}
+.ftype .ok{flex:none;width:24px;height:24px;border-radius:50%;border:3px solid var(--ink);background:#fff}
+.ftype[aria-checked="true"]{background:color-mix(in srgb,var(--c) 18%,#fff);outline:3px solid var(--c);outline-offset:-7px}
+.ftype[aria-checked="true"] .ok{background:var(--c);box-shadow:inset 0 0 0 4px #fff}
+.ftype:focus-visible{outline:4px solid var(--acc-s);outline-offset:2px}
 .fsheet .seg{margin-bottom:6px}
 .fsheet .check{margin:14px 0 4px}
 .fsheet .acts{margin-top:14px}
@@ -363,9 +379,8 @@ body.act-fill #capMsg{display:block}
 .ftry.comb .ftin{letter-spacing:.32em}
 .fsave{background:#fff6dc}
 .fsave .fq{font-weight:700;font-size:18px;margin:0 0 12px}
-.fbig{display:flex;align-items:center;gap:14px;width:100%;text-align:start;margin:0 0 12px;padding:10px 14px}
-.fbig .two span{font-size:21px}
-.fthumb{position:relative;flex:none;width:52px;height:68px;border:2px solid var(--ink);border-radius:6px;overflow:hidden;background:#fff}
+.fbig{display:flex;justify-content:flex-start;gap:14px;width:100%;text-align:start;margin:0 0 12px;padding:8px 14px}
+.fthumb{position:relative;flex:none;width:40px;height:52px;border:2px solid var(--ink);border-radius:6px;overflow:hidden;background:#fff}
 .fthumb img{width:100%;height:100%;object-fit:cover;object-position:top}
 .fmark{position:absolute;inset:auto 4px 6px 4px;height:8px;border-radius:2px;background:color-mix(in srgb,#7b5cff 45%,transparent)}
 /* lettura del foglio (R-CPL-04): la lente passa sulla pagina vera e i campi compaiono */
@@ -400,8 +415,7 @@ body.act-fill #capMsg{display:block}
 .tourDots{display:flex;gap:6px;justify-content:center}
 .tourDots span{width:10px;height:10px;border-radius:999px;background:var(--paper);border:2px solid var(--ink)}
 .tourDots span.on{width:22px;background:var(--acc-s)}
-.tourBar .btn{margin:0;font-size:18px;padding:6px 16px;width:auto}
-.tourBar .btn.alt{font-size:17px}
+.tourBar .btn{margin:0;width:auto}
 @media (prefers-reduced-motion:reduce){.tourHole,.tourBox{transition:none}.lensGlass,.lensMasc,.lensPage .lm{animation:none}}
 .loader .pg{transform-box:fill-box;transform-origin:center;animation:straighten 2.6s cubic-bezier(.5,0,.3,1) infinite}
 .loader .beam,.loader .beamLine{animation:beam 1.3s ease-in-out infinite alternate}
@@ -513,14 +527,14 @@ details p{margin:8px 0 0;max-width:65ch}
 .loader.work .acts{position:static;width:100%;max-width:520px}
 .ind .sv{margin-inline-start:auto;flex:none;font:400 18px/1 var(--display);background:var(--acc);color:var(--ink);border:3px solid var(--ink);border-radius:999px;padding:6px 10px;transform:rotate(3deg);box-shadow:2px 2px 0 var(--ink)}
 .mode-all .ind .sv{background:var(--holo-marea);background-size:400% 400%;animation:holoA 8s ease-in-out infinite alternate}
-@media (prefers-reduced-motion:reduce){.drum,.m-skin,.press .m-glasses,.press .m-camera,.press .m-flash{transition:none}.act-cap.snap .press .m-flash{animation:none}.roll.wiggle .wob,.roll.nudge .wob{animation:none}.loader .pg,.loader .beam,.loader .beamLine,.loader .tw,.press.busy .p-head,.press.busy .p-sheets,.press .p-spark,.loader .p-head,.loader .p-hand,.loader .drawer,.loader .p-spark{animation:none}.loader .fly{animation-duration:3s}.btn,.tray{transition:none}.mode-all .tag,.mode-all .btn,.mode-all .lvl span,.mode-all .tag::before,.mode-all .btn::before,.mode-all .lvl span::before,.mode-all h1 .f-all{animation:none!important}.ind,.ind.float,.ind .ring,.ind .ring::after{animation:none}}
+@media (prefers-reduced-motion:reduce){.drum,.m-skin,.press .m-glasses,.press .m-camera,.press .m-flash,.press .m-fglasses,.press .m-pen,.press .m-stamp,.press .m-check{transition:none}.act-cap.snap .press .m-flash{animation:none}.roll.wiggle .wob,.roll.nudge .wob{animation:none}.loader .pg,.loader .beam,.loader .beamLine,.loader .tw,.press.busy .p-head,.press.busy .p-sheets,.press .p-spark,.loader .p-head,.loader .p-hand,.loader .drawer,.loader .p-spark{animation:none}.loader .fly{animation-duration:3s}.btn,.tray{transition:none}.mode-all .tag,.mode-all .btn,.mode-all .lvl span,.mode-all .tag::before,.mode-all .btn::before,.mode-all .lvl span::before,.mode-all h1 .f-all{animation:none!important}.ind,.ind.float,.ind .ring,.ind .ring::after{animation:none}}
 </style>
 </head>
 <body>
 <div class="wrap" id="app">
   <header class="top">
     <div class="brand">
-    <div class="press" id="press" aria-hidden="true"><!-- mascot:page --><svg viewBox="70 48 400 404" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"><rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><g class="p-sheets"><g class="s-pdf"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g><g class="s-jpg"><rect x="176" y="326" width="160" height="74" rx="8" fill="#fff"/><rect x="190" y="336" width="132" height="54" rx="3" fill="#9ad7ff" stroke="none"/><circle cx="300" cy="352" r="9" fill="#ffd23f" stroke="none"/><path d="M190 390l36-30l22 18l18-14l56 26z" fill="#3ddc97" stroke="none"/><rect x="190" y="336" width="132" height="54" rx="3" fill="none" stroke-width="5"/></g><g class="s-vid"><rect x="180" y="348" width="152" height="52" rx="8" fill="#3b2a4a"/><path d="M176 330l150 -14l4 22l-150 14z" fill="#fff"/><path d="M204 328l12 18M236 325l12 18M268 322l12 18M300 319l12 18" fill="none"/><path d="M200 366h90M200 382h56" stroke="#fff" stroke-width="7" fill="none"/><circle cx="312" cy="386" r="7" fill="#ff5a4e" stroke="none"/></g></g><rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g><defs><linearGradient id="phm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8fd1"/><stop offset="0.35" stop-color="#9ef0ff"/><stop offset="0.65" stop-color="#c9a6ff"/><stop offset="1" stop-color="#ffd36b"/><animateTransform attributeName="gradientTransform" type="rotate" values="0 .5 .5;360 .5 .5" dur="16s" repeatCount="indefinite"/></linearGradient><radialGradient id="phb0" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#ff8fd1"/><stop offset="1" stop-color="#ff8fd1" stop-opacity="0"/><animate attributeName="cx" values="150;330;200;150" dur="9s" repeatCount="indefinite"/><animate attributeName="cy" values="130;280;240;130" dur="9s" repeatCount="indefinite"/></radialGradient><radialGradient id="phb1" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#9ef0ff"/><stop offset="1" stop-color="#9ef0ff" stop-opacity="0"/><animate attributeName="cx" values="350;180;300;350" dur="11s" repeatCount="indefinite"/><animate attributeName="cy" values="290;150;130;290" dur="11s" repeatCount="indefinite"/></radialGradient><radialGradient id="phb2" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#ffd36b"/><stop offset="1" stop-color="#ffd36b" stop-opacity="0"/><animate attributeName="cx" values="260;360;150;260" dur="13s" repeatCount="indefinite"/><animate attributeName="cy" values="300;200;150;300" dur="13s" repeatCount="indefinite"/></radialGradient><radialGradient id="phb3" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#b98cff"/><stop offset="1" stop-color="#b98cff" stop-opacity="0"/><animate attributeName="cx" values="180;260;360;180" dur="10s" repeatCount="indefinite"/><animate attributeName="cy" values="150;300;260;150" dur="10s" repeatCount="indefinite"/></radialGradient></defs><g class="p-head"><g class="m-horn" display="none" stroke="#3b2a4a" stroke-width="8" stroke-linejoin="round"><path d="M228 132L256 56L284 132Z" fill="#ffe14d"/><path d="M243 98l24 -8M237 116l32 -10" fill="none" stroke="#e8a400" stroke-width="6" stroke-linecap="round"/></g><rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><g class="m-gas" display="none" stroke="none"><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#phm)"/><g class="m-neb" opacity="0"><rect x="133" y="117" width="246" height="196" rx="83" fill="#e6d8ff"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#phb0)"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#phb1)"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#phb2)"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#phb3)"/><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;.4;.5;.9;1" dur="30s" repeatCount="indefinite"/></g></g><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/><g class="e-open"><ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/></g><g class="e-c" display="none"><path d="M178 200l40 22l-40 22M334 200l-40 22l40 22" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="e-d" display="none"><path d="M168 234q30 -32 60 0M284 234q30 -32 60 0" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="blush"><ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/></g><path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><g class="m-glasses"><g fill="#fff" fill-opacity=".22" stroke="#3b2a4a" stroke-width="9"><circle cx="198" cy="224" r="50"/><circle cx="314" cy="224" r="50"/></g><path d="M248 218q8 -8 16 0M148 214l-22 -8M364 214l22 -8" fill="none" stroke="#3b2a4a" stroke-width="9" stroke-linecap="round"/><path d="M176 196l22 -14M292 196l22 -14" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".8"/></g></g><g class="m-camera"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round"><rect x="214" y="304" width="44" height="24" rx="8" fill="#cdb8ff"/><rect x="186" y="318" width="140" height="88" rx="22" fill="#e3d6ff"/><circle cx="256" cy="362" r="30" fill="#3b2a4a"/></g><circle cx="256" cy="362" r="16" fill="#8f6bd9"/><circle cx="248" cy="354" r="6" fill="#fff"/><circle cx="302" cy="336" r="7" fill="#ff7fa3" stroke="#3b2a4a" stroke-width="5"/></g><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/><g class="m-flash"><path transform="translate(432 104) scale(1.1)" d="M0 -30l9 20l22 -6l-14 18l16 16l-22 -2l-4 22l-9 -20l-20 10l8 -21l-20 -12l23 -2z" fill="#fff36b" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></g><g class="m-stars" display="none"><path transform="translate(92 120) scale(0.6)" d="M0 -24l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#ff8fd1" stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round"/><path transform="translate(440 300) scale(0.5)" d="M0 -24l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#9ef0ff" stroke="#3b2a4a" stroke-width="12" stroke-linejoin="round"/><path transform="translate(96 340) scale(0.45)" d="M0 -24l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#ffe14d" stroke="#3b2a4a" stroke-width="13.333333333333332" stroke-linejoin="round"/></g></svg><!-- /mascot:page --></div>
+    <div class="press" id="press" aria-hidden="true"><!-- mascot:page --><svg viewBox="70 48 400 404" xmlns="http://www.w3.org/2000/svg"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"><rect x="100" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><rect x="376" y="150" width="36" height="250" rx="18" fill="#cdb8ff"/><g class="p-sheets"><g class="s-pdf"><rect x="176" y="330" width="160" height="70" rx="12" fill="#fff"/><path d="M198 353h116M198 375h116" fill="none" stroke="#f0b6c8" stroke-width="7"/></g><g class="s-jpg"><rect x="176" y="326" width="160" height="74" rx="8" fill="#fff"/><rect x="190" y="336" width="132" height="54" rx="3" fill="#9ad7ff" stroke="none"/><circle cx="300" cy="352" r="9" fill="#ffd23f" stroke="none"/><path d="M190 390l36-30l22 18l18-14l56 26z" fill="#3ddc97" stroke="none"/><rect x="190" y="336" width="132" height="54" rx="3" fill="none" stroke-width="5"/></g><g class="s-vid"><rect x="180" y="348" width="152" height="52" rx="8" fill="#3b2a4a"/><path d="M176 330l150 -14l4 22l-150 14z" fill="#fff"/><path d="M204 328l12 18M236 325l12 18M268 322l12 18M300 319l12 18" fill="none"/><path d="M200 366h90M200 382h56" stroke="#fff" stroke-width="7" fill="none"/><circle cx="312" cy="386" r="7" fill="#ff5a4e" stroke="none"/></g></g><rect x="84" y="392" width="344" height="50" rx="25" fill="#a48cf0"/></g><defs><linearGradient id="phm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8fd1"/><stop offset="0.35" stop-color="#9ef0ff"/><stop offset="0.65" stop-color="#c9a6ff"/><stop offset="1" stop-color="#ffd36b"/><animateTransform attributeName="gradientTransform" type="rotate" values="0 .5 .5;360 .5 .5" dur="16s" repeatCount="indefinite"/></linearGradient><radialGradient id="phb0" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#ff8fd1"/><stop offset="1" stop-color="#ff8fd1" stop-opacity="0"/><animate attributeName="cx" values="150;330;200;150" dur="9s" repeatCount="indefinite"/><animate attributeName="cy" values="130;280;240;130" dur="9s" repeatCount="indefinite"/></radialGradient><radialGradient id="phb1" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#9ef0ff"/><stop offset="1" stop-color="#9ef0ff" stop-opacity="0"/><animate attributeName="cx" values="350;180;300;350" dur="11s" repeatCount="indefinite"/><animate attributeName="cy" values="290;150;130;290" dur="11s" repeatCount="indefinite"/></radialGradient><radialGradient id="phb2" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#ffd36b"/><stop offset="1" stop-color="#ffd36b" stop-opacity="0"/><animate attributeName="cx" values="260;360;150;260" dur="13s" repeatCount="indefinite"/><animate attributeName="cy" values="300;200;150;300" dur="13s" repeatCount="indefinite"/></radialGradient><radialGradient id="phb3" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="120"><stop offset="0" stop-color="#b98cff"/><stop offset="1" stop-color="#b98cff" stop-opacity="0"/><animate attributeName="cx" values="180;260;360;180" dur="10s" repeatCount="indefinite"/><animate attributeName="cy" values="150;300;260;150" dur="10s" repeatCount="indefinite"/></radialGradient></defs><g class="p-head"><g class="m-horn" display="none" stroke="#3b2a4a" stroke-width="8" stroke-linejoin="round"><path d="M228 132L256 56L284 132Z" fill="#ffe14d"/><path d="M243 98l24 -8M237 116l32 -10" fill="none" stroke="#e8a400" stroke-width="6" stroke-linecap="round"/></g><rect class="m-skin" x="128" y="112" width="256" height="206" rx="88" fill="#ffb3c7" stroke="#3b2a4a" stroke-width="10"/><g class="m-gas" display="none" stroke="none"><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#phm)"/><g class="m-neb" opacity="0"><rect x="133" y="117" width="246" height="196" rx="83" fill="#e6d8ff"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#phb0)"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#phb1)"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#phb2)"/><rect x="133" y="117" width="246" height="196" rx="83" fill="url(#phb3)"/><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;.4;.5;.9;1" dur="30s" repeatCount="indefinite"/></g></g><ellipse cx="196" cy="146" rx="46" ry="15" fill="#fff" opacity=".55" transform="rotate(-18 196 146)"/><g class="e-open"><ellipse cx="198" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="198" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="189" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="209" cy="236" r="5.5" fill="#fff"/><ellipse cx="314" cy="222" rx="30" ry="36" fill="#3b2a4a"/><ellipse cx="314" cy="240" rx="20" ry="14" fill="#8f6bd9" opacity=".75"/><ellipse cx="305" cy="207" rx="12" ry="14" fill="#fff"/><circle cx="325" cy="236" r="5.5" fill="#fff"/></g><g class="e-c" display="none"><path d="M178 200l40 22l-40 22M334 200l-40 22l40 22" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="e-d" display="none"><path d="M168 234q30 -32 60 0M284 234q30 -32 60 0" fill="none" stroke="#3b2a4a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g><g class="blush"><ellipse cx="156" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/><ellipse cx="356" cy="266" rx="19" ry="10" fill="#ff7fa3" opacity=".8"/></g><path d="M240 258q8 11 16 0q8 11 16 0" fill="none" stroke="#3b2a4a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><g class="m-glasses"><g fill="#fff" fill-opacity=".22" stroke="#3b2a4a" stroke-width="9"><circle cx="198" cy="224" r="50"/><circle cx="314" cy="224" r="50"/></g><path d="M248 218q8 -8 16 0M148 214l-22 -8M364 214l22 -8" fill="none" stroke="#3b2a4a" stroke-width="9" stroke-linecap="round"/><path d="M176 196l22 -14M292 196l22 -14" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".8"/></g><g class="m-fglasses"><g stroke="#3b2a4a" stroke-width="8" stroke-linecap="round"><path d="M164 236h68q-4 30 -34 30q-30 0 -34 -30z" fill="#fff" fill-opacity=".3"/><path d="M280 236h68q-4 30 -34 30q-30 0 -34 -30z" fill="#fff" fill-opacity=".3"/><path d="M232 238q24 -10 48 0" fill="none"/></g></g><g class="m-pen"><g transform="translate(118 150) rotate(-24) scale(.85)" stroke="#3b2a4a" stroke-width="8" stroke-linejoin="round"><rect x="-14" y="-80" width="28" height="120" rx="8" fill="#9ad7ff"/><rect x="-14" y="-80" width="28" height="26" rx="8" fill="#7b5cff"/><path d="M-14 40h28l-14 34z" fill="#fff6dc"/><path d="M-5 62l5 12l5-12z" fill="#3b2a4a" stroke-width="4"/><path d="M14 -64v44" stroke-width="7" fill="none"/></g></g></g><g class="m-camera"><g stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round"><rect x="214" y="304" width="44" height="24" rx="8" fill="#cdb8ff"/><rect x="186" y="318" width="140" height="88" rx="22" fill="#e3d6ff"/><circle cx="256" cy="362" r="30" fill="#3b2a4a"/></g><circle cx="256" cy="362" r="16" fill="#8f6bd9"/><circle cx="248" cy="354" r="6" fill="#fff"/><circle cx="302" cy="336" r="7" fill="#ff7fa3" stroke="#3b2a4a" stroke-width="5"/></g><g class="m-stamp"><g transform="translate(256 376)" stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round"><circle cx="0" cy="-58" r="22" fill="#ff7fa3"/><rect x="-11" y="-42" width="22" height="30" fill="#cdb8ff"/><rect x="-62" y="-14" width="124" height="40" rx="12" fill="#e3d6ff"/><rect x="-54" y="26" width="108" height="14" rx="4" fill="#ef5b8b"/><circle cx="-9" cy="-64" r="6" fill="#fff" stroke="none"/></g></g><path class="p-spark" d="M424 84l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#fff6a8" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/><g class="m-flash"><path transform="translate(432 104) scale(1.1)" d="M0 -30l9 20l22 -6l-14 18l16 16l-22 -2l-4 22l-9 -20l-20 10l8 -21l-20 -12l23 -2z" fill="#fff36b" stroke="#3b2a4a" stroke-width="6" stroke-linejoin="round"/></g><g class="m-check"><g transform="translate(432 104)"><circle r="28" fill="#3ddc97" stroke="#3b2a4a" stroke-width="6"/><path d="M-12 1l8 9l16 -18" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g></g><g class="m-stars" display="none"><path transform="translate(92 120) scale(0.6)" d="M0 -24l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#ff8fd1" stroke="#3b2a4a" stroke-width="10" stroke-linejoin="round"/><path transform="translate(440 300) scale(0.5)" d="M0 -24l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#9ef0ff" stroke="#3b2a4a" stroke-width="12" stroke-linejoin="round"/><path transform="translate(96 340) scale(0.45)" d="M0 -24l7 17l17 7l-17 7l-7 17l-7 -17l-17 -7l17 -7z" fill="#ffe14d" stroke="#3b2a4a" stroke-width="13.333333333333332" stroke-linejoin="round"/></g></svg><!-- /mascot:page --></div>
       <div class="langbar">
       <label class="vh" for="lang" data-i18n="lang">Lingua</label>
       <select id="lang"></select>
@@ -4704,7 +4718,7 @@ function tourEnd(go){
   setTimeout(function(){if(!items.length&&!loading)jobsDialog()},400);
 }
 /* la mascotte del fumetto e della lente: copia di quella della testata, senza gli accessori di Cattura */
-each(".tourMasc,.lensMasc",function(n){var sv=document.querySelector("#press svg");if(!sv)return;var c=sv.cloneNode(true);c.querySelectorAll(".m-glasses,.m-camera,.m-flash").forEach(function(x){x.remove()});n.appendChild(c)});
+each(".tourMasc,.lensMasc",function(n){var sv=document.querySelector("#press svg");if(!sv)return;var c=sv.cloneNode(true);c.querySelectorAll(".m-glasses,.m-camera,.m-flash,.m-fglasses,.m-pen,.m-stamp,.m-check").forEach(function(x){x.remove()});n.appendChild(c)});
 $("tourSkip").addEventListener("click",function(){tourEnd()});
 $("tourNext").addEventListener("click",function(){
   var st=tour.steps[tour.i];

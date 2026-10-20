@@ -653,11 +653,13 @@ function sheet(f){
   ni.addEventListener("input",function(){f.name=ni.value;sh.querySelector("h3").textContent=ni.value||"…"});
   nl.appendChild(ni);sh.appendChild(nl);
   sh.appendChild(el("p","flab",t("fillType")));
-  var seg=el("div","seg sm ftypes");
+  /* un tipo per riga: icona nel colore del tipo, nome, pallino a destra (R-CPL-07, proposta A) */
+  var seg=el("div","ftypes");seg.setAttribute("role","radiogroup");seg.setAttribute("aria-label",t("fillType"));
   TYPES.forEach(function(x){
-    var b=el("button",null);b.type="button";b.style.setProperty("--c",COL[x[0]]);
-    b.setAttribute("aria-pressed",String(f.type===x[0]||(x[0]==="text"&&f.type==="sign")));
-    b.innerHTML=tyIcon(x[0]);if(x[2])b.appendChild(el("b",null,x[2]+" "));b.appendChild(document.createTextNode(t(x[1])));
+    var on=f.type===x[0]||(x[0]==="text"&&f.type==="sign");
+    var b=el("button","ftype");b.type="button";b.style.setProperty("--c",COL[x[0]]);b.setAttribute("role","radio");b.setAttribute("aria-checked",String(on));
+    var ic=el("span","ic");ic.innerHTML=tyIcon(x[0]);if(x[2])ic.textContent=x[2];b.appendChild(ic);
+    b.appendChild(el("span","nm",t(x[1])));b.appendChild(el("span","ok"));
     b.addEventListener("click",function(){setType(f,x[0]);render()});seg.appendChild(b);
   });
   sh.appendChild(seg);
@@ -759,7 +761,7 @@ function renderSave(box){
   var p=panel(t("fillS3"));p.classList.add("fsave");
   p.appendChild(el("p","fq",t("fillSaveQ")));
   function big(cls,title,sub,fn,dis){
-    var b=el("button","btn fbig "+cls);b.type="button";b.disabled=!!dis;
+    var b=el("button","btn lg fbig "+cls);b.type="button";b.disabled=!!dis;
     var th=el("span","fthumb"),im=document.createElement("img");im.src=S.pages[0].url;im.alt="";th.appendChild(im);
     if(cls==="ok")th.appendChild(el("span","fmark"));
     b.appendChild(th);var tx=el("span","two");tx.appendChild(el("span",null,title));tx.appendChild(el("small",null,sub));b.appendChild(tx);
