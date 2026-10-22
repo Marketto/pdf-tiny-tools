@@ -204,5 +204,6 @@
   newsFillT: "Am învățat să completez!",
   newsFillP: "Pozează un formular: găsesc spațiile goale și îl transform într-un PDF completabil, cu date, numere și liste.",
   fillZoomOut: "Micșorează",
-  fillZoomIn: "Mărește"
+  fillZoomIn: "Mărește",
+  jobBack: "Am continuat de unde ai rămas."
 };

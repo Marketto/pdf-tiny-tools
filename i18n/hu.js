@@ -204,5 +204,6 @@
   newsFillT: "Megtanultam űrlapot kitölteni!",
   newsFillP: "Fotózz le egy űrlapot: megkeresem az üres helyeket, és kitölthető PDF-et csinálok belőle dátumokkal, számokkal és listákkal.",
   fillZoomOut: "Kicsinyítés",
-  fillZoomIn: "Nagyítás"
+  fillZoomIn: "Nagyítás",
+  jobBack: "Ott folytattam, ahol abbahagytad."
 };

@@ -204,5 +204,6 @@
   newsFillT: "Ik kan nu ook invullen!",
   newsFillP: "Fotografeer een formulier: ik zoek de lege vakjes en maak er een invulbare PDF van, met datums, getallen en lijsten.",
   fillZoomOut: "Uitzoomen",
-  fillZoomIn: "Inzoomen"
+  fillZoomIn: "Inzoomen",
+  jobBack: "Ik ga verder waar je gebleven was."
 };

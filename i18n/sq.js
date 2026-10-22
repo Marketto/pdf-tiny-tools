@@ -204,5 +204,6 @@
   newsFillT: "Mësova të plotësoj!",
   newsFillP: "Fotografo një formular: gjej hapësirat bosh dhe e kthej në një PDF që plotësohet, me data, numra dhe lista.",
   fillZoomOut: "Zvogëlo",
-  fillZoomIn: "Zmadho"
+  fillZoomIn: "Zmadho",
+  jobBack: "Vazhdova nga ku e le."
 };

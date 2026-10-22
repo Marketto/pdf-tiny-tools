@@ -204,5 +204,6 @@
   newsFillT: "我学会填表了！",
   newsFillP: "拍一份表格：我找出空白，把它变成可填写的 PDF，日期、数字、列表都有。",
   fillZoomOut: "缩小",
-  fillZoomIn: "放大"
+  fillZoomIn: "放大",
+  jobBack: "已从你上次停下的地方继续。"
 };

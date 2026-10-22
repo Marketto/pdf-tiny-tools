@@ -102,7 +102,7 @@ h1 .f-all{transform:rotateX(-270deg) translateZ(.5em);color:#c9a6ff}
 .mode-all h1 .f-all{animation:holoText 12s ease-in-out infinite}
 @keyframes holoText{0%,100%{color:#ff8fd1}33%{color:#6fd3ee}66%{color:#b98cff}}
 .ty{display:inline-block;font:700 12px/1.5 var(--body);border:2px solid var(--ink);border-radius:6px;padding:0 6px;margin-inline-end:6px;vertical-align:2px;color:var(--ink)}
-.ty-pdf{background:#ffb3c7}.ty-jpg{background:#a8ecd0}.ty-video{background:#d6c2ff}
+.ty-pdf{background:#ffb3c7}.ty-jpg{background:#a8ecd0}.ty-video{background:#d6c2ff}.ty-capture,.ty-fill{background:#ffd23f}
 .perType{margin-top:14px;border:var(--line);border-radius:14px;padding:8px 12px;background:#fff}
 .perType summary{font-weight:700;cursor:pointer}
 .perType>div{margin-top:12px}
@@ -1471,8 +1471,9 @@ async function videoCodec(M,w,h){
 var VPV="2",vidCodec=null,idbP=null;
 function idb(){
   return idbP||(idbP=new Promise(function(res,rej){
-    var r=indexedDB.open("schiaccia",2);
-    r.onupgradeneeded=function(){var d=r.result;if(!d.objectStoreNames.contains("vprobe"))d.createObjectStore("vprobe");if(!d.objectStoreNames.contains("jobs"))d.createObjectStore("jobs")};
+    var r=indexedDB.open("schiaccia",3);
+    /* files: le immagini e i PDF dei lavori di Cattura e Compila (R-APP-18), chiave «lavoro/nome» */
+    r.onupgradeneeded=function(){var d=r.result;["vprobe","jobs","files"].forEach(function(n){if(!d.objectStoreNames.contains(n))d.createObjectStore(n)})};
     r.onsuccess=function(){res(r.result)};r.onerror=function(){idbP=null;rej(r.error)};
   }));
 }
@@ -3420,7 +3421,7 @@ async function capRebuild(list){
   await loaderOff();capRender();
 }
 function snapFlash(){var b=document.body;b.classList.remove("snap");void b.offsetWidth;b.classList.add("snap");setTimeout(function(){b.classList.remove("snap")},700)}
-function capClear(){cap.pages.forEach(function(p){if(p.url)URL.revokeObjectURL(p.url)});cap.pages=[];cap.sel=-1}
+function capClear(){cap.pages.forEach(function(p){if(p.url)URL.revokeObjectURL(p.url)});cap.pages=[];cap.sel=-1;sessDrop(cap)}
 function shoot(target){capTarget=target==null?-1:target;$("camInput").click()}
 async function workFrom(file){
   var bmp;
@@ -3494,7 +3495,7 @@ async function capManual(i,on){
     if(r==="retake")return;
     capTarget=-1;
     if(!r){capRender();return}
-    p.work=r.work;p.q=r.q;p.mids=r.mids;p.manual=true;
+    if(p.work!==r.work)p.sw=null;p.work=r.work;p.q=r.q;p.mids=r.mids;p.manual=true;
   }else{
     p.manual=false;
     var pr=p.prop&&p.prop.work===p.work?p.prop:null;
@@ -3641,7 +3642,7 @@ function capRender(){
   /* casella «Rendi compilabile» (R-CPL-12/13): compare a pagine fatte, se sono un modulo o se si arriva da Compila;
      accesa arrivando da Compila. Accesa, il salvataggio diventa «Avanti: rendi compilabile» */
   var fillBox=mode==="pdf"&&n>0&&(cap.giro||formSeen()>0),giro=fillBox&&cap.giro;
-  formScan();
+  formScan();capSaveSoon();
   if(capWide.matches){
     /* proposta B: griglia di schede e barra fissa */
     var pn=panel(t("capPages"));
@@ -3894,7 +3895,9 @@ window.APP={
   lensCount:function(s){$("loaderN").textContent=s},
   lensOff:loaderOff,
   saveBlob:saveBlob,savedAs:function(){return savedAs},festa:function(){music.festa()},
-  checkBx:checkBx,fitBtns:fitBtns,isFill:function(){return act==="fill"},toCapture:toCapture
+  checkBx:checkBx,fitBtns:fitBtns,isFill:function(){return act==="fill"},toCapture:toCapture,
+  /* lavoro salvato (R-APP-18) */
+  jobPut:jobPut,jobDrop:jobDrop,filePut:filePut,fileGet:fileGet,JOBV:function(){return JOBV}
 };
 var lensW=1,lensH=1;
 $("camInput").addEventListener("change",function(e){
@@ -3932,7 +3935,12 @@ setMode(MODES.indexOf(firstMode)>=0?firstMode:"pdf",true);
 applyLang();
 if(!hadMode&&mode==="pdf"&&$("modeBtn"))$("modeBtn").classList.add("wiggle");
 /* lavori in pausa da riprendere (R-APP-13) */
-setTimeout(async function(){if(items.length||loading)return;if(welcome())return;await tidyDialog();if(!items.length&&!loading)jobsDialog()},700);
+setTimeout(async function(){
+  if(items.length||loading)return;
+  var live=await sessFresh();
+  if(live&&await sessResume(live)){toast(t("jobBack"));return}
+  if(welcome())return;await tidyDialog();if(!items.length&&!loading)jobsDialog();
+},700);
 /* ogni 9 s circa uno dei due rulli accenna mezzo giro, a turno (R-UI-12) */
 var nudgeTurn=0;
 setInterval(function(){
@@ -4491,6 +4499,7 @@ async function jobsDir(create){var r=await navigator.storage.getDirectory();retu
 /* later: i file si cancellano dopo un po', perché uno scaricamento appena partito potrebbe ancora leggerli */
 async function jobDrop(id,later){
   try{await idbDo(true,function(st){return st.delete(id)},"jobs")}catch(e){}
+  try{await idbDo(true,function(st){return st.delete(IDBKeyRange.bound(id+"/",id+"/\uffff"))},"files")}catch(e){}
   var rm=async function(){try{await (await jobsDir()).removeEntry(id,{recursive:true})}catch(e){}};
   if(later)setTimeout(rm,90000);else await rm();
 }
@@ -4503,7 +4512,7 @@ async function opfsSize(h){
   return n;
 }
 async function tidyScan(){
-  var r={an:[],jobs:[],dirs:[],size:0};
+  var r={an:[],jobs:[],dirs:[],size:0,fkeys:[]};
   try{
     var keys=await idbDo(false,function(st){return st.getAllKeys()}),vals=await idbDo(false,function(st){return st.getAll()});
     (vals||[]).forEach(function(v,i){if(!v||v.ver!==VPV)r.an.push(keys[i])});
@@ -4512,6 +4521,11 @@ async function tidyScan(){
   try{
     var jk=await idbDo(false,function(st){return st.getAllKeys()},"jobs"),jv=await idbDo(false,function(st){return st.getAll()},"jobs");
     (jv||[]).forEach(function(v,i){if(v&&(v.v||"1")===JOBV)good[jk[i]]=1;else r.jobs.push(jk[i])});
+  }catch(e){}
+  try{
+    var fk=await idbDo(false,function(st){return st.getAllKeys()},"files");
+    r.fkeys=(fk||[]).filter(function(k){return !good[String(k).split("/")[0]]});
+    if(r.fkeys.length){r.dirs.push(null);var fv=await idbDo(false,function(st){return st.getAll()},"files");(fk||[]).forEach(function(k,i){if(r.fkeys.indexOf(k)>=0&&fv[i])r.size+=fv[i].size||0})}
   }catch(e){}
   try{
     var root=await navigator.storage.getDirectory();
@@ -4535,7 +4549,8 @@ async function tidyDialog(){
   if(await ask({title:t("tidyTitle"),text:t("tidyBody",{what:bits.join(" · ")}),noCancel:true,buttons:[{label:t("tidyYes"),cls:"danger",value:1},{label:t("jobsLater"),cls:"alt",value:null}]})!==1)return;
   try{await idbDo(true,function(st){r.an.forEach(function(k){st.delete(k)});return null})}catch(e){}
   try{await idbDo(true,function(st){r.jobs.forEach(function(k){st.delete(k)});return null},"jobs")}catch(e){}
-  for(var i=0;i<r.dirs.length;i++)try{await r.dirs[i][0].removeEntry(r.dirs[i][1],{recursive:true})}catch(e){}
+  for(var i=0;i<r.dirs.length;i++)try{if(r.dirs[i])await r.dirs[i][0].removeEntry(r.dirs[i][1],{recursive:true})}catch(e){}
+  try{if(r.fkeys&&r.fkeys.length)await idbDo(true,function(st){r.fkeys.forEach(function(k){st.delete(k)});return null},"files")}catch(e){}
   vMemShow();toast(t("tidyDone",{size:fmt(r.size)}));
 }
 /* un file schiacciato e non salvato va nella cartella privata del lavoro: spostato se è già su disco, copiato se è in memoria */
@@ -4624,12 +4639,26 @@ async function restoreJob(rec){
   var miss=rec.files.length-hit;
   say(t("jobResumed",{name:rec.name,n:nf(hit)})+(miss?" · "+t("jobMissing",{n:nf(miss)}):""));
 }
+/* scheda di un lavoro di Cattura o Compila nella finestra dei lavori (R-APP-18): etichetta con la parola del verbo */
+function sessCard(r,onGo,onPick){
+  var card=el("div","job"),lab=el("label","check"),cb=document.createElement("input");cb.type="checkbox";
+  lab.appendChild(cb);lab.appendChild(checkBx());lab.setAttribute("aria-label",r.name);
+  cb.addEventListener("change",function(){onPick(cb.checked)});
+  var vf=verbFace(titleParts(r.kind==="capture"?"h1C":"h1F")[titleParts("h1").before.trim()?"before":"after"]).word;
+  var ttl=el("b"),ty=el("span","ty ty-"+r.kind,vf);ttl.appendChild(ty);ttl.appendChild(document.createTextNode(r.name));
+  var bits=[r.kind==="capture"?t("capInfo",{n:nf(r.pages.length),size:fmt(r.size||0)}):t("fillFound",{n:nf(r.fields.length)})];
+  try{bits.push(new Date(r.t).toLocaleString(lang,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))}catch(e){}
+  var go=el("button","btn ok jgo",t("jobResume"));go.type="button";go.addEventListener("click",onGo);
+  card.appendChild(lab);card.appendChild(ttl);card.appendChild(el("small",null,bits.join(" · ")));card.appendChild(go);
+  return card;
+}
 /* all'avvio: lavori in pausa da riprendere o eliminare (R-APP-13) */
 async function jobsDialog(){
   var list=(await jobsAll()).sort(function(a,b){return b.t-a.t});if(!list.length)return;
   var box=el("div","jobs"),picked={},pickN=0,chosen=null,closer=null,del=null;
   var KL={pdf:"PDF",jpg:"JPG",video:"VIDEO"};
   list.forEach(function(r){
+    if(r.kind==="capture"||r.kind==="fill"){box.appendChild(sessCard(r,function(){chosen=r;if(closer)closer("resume")},function(c){if(c){picked[r.id]=r;pickN++}else{delete picked[r.id];pickN--}if(del){del.textContent=t("jobsDelete",{n:nf(pickN)});del.disabled=!pickN}}));return}
     var n=r.files.length,dn=0,vn=0,an=0;
     r.files.forEach(function(f){if(f.status==="done"||f.status==="kept"||f.status==="over")dn++;if(f.kind==="video"){vn++;if(f.an||f.status!=="wait")an++}});
     var card=el("div","job"),lab=el("label","check"),cb=document.createElement("input");cb.type="checkbox";
@@ -4650,9 +4679,72 @@ async function jobsDialog(){
   var a=await ask({title:t("jobsTitle"),text:t("jobsBody"),body:box,noCancel:true,
     buttons:[{label:t("jobsDelete",{n:nf(0)}),cls:"danger",value:"del",check:function(){return pickN>0}},{label:t("jobsLater"),cls:"alt",value:null}],
     onOpen:function(close){closer=close;del=$("modalBtns").querySelector(".danger");if(del)del.disabled=true}});
-  if(a==="resume"&&chosen){resumeJob(chosen);return}
+  if(a==="resume"&&chosen){if(chosen.kind==="capture"||chosen.kind==="fill")sessResume(chosen);else resumeJob(chosen);return}
   if(a==="del"){for(var id in picked)await jobDrop(id);toast(t("jobsDeleted"));jobsDialog()}
 }
+
+/* ---------- lavori di Cattura e Compila (R-APP-18): salvati da soli, ripresi da soli se l'app si riapre presto ---------- */
+function filePut(id,n,b){return idbDo(true,function(st){return st.put(b,id+"/"+n)},"files")}
+function fileGet(id,n){return idbDo(false,function(st){return st.get(id+"/"+n)},"files")}
+function sessDrop(o){clearTimeout(o.saveT);if(o.sid){jobDrop(o.sid);o.sid=null}}
+async function canvasOf(blob){
+  var b=await createImageBitmap(blob),c=document.createElement("canvas");c.width=b.width;c.height=b.height;c.getContext("2d").drawImage(b,0,0);if(b.close)b.close();return c;
+}
+function capSaveSoon(){if(act!=="capture"||!cap.pages.length)return;clearTimeout(cap.saveT);cap.saveT=setTimeout(capSaveNow,1500)}
+/* la foto di partenza di ogni pagina si scrive una volta, la pagina fatta ogni volta che cambia */
+async function capSaveNow(){
+  clearTimeout(cap.saveT);if(act!=="capture"||!cap.pages.length||cap.saving)return;
+  cap.saving=true;
+  try{
+    if(!cap.sid)cap.sid="c"+Date.now();
+    var id=cap.sid,size=0;
+    for(var i=0;i<cap.pages.length;i++){
+      var p=cap.pages[i];
+      if(!p.sw){p.sw="w"+Date.now()+"-"+i;await filePut(id,p.sw,await toJpeg(p.work,.92))}
+      if(p.blob&&p.sb!==p.blob){var nb="p"+Date.now()+"-"+i;await filePut(id,nb,p.blob);if(p.sbName)idbDo(true,function(st){return st.delete(id+"/"+p.sbName)},"files").catch(function(){});p.sb=p.blob;p.sbName=nb}
+      size+=p.blob?p.blob.size:0;
+    }
+    if(cap.sid!==id)return;
+    await jobPut({id:id,v:JOBV,kind:"capture",t:Date.now(),mode:mode,name:t("scanName"),giro:!!cap.giro,style:scanStyle,sel:cap.sel,size:size,
+      pages:cap.pages.map(function(p){return {w:p.sw,b:p.sbName,q:p.q,mids:p.mids,rot:p.rot,style:p.style,manual:!!p.manual,flat:!!p.flat,refined:!!p.refined,auto:p.auto||null,formN:p.formN,prop:p.prop?{q:p.prop.q,mids:p.prop.mids,edge:!!p.prop.edge}:null}})});
+  }catch(e){}
+  finally{cap.saving=false}
+}
+async function capRestore(rec){
+  setAction("capture",true);if(act!=="capture")return false;
+  if(mode!==rec.mode)setMode(rec.mode,true);
+  if(rec.style){scanStyle=rec.style}
+  loaderOn("scan",t("scanning"));
+  var pages=[];
+  try{
+    for(var i=0;i<rec.pages.length;i++){
+      var r=rec.pages[i],wb=await fileGet(rec.id,r.w),bb=r.b?await fileGet(rec.id,r.b):null;if(!wb)continue;
+      var work=await canvasOf(wb);
+      var p={work:work,q:r.q,mids:r.mids,rot:r.rot||0,style:r.style||null,manual:r.manual,flat:r.flat,refined:r.refined,auto:r.auto,formN:r.formN,sw:r.w,
+        prop:r.prop?{work:work,q:r.prop.q,mids:r.prop.mids,edge:r.prop.edge}:null};
+      if(bb){p.blob=bb;p.sb=bb;p.sbName=r.b;p.url=URL.createObjectURL(bb)}else await capBuild(p);
+      pages.push(p);
+    }
+  }catch(e){}
+  await loaderOff();
+  if(!pages.length)return false;
+  cap.pages=pages;cap.sid=rec.id;cap.giro=!!rec.giro;cap.sel=Math.min(Math.max(0,rec.sel|0),pages.length-1);
+  capRender();return true;
+}
+async function sessResume(rec){
+  var ok=false;
+  if(rec.kind==="capture")ok=await capRestore(rec);
+  else if(rec.kind==="fill"){try{await fillLib();setAction("fill",true);if(act==="fill")ok=await Compila.restore(rec)}catch(e){ok=false}}
+  if(!ok){jobDrop(rec.id);say(t("failed"),true)}
+  return ok;
+}
+/* riaperta da poco (Android chiude le app lasciate in secondo piano): si torna dove si era, senza domande */
+async function sessFresh(){
+  var list=(await jobsAll()).filter(function(r){return (r.kind==="capture"||r.kind==="fill")&&Date.now()-r.t<CFG.ui.resumeWithin}).sort(function(a,b){return b.t-a.t});
+  return list[0]||null;
+}
+document.addEventListener("visibilitychange",function(){if(document.hidden){capSaveNow();if(window.Compila&&Compila.saveNow)Compila.saveNow()}});
+window.addEventListener("pagehide",function(){capSaveNow();if(window.Compila&&Compila.saveNow)Compila.saveNow()});
 
 /* ---------- benvenuto: giro del primo avvio e novità dopo un aggiornamento (R-BEN) ---------- */
 var tour={steps:[],i:0,on:false,news:false,tadaa:false};

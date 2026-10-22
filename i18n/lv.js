@@ -204,5 +204,6 @@
   newsFillT: "Es iemācījos aizpildīt veidlapas!",
   newsFillP: "Nofotografē veidlapu: atradīšu tukšās vietas un pārvērtīšu to aizpildāmā PDF ar datumiem, skaitļiem un sarakstiem.",
   fillZoomOut: "Tālināt",
-  fillZoomIn: "Tuvināt"
+  fillZoomIn: "Tuvināt",
+  jobBack: "Turpināju no vietas, kur paliki."
 };

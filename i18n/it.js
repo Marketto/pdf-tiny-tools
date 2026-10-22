@@ -204,5 +204,6 @@
   newsFillT: "Ho imparato a compilare!",
   newsFillP: "Fotografa un modulo: trovo gli spazi vuoti e lo trasformo in un PDF compilabile, con date, numeri e liste.",
   fillZoomOut: "Rimpicciolisci",
-  fillZoomIn: "Ingrandisci"
+  fillZoomIn: "Ingrandisci",
+  jobBack: "Ho ripreso da dove eri rimasto."
 };

@@ -204,5 +204,6 @@
   newsFillT: "Aprendi a preencher!",
   newsFillP: "Fotografe um formulário: eu acho os espaços vazios e transformo em um PDF preenchível, com datas, números e listas.",
   fillZoomOut: "Diminuir zoom",
-  fillZoomIn: "Aumentar zoom"
+  fillZoomIn: "Aumentar zoom",
+  jobBack: "Retomei onde tinhas ficado."
 };

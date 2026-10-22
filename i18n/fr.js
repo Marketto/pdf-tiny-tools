@@ -204,5 +204,6 @@
   newsFillT: "J'ai appris à remplir !",
   newsFillP: "Photographiez un formulaire : je trouve les cases vides et je le transforme en PDF à remplir, avec dates, nombres et listes.",
   fillZoomOut: "Dézoomer",
-  fillZoomIn: "Zoomer"
+  fillZoomIn: "Zoomer",
+  jobBack: "J’ai repris là où tu t’étais arrêté."
 };

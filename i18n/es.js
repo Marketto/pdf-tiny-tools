@@ -204,5 +204,6 @@
   newsFillT: "¡He aprendido a rellenar!",
   newsFillP: "Fotografía un formulario: encuentro los huecos vacíos y lo convierto en un PDF rellenable, con fechas, números y listas.",
   fillZoomOut: "Alejar",
-  fillZoomIn: "Acercar"
+  fillZoomIn: "Acercar",
+  jobBack: "He seguido justo donde lo dejaste."
 };

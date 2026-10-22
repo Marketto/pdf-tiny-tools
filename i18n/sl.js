@@ -204,5 +204,6 @@
   newsFillT: "Naučil sem se izpolnjevati!",
   newsFillP: "Fotografiraj obrazec: najdem prazne prostore in ga spremenim v PDF za izpolnjevanje, z datumi, števili in seznami.",
   fillZoomOut: "Pomanjšaj",
-  fillZoomIn: "Povečaj"
+  fillZoomIn: "Povečaj",
+  jobBack: "Nadaljujem tam, kjer si ostal."
 };

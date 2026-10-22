@@ -204,5 +204,6 @@
   newsFillT: "Išmokau pildyti formas!",
   newsFillP: "Nufotografuok formą: rasiu tuščias vietas ir paversiu ją pildomu PDF su datomis, skaičiais ir sąrašais.",
   fillZoomOut: "Tolinti",
-  fillZoomIn: "Artinti"
+  fillZoomIn: "Artinti",
+  jobBack: "Tęsiu nuo ten, kur sustojai."
 };

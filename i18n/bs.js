@@ -204,5 +204,6 @@
   newsFillT: "Naučio sam da popunjavam!",
   newsFillP: "Uslikaj obrazac: nađem prazna mjesta i pretvorim ga u PDF za popunjavanje, s datumima, brojevima i listama.",
   fillZoomOut: "Umanji",
-  fillZoomIn: "Uvećaj"
+  fillZoomIn: "Uvećaj",
+  jobBack: "Nastavljam gdje si stao."
 };

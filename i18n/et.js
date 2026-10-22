@@ -204,5 +204,6 @@
   newsFillT: "Õppisin vorme täitma!",
   newsFillP: "Pildista vorm: leian tühjad kohad ja teen sellest täidetava PDF-i koos kuupäevade, numbrite ja loenditega.",
   fillZoomOut: "Vähenda",
-  fillZoomIn: "Suurenda"
+  fillZoomIn: "Suurenda",
+  jobBack: "Jätkasin sealt, kus pooleli jäi."
 };

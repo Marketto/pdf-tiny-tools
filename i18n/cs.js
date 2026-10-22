@@ -204,5 +204,6 @@
   newsFillT: "Naučil jsem se vyplňovat!",
   newsFillP: "Vyfoť formulář: najdu prázdná místa a udělám z něj vyplnitelné PDF, s daty, čísly a seznamy.",
   fillZoomOut: "Oddálit",
-  fillZoomIn: "Přiblížit"
+  fillZoomIn: "Přiblížit",
+  jobBack: "Pokračuju tam, kde jsi skončil."
 };

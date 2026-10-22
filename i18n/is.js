@@ -204,5 +204,6 @@
   newsFillT: "Ég lærði að fylla út!",
   newsFillP: "Taktu mynd af eyðublaði: ég finn auðu reitina og breyti því í útfyllanlegt PDF, með dagsetningum, tölum og listum.",
   fillZoomOut: "Þysja út",
-  fillZoomIn: "Þysja inn"
+  fillZoomIn: "Þysja inn",
+  jobBack: "Ég hélt áfram þar sem þú hættir."
 };

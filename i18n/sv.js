@@ -204,5 +204,6 @@
   newsFillT: "Jag har lärt mig fylla i!",
   newsFillP: "Fota en blankett: jag hittar de tomma fälten och gör om den till en ifyllbar PDF, med datum, tal och listor.",
   fillZoomOut: "Zooma ut",
-  fillZoomIn: "Zooma in"
+  fillZoomIn: "Zooma in",
+  jobBack: "Jag fortsatte där du slutade."
 };

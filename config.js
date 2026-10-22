@@ -100,6 +100,8 @@ window.CONFIG = {
     /* il riquadro del lettore si aggiorna al massimo ogni tanti millisecondi (R-APP-07) */
     mediaEvery: 20000,
     /* salvataggio automatico del lavoro, al massimo ogni tanti millisecondi (R-APP-12) */
-    autosaveEvery: 4000
+    autosaveEvery: 4000,
+    /* Cattura e Compila (R-APP-18): riaprendo l'app entro tanti millisecondi dall'ultimo salvataggio si torna da soli dove si era */
+    resumeWithin: 900000
   }
 };

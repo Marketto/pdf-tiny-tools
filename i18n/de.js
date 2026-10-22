@@ -204,5 +204,6 @@
   newsFillT: "Ich kann jetzt Formulare!",
   newsFillP: "Knips ein Formular: Ich finde die leeren Stellen und mache daraus ein ausfüllbares PDF, mit Datum, Zahlen und Listen.",
   fillZoomOut: "Verkleinern",
-  fillZoomIn: "Vergrößern"
+  fillZoomIn: "Vergrößern",
+  jobBack: "Weiter geht’s, wo du aufgehört hast."
 };

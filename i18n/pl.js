@@ -204,5 +204,6 @@
   newsFillT: "Nauczyłem się wypełniać formularze!",
   newsFillP: "Pstryknij formularz: znajdę puste miejsca i zrobię z niego PDF do wypełniania, z datami, liczbami i listami.",
   fillZoomOut: "Pomniejsz",
-  fillZoomIn: "Powiększ"
+  fillZoomIn: "Powiększ",
+  jobBack: "Wracam tam, gdzie skończyłeś."
 };

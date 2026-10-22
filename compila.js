@@ -447,6 +447,7 @@ var ICON={
 function tyIcon(ty){return ty==="date"?ICON.cal:ty==="list"?ICON.list:ty==="check"?ICON.check:""}
 
 function render(){
+  saveSoon();
   var box=$("fill");if(!box)return;
   box.textContent="";
   if(!APP.isFill())return;
@@ -495,7 +496,7 @@ async function fromCapture(pages,name){
 /* la lente (R-CPL-04): schermata a tutto schermo, musica «scansione», contatore dei campi */
 var cancel=false;
 async function analyze(src){
-  cancel=false;
+  cancel=false;sessDrop();
   APP.lensOn(t("fillReading"));
   var pages=[],fields=[],D=null,stopped=function(){return cancel||APP.cancelled()};
   try{
@@ -525,7 +526,7 @@ async function analyze(src){
   var was=await APP.lensOff();
   if(was||stopped()){render();return}
   if(!pages){APP.say(t("failed"),true);render();return}
-  S.src=src;S.pages=pages.map(function(p){var u=URL.createObjectURL(p.blob||dataBlob(p.cv));return {n:p.n,W:p.cv.width,H:p.cv.height,wPt:p.wPt,hPt:p.hPt,url:u,blob:p.blob||null,script:p.script||null,code:p.code}});
+  S.src=src;S.pages=pages.map(function(p){var b=p.blob||dataBlob(p.cv),u=URL.createObjectURL(b);return {n:p.n,W:p.cv.width,H:p.cv.height,wPt:p.wPt,hPt:p.hPt,url:u,blob:p.blob||null,img:b,script:p.script||null,code:p.code}});
   pages.forEach(function(p){p.cv.width=p.cv.height=0});
   S.fields=fields;S.sel=-1;S.view="fields";S.filled=false;S.pack=D&&D.P||null;
   APP.stat("compila/campi/"+APP.bucket(fields.length));
@@ -723,20 +724,20 @@ function readyLists(){
 function tryInput(f,fi,pg){
   var w=el("div","ftry");
   var inp;
-  if(f.type==="check"){inp=document.createElement("input");inp.type="checkbox";inp.checked=!!f.value;inp.addEventListener("change",function(){f.value=inp.checked;S.filled=true})}
+  if(f.type==="check"){inp=document.createElement("input");inp.type="checkbox";inp.checked=!!f.value;inp.addEventListener("change",function(){f.value=inp.checked;S.filled=true;saveSoon()})}
   else if(f.type==="list"){
     if(f.edit){inp=document.createElement("input");inp.type="text";var dl=document.createElement("datalist");dl.id="fdl"+fi;(f.items||[]).forEach(function(v){var o=document.createElement("option");o.value=v;dl.appendChild(o)});w.appendChild(dl);inp.setAttribute("list",dl.id)}
     else{inp=document.createElement("select");[""].concat(f.items||[]).forEach(function(v){var o=el("option",null,v);o.value=v;inp.appendChild(o)})}
-    inp.value=f.value||"";inp.addEventListener("change",function(){f.value=inp.value;S.filled=true});inp.addEventListener("input",function(){f.value=inp.value;S.filled=!!inp.value||S.filled});
+    inp.value=f.value||"";inp.addEventListener("change",function(){f.value=inp.value;S.filled=true;saveSoon()});inp.addEventListener("input",function(){f.value=inp.value;S.filled=!!inp.value||S.filled;saveSoon()});
   }
-  else if(f.type==="date"&&(f.fmt||"dmy")==="dmy"){inp=document.createElement("input");inp.type="date";inp.value=f.iso||"";inp.addEventListener("change",function(){f.iso=inp.value;f.value=isoTo(inp.value);S.filled=true})}
+  else if(f.type==="date"&&(f.fmt||"dmy")==="dmy"){inp=document.createElement("input");inp.type="date";inp.value=f.iso||"";inp.addEventListener("change",function(){f.iso=inp.value;f.value=isoTo(inp.value);S.filled=true;saveSoon()})}
   else{
     inp=document.createElement("input");inp.type="text";
     if(f.type==="number"){inp.inputMode=f.fmt==="int"?"numeric":"decimal"}
     if(f.type==="date"){inp.inputMode="numeric";inp.placeholder=fmtPattern(f.fmt)}
     var mx=f.comb||f.max;if(mx)inp.maxLength=mx;
     inp.value=f.value!=null?f.value:(f.prefill||"");
-    inp.addEventListener("input",function(){f.value=inp.value;S.filled=true});
+    inp.addEventListener("input",function(){f.value=inp.value;S.filled=true;saveSoon()});
   }
   inp.className="ftin";inp.setAttribute("aria-label",f.name);if(f.req)inp.required=true;
   if(f.comb)w.classList.add("comb");
@@ -838,7 +839,47 @@ async function save(withValues){
   await APP.loaderOff();
   if(!blob){APP.say(t("failed"),true);return}
   var nm=S.name+"-"+t(withValues?"fillSufTry":"fillSufModel")+".pdf";
-  if(await APP.saveBlob(nm,blob)){APP.say(t("saved",{name:APP.savedAs()}));APP.stat(withValues?"compila/salva-prova":"compila/salva-modello");APP.festa()}
+  if(await APP.saveBlob(nm,blob)){
+    APP.say(t("saved",{name:APP.savedAs()}));APP.stat(withValues?"compila/salva-prova":"compila/salva-modello");APP.festa();
+    /* salvato: il lavoro sul dispositivo non serve più, finché non si cambia ancora qualcosa (R-APP-18) */
+    sessDrop();S.cleanSig=sig();
+  }
+}
+
+/* ---------- lavoro salvato sul dispositivo (R-APP-18): modulo di partenza, pagine, campi e valori della prova ---------- */
+function sig(){return JSON.stringify([S.fields,S.view,S.filled])}
+function saveSoon(){if(!S.pages.length)return;clearTimeout(S.saveT);S.saveT=setTimeout(saveNow,1500)}
+function sessDrop(){clearTimeout(S.saveT);if(S.sid){APP.jobDrop(S.sid);S.sid=null}S.stored=false}
+async function saveNow(){
+  clearTimeout(S.saveT);if(!S.pages.length||S.saving)return;
+  var g=sig();if(g===S.cleanSig||g===S.lastSig&&S.sid)return;
+  S.saving=true;
+  try{
+    if(!S.sid){S.sid="f"+Date.now();S.stored=false}
+    var id=S.sid;
+    if(!S.stored){
+      if(S.src.kind==="pdf")await APP.filePut(id,"src",new Blob([S.src.bytes],{type:"application/pdf"}));
+      for(var i=0;i<S.pages.length;i++)await APP.filePut(id,"pg"+i,S.pages[i].img||S.pages[i].blob);
+      S.stored=true;
+    }
+    if(S.sid!==id)return;
+    await APP.jobPut({id:id,v:APP.JOBV(),kind:"fill",t:Date.now(),name:S.name,src:S.src.kind,view:S.view,zoom:S.zoom,filled:S.filled,pack:S.pack||null,fields:S.fields,
+      pages:S.pages.map(function(p){return {n:p.n,W:p.W,H:p.H,wPt:p.wPt,hPt:p.hPt,script:p.script,code:p.code,photo:!!p.blob}})});
+    S.lastSig=g;
+  }catch(e){}
+  finally{S.saving=false}
+}
+async function restore(rec){
+  var pages=[],src;
+  for(var i=0;i<rec.pages.length;i++){
+    var r=rec.pages[i],b=await APP.fileGet(rec.id,"pg"+i);if(!b)return false;
+    pages.push({n:r.n,W:r.W,H:r.H,wPt:r.wPt,hPt:r.hPt,url:URL.createObjectURL(b),img:b,blob:r.photo?b:null,script:r.script,code:r.code});
+  }
+  if(rec.src==="pdf"){var sb=await APP.fileGet(rec.id,"src");if(!sb)return false;src={kind:"pdf",bytes:new Uint8Array(await sb.arrayBuffer())}}
+  else src={kind:"img",pages:pages.map(function(p){return {blob:p.blob,script:p.script}})};
+  S.src=src;S.pages=pages;S.fields=rec.fields||[];S.view=rec.view||"fields";S.zoom=rec.zoom||0;S.filled=!!rec.filled;S.pack=rec.pack||null;S.name=rec.name||"modulo";
+  S.sel=-1;S.adding=false;S.sid=rec.id;S.stored=true;S.lastSig=sig();S.cleanSig=null;
+  render();return true;
 }
 
 /* ---------- stima veloce per Cattura (R-CPL-13): solo righe e caselle, senza Tesseract ---------- */
@@ -852,7 +893,8 @@ async function quickCount(blob){
 
 window.Compila={
   render:render,busy:busy,
-  clear:function(){S.pages.forEach(function(p){URL.revokeObjectURL(p.url)});S.src=null;S.pages=[];S.fields=[];S.sel=-1;S.view="fields";S.adding=false;S.filled=false},
+  clear:function(){sessDrop();S.pages.forEach(function(p){URL.revokeObjectURL(p.url)});S.src=null;S.pages=[];S.fields=[];S.sel=-1;S.view="fields";S.adding=false;S.filled=false;S.cleanSig=S.lastSig=null},
+  saveNow:saveNow,restore:restore,
   fromCapture:fromCapture,openFiles:openFiles,quickCount:quickCount,
   cancel:function(){cancel=true},
   /* per le prove */

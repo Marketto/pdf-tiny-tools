@@ -204,5 +204,6 @@
   newsFillT: "Opin täyttämään lomakkeita!",
   newsFillP: "Kuvaa lomake: etsin tyhjät kohdat ja teen siitä täytettävän PDF:n, jossa on päivämäärät, numerot ja listat.",
   fillZoomOut: "Loitonna",
-  fillZoomIn: "Lähennä"
+  fillZoomIn: "Lähennä",
+  jobBack: "Jatkoin siitä, mihin jäit."
 };

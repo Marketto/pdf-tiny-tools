@@ -204,5 +204,6 @@
   newsFillT: "I learned to fill forms!",
   newsFillP: "Snap a form: I find the blanks and turn it into a fillable PDF, with dates, numbers and lists.",
   fillZoomOut: "Zoom out",
-  fillZoomIn: "Zoom in"
+  fillZoomIn: "Zoom in",
+  jobBack: "Picked up right where you left off."
 };

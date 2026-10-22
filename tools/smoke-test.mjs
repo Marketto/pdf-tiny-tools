@@ -208,7 +208,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
   await page.goto(url); await page.waitForTimeout(1200);
   await page.evaluate(async () => {
-    await new Promise((res) => { const r = indexedDB.open("schiaccia", 2); r.onupgradeneeded = () => { const d = r.result; if (!d.objectStoreNames.contains("vprobe")) d.createObjectStore("vprobe"); if (!d.objectStoreNames.contains("jobs")) d.createObjectStore("jobs"); };
+    await new Promise((res) => { const r = indexedDB.open("schiaccia", 3); r.onupgradeneeded = () => { const d = r.result; ["vprobe", "jobs", "files"].forEach((n) => { if (!d.objectStoreNames.contains(n)) d.createObjectStore(n); }); };
       r.onsuccess = () => { const tx = r.result.transaction(["vprobe", "jobs"], "readwrite"); tx.objectStore("vprobe").put({ ver: "1", v: {} }, "vecchia"); tx.objectStore("vprobe").put({ ver: "2", v: {} }, "buona"); tx.objectStore("jobs").put({ id: "jok", t: Date.now(), mode: "pdf", name: "ok", files: [], set: {} }, "jok"); tx.oncomplete = () => { r.result.close(); res(); }; }; });
     const root = await navigator.storage.getDirectory();
     const d = await root.getDirectoryHandle("vecchia-cartella", { create: true }); const w = await (await d.getFileHandle("x.bin", { create: true })).createWritable(); await w.write(new Uint8Array(200000)); await w.close();
@@ -955,6 +955,54 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector(".fillCheck") && document.querySelector(".capGo"), null, { timeout: 120000 }).catch(() => {});
   check(await page.locator(".fillCheck input").isChecked() && /Avanti/.test(await page.locator(".capGo").first().textContent()), "Giro: da Compila una foto va in Cattura con «Rendi compilabile» già accesa e «Avanti: rendi compilabile»");
   check(errors.length === 0, `Giro: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
+// --- lavoro salvato di Cattura e Compila (R-APP-18): riaprendo l'app si torna dove si era; più tardi, nella finestra dei lavori
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url);await page.waitForTimeout(600);
+  const png = await page.evaluate(async () => {
+    const c = document.createElement("canvas"); c.width = 1400; c.height = 1900; const g = c.getContext("2d");
+    g.fillStyle = "#3a3a3a"; g.fillRect(0, 0, c.width, c.height); g.fillStyle = "#fff"; g.fillRect(100, 100, 1200, 1700);
+    g.fillStyle = "#000"; g.font = "28px Arial"; g.lineWidth = 2;
+    ["Cognome", "Nome", "Indirizzo", "Telefono", "Data", "Firma"].forEach((s, i) => { const y = 300 + i * 150; g.fillText(s, 180, y); g.beginPath(); g.moveTo(400, y + 4); g.lineTo(1200, y + 4); g.stroke(); });
+    return [...new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/png"))).arrayBuffer())];
+  });
+  await page.click("#actBtn");await page.waitForTimeout(300);
+  await page.setInputFiles("#galInput", { name: "foglio.png", mimeType: "image/png", buffer: Buffer.from(png) });
+  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector("#capture .thumb"), null, { timeout: 120000 });
+  await page.locator(".styleSeg, #capture .seg").last().locator("button").nth(2).click().catch(() => {});
+  await page.waitForTimeout(3500);
+  await page.reload();
+  await page.waitForFunction(() => document.body.classList.contains("act-cap") && document.querySelector("#capture .thumb"), null, { timeout: 30000 }).catch(() => {});
+  const back = await page.evaluate(() => ({ cap: document.body.classList.contains("act-cap"), n: document.querySelectorAll("#capture .thumb").length, toast: document.getElementById("toast").textContent }));
+  check(back.cap && back.n === 1 && /ripreso/.test(back.toast), `Lavoro salvato: riaperta l'app, Cattura torna con la sua pagina (${back.n} pagine, «${back.toast}»)`);
+  /* Compila: dalle pagine di Cattura, un campo cambiato, poi ricarico */
+  await page.click("#capture .fillCheck .bx").catch(() => {});
+  await page.click(".capGo").catch(() => {});
+  await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector(".fbox"), null, { timeout: 180000 }).catch(() => {});
+  const n0 = await page.evaluate(() => window.__cpl ? window.__cpl.fields.length : 0);
+  await page.locator(".fbox").first().click();await page.waitForSelector(".fsheet");
+  await page.locator(".ftypes button").nth(1).click();await page.click(".fsheet .acts .btn.ok");
+  await page.waitForTimeout(3500);
+  await page.reload();
+  await page.waitForFunction(() => document.body.classList.contains("act-fill") && document.querySelector(".fbox"), null, { timeout: 60000 }).catch(() => {});
+  const f = await page.evaluate(() => window.__cpl ? { n: window.__cpl.fields.length, t: window.__cpl.fields[0] && window.__cpl.fields[0].type } : { n: 0 });
+  check(n0 > 0 && f.n === n0 && f.t === "number", `Lavoro salvato: riaperta l'app, Compila torna con i campi e le modifiche (${f.n} campi, primo: ${f.t})`);
+  /* più tardi: niente ritorno automatico, il lavoro sta nella finestra dei lavori */
+  await page.evaluate(() => new Promise((res) => { const r = indexedDB.open("schiaccia", 3); r.onsuccess = () => { const tx = r.result.transaction("jobs", "readwrite"), st = tx.objectStore("jobs"); st.getAll().onsuccess = (e) => { e.target.result.forEach((j) => { j.t -= 3600000; st.put(j, j.id); }); }; tx.oncomplete = res; }; }));
+  await page.reload();
+  await page.waitForSelector("#modal:not([hidden]) .job", { timeout: 15000 }).catch(() => {});
+  const card = await page.locator("#modal .job .ty").first().textContent().catch(() => "");
+  check(/Compila/.test(card) && !(await page.evaluate(() => document.body.classList.contains("act-fill"))), `Lavoro salvato: dopo un'ora il lavoro aspetta nella finestra dei lavori («${card}»)`);
+  await page.click("#modal .job .jgo").catch(() => {});
+  await page.waitForFunction(() => document.body.classList.contains("act-fill") && document.querySelector(".fbox"), null, { timeout: 60000 }).catch(() => {});
+  check(await page.evaluate(() => window.__cpl && window.__cpl.fields.length) === n0, "Lavoro salvato: «Riprendi» riporta in Compila");
+  check(errors.length === 0, `Lavoro salvato: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
 await browser.close(); server.close();

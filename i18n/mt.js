@@ -204,5 +204,6 @@
   newsFillT: "Tgħallimt nimla l-formoli!",
   newsFillP: "Ħu ritratt ta' formola: insib l-ispazji vojta u nibdilha f'PDF li jimtela, b'dati, numri u listi.",
   fillZoomOut: "Ċekken",
-  fillZoomIn: "Kabbar"
+  fillZoomIn: "Kabbar",
+  jobBack: "Komplejt minn fejn waqaft."
 };

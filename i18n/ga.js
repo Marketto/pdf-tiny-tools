@@ -204,5 +204,6 @@
   newsFillT: "D'fhoghlaim mé foirmeacha a líonadh!",
   newsFillP: "Sciob foirm: aimsím na bearnaí agus déanaim PDF inlíonta di, le dátaí, uimhreacha agus liostaí.",
   fillZoomOut: "Zúmáil amach",
-  fillZoomIn: "Zúmáil isteach"
+  fillZoomIn: "Zúmáil isteach",
+  jobBack: "Lean mé ar aghaidh ón áit ar stop tú."
 };

@@ -204,5 +204,6 @@
   newsFillT: "Saya sudah bisa mengisi formulir!",
   newsFillP: "Foto sebuah formulir: saya cari bagian kosongnya dan mengubahnya jadi PDF yang bisa diisi, lengkap dengan tanggal, angka, dan daftar.",
   fillZoomOut: "Perkecil",
-  fillZoomIn: "Perbesar"
+  fillZoomIn: "Perbesar",
+  jobBack: "Aku lanjutkan dari tempat kamu berhenti."
 };
