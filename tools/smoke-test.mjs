@@ -565,12 +565,9 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(await page.evaluate(() => document.body.classList.contains("act-cap") && getComputedStyle(document.getElementById("go")).display === "none" && !!document.querySelector("#capture .capBig")), "Cattura: la fotocamera apre la schermata Cattura (passi 1-2-3 al telefono)");
   check(/Cattura/.test(await page.innerText("#title")), `Cattura: il verbo del titolo cambia (${(await page.innerText("#title")).replace(/\s+/g, " ")})`);
   await shot(() => page.click("#capture .capBig .btn.go"));
-  await page.waitForSelector("#scanner:not([hidden])");
-  check(await page.locator("#scanSvg .hit").count() === 8 && await page.locator("#scanSvg .mesh").count() === 1, "Cattura: editor con angoli, maniglie dei lati e reticolato");
-  await page.click("#scanOk");
   await page.waitForSelector("#capture .thumb", { timeout: 30000 });
+  check(await page.evaluate(() => document.getElementById("scanner").hidden), "Cattura: lo scatto fa la pagina in automatico, senza aprire l'editor degli angoli (R-SCN-02)");
   await shot(() => page.click("#capture .add"));
-  await page.waitForSelector("#scanner:not([hidden])"); await page.click("#scanOk");
   await page.waitForFunction(() => document.querySelectorAll("#capture .thumb").length === 2 && document.getElementById("loader").hidden, null, { timeout: 30000 });
   check(await page.locator("#capture .tools > .btn").count() === 3 && await page.locator("#capture .moveBar .btn").count() === 3, "Cattura: strumenti della pagina (guarda, ruota, rifai) e sotto la striscia «Prima | Elimina | Dopo»");
   // «Prima» e «Dopo» spostano la pagina selezionata (R-SCN-19)
@@ -586,7 +583,9 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.click("#capture .straightSeg button >> nth=0");
   check(await page.evaluate(() => document.getElementById("scanner").hidden && document.getElementById("loader").hidden), "Cattura: «Automatico» già acceso non fa niente");
   await page.click("#capture .straightSeg button >> nth=1");
-  await page.waitForSelector("#scanner:not([hidden])"); await page.click("#scanOk");
+  await page.waitForSelector("#scanner:not([hidden])");
+  check(await page.locator("#scanSvg .hit").count() === 8 && await page.locator("#scanSvg .mesh").count() === 1, "Cattura: «Angoli a mano» apre l'editor con angoli, maniglie dei lati e reticolato");
+  await page.click("#scanOk");
   await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector("#capture .straightSeg button:nth-child(2)").getAttribute("aria-pressed") === "true", null, { timeout: 30000 });
   check(!!(await page.$("#capture .straightTip")), "Cattura: «Angoli a mano» passa dall'editor e lo dice sotto la scelta");
   await page.click("#capture .straightSeg button >> nth=1");
@@ -634,7 +633,6 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(/\.pdf$/.test(dl.suggestedFilename()) && pages === 2, `Cattura: PDF di ${pages} pagine salvato (${dl.suggestedFilename()})`);
   check(await page.locator("#capture .thumb").count() === 0, "Cattura: dopo il salvataggio la schermata si svuota");
   await shot(() => page.click("#capture .capBig .btn.go"));
-  await page.waitForSelector("#scanner:not([hidden])"); await page.click("#scanOk");
   await page.waitForSelector("#capture .thumb", { timeout: 30000 });
   await page.click("#actBtn");
   await page.waitForSelector("#modal:not([hidden])");
@@ -792,6 +790,9 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.click("#camBtn");
   const [fc] = await Promise.all([page.waitForEvent("filechooser"), page.click("#capture .capBig .btn.go")]);
   await fc.setFiles({ name: "foglio.jpg", mimeType: "image/jpeg", buffer: photo });
+  await page.waitForFunction(() => document.querySelectorAll("#capture .thumb").length === 1 && document.getElementById("loader").hidden, null, { timeout: 120000 });
+  /* la calamita si prova nell'editor di «Angoli a mano»; «Annulla» lascia la pagina automatica */
+  await page.click("#capture .straightSeg button >> nth=1");
   await page.waitForSelector("#scanner:not([hidden])");
   const W = 1500, H = 2000;
   const corner = (i) => page.evaluate((i) => { const c = document.querySelectorAll("#scanSvg circle.handle")[i]; return [+c.getAttribute("cx"), +c.getAttribute("cy")]; }, i);
@@ -803,9 +804,8 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   }
   const snapped = await drag(0, 262, 238);
   check(Math.hypot(snapped[0] - 230, snapped[1] - 260) < 15, `Bordi: calamita, angolo lasciato a 39 px dal vero e agganciato a ${snapped.map((v) => v.toFixed(0))} (vero 230,260)`);
-  await drag(1, 1420, 190);
-  await page.click("#scanOk");
-  await page.waitForFunction(() => document.querySelectorAll("#capture .thumb").length === 1 && document.getElementById("loader").hidden, null, { timeout: 120000 });
+  await page.click("#scanCancel");
+  await page.waitForFunction(() => document.getElementById("scanner").hidden && document.getElementById("loader").hidden, null, { timeout: 30000 });
   const out = await page.evaluate(async () => {
     const im = document.querySelector("#capture .thumb img"); await new Promise((r) => (im.complete && im.naturalWidth ? r() : (im.onload = r)));
     const bmp = await createImageBitmap(await (await fetch(im.src)).blob()), c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height;
@@ -817,7 +817,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     const r = (await w.detect(c)).data; await w.terminate();
     return { dark: dark / n * 100, deg: r.orientation_degrees, conf: r.orientation_confidence };
   });
-  check(out.dark < 10, `Bordi: angolo lasciato nello sfondo corretto dal controllo (sfondo nel bordo della pagina: ${out.dark.toFixed(1)}%)`);
+  check(out.dark < 10, `Bordi: pagina automatica senza sfondo lungo i bordi (sfondo nel bordo della pagina: ${out.dark.toFixed(1)}%)`);
   check(out.deg === 0 && out.conf > 2, `Orientamento: foglio capovolto girato dritto (residuo ${out.deg}°, fiducia ${out.conf && out.conf.toFixed(1)})`);
   check(!reqs.some((u) => /lang\/\w+\.traineddata/.test(u)), "Caricamento pigro: prima del salvataggio nessun dato di lingua scaricato");
   check(await page.locator("#ocrText").isChecked(), "PDF ricercabile: casella accesa all'inizio");

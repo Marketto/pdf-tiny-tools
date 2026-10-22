@@ -2469,6 +2469,13 @@ function detectPage(work){
     var rf=null;try{rf=refineQuad(work,f.q,f.mids)}catch(err){}
     if(rf)cands.push({q:rf.q,mids:rf.mids,seg:true});
   }
+  /* foglio colorato: la maschera del colore più luminoso (R-SCN-34) */
+  var fv=null;try{fv=detectPageAt(work,0,true)}catch(err){}
+  if(fv){
+    cands.push({q:fv.q,mids:fv.mids,seg:true,vivid:true});
+    var rv=null;try{rv=refineQuad(work,fv.q,fv.mids)}catch(err){}
+    if(rv)cands.push({q:rv.q,mids:rv.mids,seg:true,vivid:true});
+  }
   cands.forEach(function(c){c.g=c.q.map(function(p){return [p[0]*k,p[1]*k]})});
   var e=null;try{var tops=edgeQuad(G);tops.forEach(function(c){var r=quadSides(G,c.q);r=quadPolish(G,r.q);if(!e||r.s>e.s)e=r})}catch(err){}
   if(e){var gr=e.q,pre=e.s;
@@ -2481,6 +2488,9 @@ function detectPage(work){
   var ed=cands[cands.length-1].seg?null:cands[cands.length-1],best=null;
   cands.forEach(function(c){c.v=c.seg?c.s*(c.min>=E.segGood?E.segGoodBias:E.segBias):c.s;
     if(c.seg&&ed&&c.min>=E.segMin&&c.s>0&&ed.g.every(function(p){return inQuad(c.g,p)}))c.v=Math.max(c.v,ed.s+1);
+    /* foglio colorato (R-SCN-34): sta dentro il quadrilatero dei lati dritti e attorno, fino a quei lati, c'è uno sfondo nettamente
+       più scuro: i lati dritti erano quelli del divano o del tavolo, il foglio è il colorato */
+    if(c.vivid&&ed&&vividWins(work,c.q,ed.g.map(function(p){return [p[0]/k,p[1]/k]})))c.v=Math.max(c.v,ed.s+1+c.s);
     if(!best||c.v>best.v)best=c});
   if(PERF)(window.__det=window.__det||[]).push(cands.map(function(c){return {seg:c.seg,s:Math.round(c.s),min:Math.round(c.min*100)/100,sup:c.sup.map(function(v){return Math.round(v*100)/100}),cont:c.cont,best:c===best}}));
   /* un lato spostato su un contorno debole abbassa il punteggio: conta quello di prima */
@@ -2497,6 +2507,22 @@ function detectPage(work){
 }
 /* punteggio di un quadrilatero in coordinate della foto (per scegliere tra proposta e correzione automatica) */
 function quadScore(work,q){var G=edgeGrad(work),k=G.k;return quadScoreG(G,q.map(function(p){return [p[0]*k,p[1]*k]})).s}
+function vividWins(work,qin,qout){
+  /* intorno al foglio colorato, in una fascia larga un decimo del foglio, lo sfondo è nettamente più scuro; e i lati dritti
+     prendono molto più del foglio (una parte di divano o di tavolo) */
+  function area(Q){var a=0;for(var j=0;j<4;j++){var p=Q[j],q=Q[(j+1)%4];a+=p[0]*q[1]-q[0]*p[1]}return Math.abs(a)/2}
+  if(area(qout)<area(qin)*1.15)return false;
+  var cx=qin.reduce(function(a,b){return a+b[0]},0)/4,cy=qin.reduce(function(a,b){return a+b[1]},0)/4,ring=qin.map(function(p){return [cx+(p[0]-cx)*1.12,cy+(p[1]-cy)*1.12]});
+  var W=work.width,H=work.height,k=Math.min(1,200/Math.max(W,H)),w=Math.round(W*k),h=Math.round(H*k),c=document.createElement("canvas");c.width=w;c.height=h;
+  var g=c.getContext("2d",{willReadFrequently:true});g.drawImage(work,0,0,w,h);var d=g.getImageData(0,0,w,h).data;c.width=c.height=0;
+  var si=0,ni=0,so=0,no=0;
+  for(var y=0;y<h;y++)for(var x=0;x<w;x++){
+    var P=[x/k,y/k],i=(y*w+x)*4,v=Math.max(d[i],d[i+1],d[i+2]);
+    if(inQuad(qin,P)){si+=v;ni++}else if(inQuad(ring,P)){so+=v;no++}
+  }
+  if(!ni||no<ni*.05)return false;
+  return si/ni-so/no>=CFG.scan.edges.vividGap&&ni/(w*h)>=CFG.scan.edges.vividArea;
+}
 function detectPageSeg(work){
   var a=detectPageAt(work,0),b=detectPageAt(work,1);
   if(!b)return a;if(!a)return b;
@@ -2509,14 +2535,15 @@ function detectPageSeg(work){
   var inside=Bx[0]>A[0]+mx&&Bx[1]>A[1]+my&&Bx[2]<A[2]-mx&&Bx[3]<A[3]-my;
   return inside&&b.area<a.area*.7&&b.area>.08?b:a;
 }
-function detectPageAt(work,lvl){
+/* vivid: foglio colorato (volantino, copertina) su uno sfondo scuro: conta la luminosità del colore più forte, non il bianco (R-SCN-34) */
+function detectPageAt(work,lvl,vivid){
   var W=work.width,H=work.height,k=Math.min(1,360/Math.max(W,H)),w=Math.max(16,Math.round(W*k)),h=Math.max(16,Math.round(H*k));
   var cv=document.createElement("canvas");cv.width=w;cv.height=h;
   var g=cv.getContext("2d");g.drawImage(work,0,0,w,h);
   var d=g.getImageData(0,0,w,h).data,n=w*h,sc=new Uint8Array(n),hist=new Uint32Array(256),i;
   for(i=0;i<n;i++){
     var r=d[i*4],gg=d[i*4+1],b=d[i*4+2],mx=Math.max(r,gg,b),mn=Math.min(r,gg,b);
-    var v=r*.3+gg*.59+b*.11-(mx-mn)*.8;v=v<0?0:v>255?255:v;sc[i]=v;hist[v|0]++;
+    var v=vivid?mx:r*.3+gg*.59+b*.11-(mx-mn)*.8;v=v<0?0:v>255?255:v;sc[i]=v;hist[v|0]++;
   }
   /* Otsu tra i livelli lo..255 */
   function otsu(lo){
@@ -3446,20 +3473,18 @@ function flatScan(w){
   return null;
 }
 function insetQuad(w){var W=w.width,H=w.height,m=.06,q=[[W*m,H*m],[W*(1-m),H*m],[W*(1-m),H*(1-m)],[W*m,H*(1-m)]];return {q:q,mids:projMids(q)}}
-/* scatto: editor degli angoli, poi la pagina va tra le miniature (o al posto di quella da rifare) */
+/* scatto: come la galleria, bordi proposti e pagina fatta subito (raddrizzamento automatico, R-SCN-32); gli angoli si
+   sistemano dopo con «Angoli a mano». La schermata di lavoro compare prima dei calcoli, così l'app non sembra bloccata */
 async function scanFile(file){
   var target=capTarget;capTarget=-1;
-  var work=await workFrom(file);
-  if(!work){say(t("camFail"),true);return}
-  var found=null;try{found=flatScan(work)||detectPage(work)}catch(e){}
-  capTarget=target;
-  var r=await editCorners(work,found);
-  if(r==="retake")return;
-  capTarget=-1;
-  if(!r)return;
-  var old=target>=0?cap.pages[target]:null;
-  var p={work:r.work,q:r.q,mids:r.mids,rot:0,flat:!!(found&&found.flat&&r.q.every(function(p,i){return dist(p,found.q[i])<1})),style:old?old.style:null,refined:!!(found&&found.edge&&r.q.every(function(p,i){return dist(p,found.q[i])<1})),prop:found&&r.work===work?{work:work,q:found.q,mids:found.mids,edge:!!found.edge}:null};
   loaderOn("scan",t("scanning"));
+  await new Promise(function(r){setTimeout(r,40)});
+  var work=await workFrom(file);
+  if(!work){await loaderOff();say(t("camFail"),true);return}
+  var f=null;try{f=flatScan(work)||detectPage(work)}catch(e){}
+  if(!f)f=insetQuad(work);
+  var old=target>=0?cap.pages[target]:null;
+  var p={work:work,q:f.q,mids:f.mids,rot:0,style:old?old.style:null,refined:!!f.edge,flat:!!f.flat,prop:{work:work,q:f.q,mids:f.mids,edge:!!f.edge}};
   try{await capBuild(p)}catch(e){p=null}
   await loaderOff();
   if(!p){say(t("failed"),true);return}
@@ -3471,6 +3496,7 @@ async function scanFile(file){
 async function galleryFiles(files){
   var list=[];
   loaderOn("scan",t("scanning"));
+  await new Promise(function(r){setTimeout(r,40)});
   for(var i=0;i<files.length;i++){
     $("loaderN").textContent=files.length>1?nf(i+1)+" / "+nf(files.length):"";
     var work=await workFrom(files[i]);if(!work)continue;

@@ -70,7 +70,9 @@ window.CONFIG = {
       keep: 5, sideRange: 0.3, sideTilt: 12, paperSat: 35, cutInk: 0.4,
       trimFrom: 0.3, trimMin: 0.1, trimTurn: 30, trimInk: 0.03,
       frame: 0.1, frameSup: 0.7, frameSat: 35, inset: 2, curveGain: 0.005,
-      segBias: 1.1, segGood: 0.8, segGoodBias: 1.35, segMin: 0.3, cleanBand: 0.03, cleanDark: 90 },
+      segBias: 1.1, segGood: 0.8, segGoodBias: 1.35, segMin: 0.3, cleanBand: 0.03, cleanDark: 90,
+      /* foglio colorato (R-SCN-34): vince se dentro è più luminoso dello sfondo attorno di almeno vividGap (0–255) e copre almeno vividArea della foto */
+      vividGap: 60, vividArea: 0.2 },
     /* ombre delle pieghe (R-SCN-29): analisi su una copia con il lato lungo di size px; luce fine con raggio fine, luce del foglio con
        raggio coarse (frazioni della pagina); bordo netto = pendenza della luce oltre sharp per pixel; la luce fine parte dal foglio pulito
        (luce ≥ seed di quella del foglio) e si allarga solo cambiando di meno di step per pixel; schiarimento al massimo maxGain;

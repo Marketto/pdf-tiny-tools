@@ -882,13 +882,32 @@ async function restore(rec){
   render();return true;
 }
 
-/* ---------- stima veloce per Cattura (R-CPL-13): solo righe e caselle, senza Tesseract ---------- */
-async function quickCount(blob){
-  var p=await imgPage(blob,0),W=p.cv.width,H=p.cv.height,mm=DPI/25.4,g=grayOf(p.cv);p.cv.width=p.cv.height=0;
-  var m=findMarks(binarize(g,W,H),W,H,mm);
+/* ---------- stima veloce per Cattura (R-CPL-13): solo righe e caselle, senza Tesseract ----------
+   Gira in un worker, così l'app non si ferma mentre si sistemano le pagine; dove i worker non possono disegnare, nella pagina */
+var qcW=null,qcN=0,qcWait={};
+function qcWorker(){
+  if(qcW!==null)return qcW;
+  try{
+    if(typeof OffscreenCanvas==="undefined")throw 0;
+    var src=[grayOf,binarize,components,inkIn,findMarks,countMarks].map(String).join("\n")+
+      "\nvar DPI="+DPI+";self.onmessage=async function(e){var r=-1;try{var b=await createImageBitmap(e.data.blob),land=b.width>b.height,W=Math.round((land?297:210)/25.4*DPI),k=W/b.width,H=Math.round(b.height*k),c=new OffscreenCanvas(W,H);c.getContext('2d').drawImage(b,0,0,W,H);if(b.close)b.close();r=countMarks(grayOf(c),W,H)}catch(x){}self.postMessage({id:e.data.id,n:r})};";
+    qcW=new Worker(URL.createObjectURL(new Blob([src],{type:"text/javascript"})));
+    qcW.onmessage=function(e){var f=qcWait[e.data.id];delete qcWait[e.data.id];if(f)f(e.data.n)};
+    qcW.onerror=function(){qcW=false};
+  }catch(e){qcW=false}
+  return qcW;
+}
+function countMarks(g,W,H){
+  var mm=DPI/25.4,m=findMarks(binarize(g,W,H),W,H,mm);
   /* righe vuote: niente fasce decorative (più righe sovrapposte) */
   var n=m.segs.filter(function(s){return m.segs.filter(function(o){return Math.abs(o.y-s.y)<2*mm&&Math.min(o.x1,s.x1)-Math.max(o.x0,s.x0)>.5*(s.x1-s.x0)}).length<3}).length;
   return n+m.boxes.length+m.combs.length;
+}
+async function quickCount(blob){
+  var w=qcWorker();
+  if(w){var n=await new Promise(function(res){var id=++qcN;qcWait[id]=res;w.postMessage({id:id,blob:blob})});if(n>=0)return n}
+  var p=await imgPage(blob,0),W=p.cv.width,H=p.cv.height,g=grayOf(p.cv);p.cv.width=p.cv.height=0;
+  return countMarks(g,W,H);
 }
 
 window.Compila={
