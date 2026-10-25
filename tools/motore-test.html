@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- Prova del motore da solo (R-APP-20): carica solo config.js e motore.js, come farebbe un'altra app.
+     La usa tools/motore-test.mjs; non viene pubblicata. -->
+<meta charset="utf-8">
+<title>Prova motore.js</title>
+<script src="../config.js"></script>
+<script src="../motore.js"></script>
+<script>
+window.runTest = async function () {
+  const out = { api: Object.keys(window.Motore).sort().join(","), kinds: ["a.PDF", "b.jpeg", "c.mkv", "d.txt"].map(Motore.kindOf).join(","), canVideo: await Motore.canVideo() };
+  /* una foto rumorosa salvata a qualità piena: c'è margine per alleggerirla */
+  const c = document.createElement("canvas"); c.width = 1600; c.height = 1200; const g = c.getContext("2d");
+  const im = g.createImageData(1600, 1200); for (let i = 0; i < im.data.length; i += 4) { const v = (i / 4) % 1600 / 7 + Math.random() * 60; im.data[i] = v; im.data[i + 1] = 255 - v; im.data[i + 2] = 128 + Math.random() * 40; im.data[i + 3] = 255; }
+  g.putImageData(im, 0, 0);
+  const jb = await new Promise((r) => c.toBlob(r, "image/jpeg", 1));
+  const jpg = new File([jb], "foto.jpg", { type: "image/jpeg" });
+  let pct = 0;
+  const rj = await Motore.squeeze(jpg, { level: "mid", onPct: (p) => { pct = Math.max(pct, p) } });
+  out.jpg = [rj.status, jpg.size, rj.blob && rj.blob.size, pct].join(" ");
+  /* un PDF con la stessa foto dentro */
+  await new Promise((res, rej) => { const s = document.createElement("script"); s.src = "../vendor/pdf-lib.min.js"; s.onload = res; s.onerror = rej; document.head.appendChild(s) });
+  const doc = await PDFLib.PDFDocument.create(), img = await doc.embedJpg(new Uint8Array(await jb.arrayBuffer()));
+  doc.addPage([800, 600]).drawImage(img, { x: 0, y: 0, width: 800, height: 600 });
+  const pdf = new File([await doc.save()], "doc.pdf", { type: "application/pdf" });
+  const rp = await Motore.squeeze(pdf, { level: "hard" });
+  out.pdf = [rp.status, pdf.size, rp.blob && rp.blob.size, rp.blob && rp.blob.type].join(" ");
+  /* un video corto in VP9 (il Chromium di prova non ha H.264/HEVC: ?vcodec=vp9) */
+  const M = await import("../vendor/mediabunny.min.mjs");
+  const vc = document.createElement("canvas"); vc.width = 640; vc.height = 360; const vg = vc.getContext("2d");
+  const tgt = new M.BufferTarget(), o = new M.Output({ format: new M.Mp4OutputFormat(), target: tgt });
+  const src = new M.CanvasSource(vc, { codec: "vp9", bitrate: 6e6 }); o.addVideoTrack(src, { frameRate: 30 }); await o.start();
+  for (let i = 0; i < 90; i++) { vg.fillStyle = `hsl(${i * 3},70%,55%)`; vg.fillRect(0, 0, 640, 360); for (let k = 0; k < 400; k++) { vg.fillStyle = `rgba(0,0,0,${Math.random() * .4})`; vg.fillRect(Math.random() * 640, Math.random() * 360, 6, 6) } vg.fillStyle = "#fff"; vg.font = "48px Arial"; vg.fillText("Fotogramma " + i, 40 + i, 180); await src.add(i / 30, 1 / 30) }
+  await o.finalize();
+  const vid = new File([tgt.buffer], "clip.webm.mkv", { type: "video/x-matroska" });
+  const vid2 = new File([tgt.buffer], "clip.mp4", { type: "video/mp4" });
+  const rv = await Motore.squeeze(vid2, { level: "mid" });
+  out.video = [rv.status, vid2.size, rv.blob && rv.blob.size, rv.name, rv.note || ""].join(" ");
+  if (rv.release) await rv.release();
+  /* annullato prima di partire */
+  const ac = new AbortController(); ac.abort();
+  const ra = await Motore.squeeze(vid, { signal: ac.signal });
+  out.abort = ra.status + " " + ra.note;
+  out.bad = (await Motore.squeeze(new File(["x"], "rotto.pdf"), {})).status;
+  return out;
+};
+</script>

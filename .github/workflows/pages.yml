@@ -28,7 +28,7 @@ jobs:
         # Solo i file dell'app: strumenti, documentazione e configurazione degli agenti restano fuori.
         run: |
           mkdir _site
-          cp -r index.html config.js i18n engine.js compila.js compila sw.js manifest.webmanifest favicon.ico icons vendor _site/
+          cp -r index.html config.js motore.js i18n engine.js compila.js compila sw.js manifest.webmanifest favicon.ico icons vendor _site/
           # Impronte dei moduli (R-APP-16): il service worker riscarica solo quelli cambiati
           node tools/moduli.mjs _site
           touch _site/.nojekyll
@@ -38,6 +38,8 @@ jobs:
           # Numero di versione mostrato accanto al titolo
           sed -i "s|<span class=\"ver\" id=\"ver\" translate=\"no\">dev</span>|<span class=\"ver\" id=\"ver\" translate=\"no\">v$(tr -d '[:space:]' < VERSION)</span>|" _site/index.html
           grep -o 'id="ver"[^<]*<' _site/index.html
+          sed -i "s|version:\"dev\"|version:\"$(tr -d '[:space:]' < VERSION)\"|" _site/motore.js
+          grep -o 'version:"[^"]*"' _site/motore.js
           # Statistiche anonime (R-PRI-05): codice del sito GoatCounter dalla variabile del repository, se c'è
           if [[ "$GC_CODE" =~ ^[a-z0-9-]+$ ]]; then sed -i -E "s/stats: \{ code: \"[^\"]*\"/stats: { code: \"${GC_CODE}\"/" _site/config.js; fi
           grep -o 'stats: {[^}]*}' _site/config.js

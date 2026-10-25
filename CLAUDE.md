@@ -9,6 +9,7 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 | `index.html` | Tutta l'app: markup, CSS e JavaScript in un file solo |
 | `config.js` | Tutte le soglie e i parametri numerici (`window.CONFIG`), commentati con il requisito |
 | `i18n/` | Tutti i testi: un file per lingua (`i18n/it.js`…, 39 lingue, `window.I18N`) e l'elenco `i18n/index.js`; se ne carica solo quella in uso |
+| `motore.js` | Motore riusabile (R-APP-20): compressione di PDF, JPG e video, `window.Motore`; lo usa la pagina e lo usano altre app (SuriClean) |
 | `engine.js` | Motore delle immagini di PDF e JPG, eseguito nei worker in parallelo (o nella pagina) |
 | `compila.js` | Compila: ricerca dei campi, schermata e PDF compilabile; scaricato la prima volta che serve, parla con la pagina tramite `window.APP` |
 | `compila/` | Dati di Compila: parole chiave per lingua (`lingue/<sigla>.js`) ed elenchi per paese (`paesi/<sigla>.js`), scaricati solo quando servono |
@@ -65,6 +66,7 @@ Se una richiesta tocca più righe, fai una cosa alla volta e chiudi sempre con `
 node tools/check-i18n.mjs      # controllo traduzioni, nessuna dipendenza
 cd tools && npm install        # una volta sola, per i due comandi sotto
 node tools/smoke-test.mjs      # prova nel browser: lingue, layout, compressione reale
+node tools/motore-test.mjs     # prova motore.js da solo, come lo usa un'altra app
 node tools/build-icons.mjs     # rigenera icone e disegni della mascotte
 node tools/bench.mjs [nome]    # misura i tempi delle operazioni pesanti (prima/dopo)
 python3 -m http.server 8000    # per provare l'app a mano

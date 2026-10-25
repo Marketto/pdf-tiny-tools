@@ -6,7 +6,7 @@ const CACHE="schiaccia-pdf-v3";
 // presa da moduli.json (generato da tools/moduli.mjs alla pubblicazione): se una versione nuova cambia
 // un modulo, quello si riscarica la prima volta che serve; gli altri restano.
 const MODS="schiaccia-moduli";
-const CORE=["./","index.html","manifest.webmanifest","config.js","i18n/index.js","engine.js","icons/icon.svg","icons/icon-192.png","icons/badge-96.png","icons/icon-512.png","icons/apple-touch-icon.png"];
+const CORE=["./","index.html","manifest.webmanifest","config.js","motore.js","i18n/index.js","engine.js","icons/icon.svg","icons/icon-192.png","icons/badge-96.png","icons/icon-512.png","icons/apple-touch-icon.png"];
 const BASE=new URL("./",self.location.href);
 
 // All'installazione i file si scaricano saltando la cache del browser: altrimenti, subito dopo

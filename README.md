@@ -36,7 +36,7 @@ Il sito non ha build né dipendenze: si modifica e si apre. Per provarlo in loca
 - [`docs/REQUISITI.md`](docs/REQUISITI.md): cosa deve fare l'app, secondo le decisioni prese finora.
 - [`docs/ARCHITETTURA.md`](docs/ARCHITETTURA.md): come funziona la compressione e come è organizzato il codice.
 - [`docs/AGENTI.md`](docs/AGENTI.md): come lavorare al progetto con un agente di programmazione (skill, agenti, strumenti).
-- `node tools/check-i18n.mjs` controlla le traduzioni; `node tools/smoke-test.mjs` prova l'app in un browser vero.
+- `node tools/check-i18n.mjs` controlla le traduzioni; `node tools/smoke-test.mjs` prova l'app in un browser vero; `node tools/motore-test.mjs` prova da solo `motore.js`, il motore di compressione riusabile da altre app (per esempio SuriClean).
 
 ## Pubblicazione
 

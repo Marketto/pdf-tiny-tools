@@ -50,6 +50,7 @@ flowchart TD
 |---|---|---|
 | `node tools/check-i18n.mjs` | Stesse chiavi e stessi segnaposto in tutte le lingue | No |
 | `node tools/smoke-test.mjs` | Lingue, layout a larghezza telefono, compressione reale di un PDF di prova | `cd tools && npm install` |
+| `node tools/motore-test.mjs` | `motore.js` da solo (R-APP-20): foto, PDF e video con `Motore.squeeze` | `cd tools && npm install` |
 | `node tools/build-icons.mjs` | Rigenera icone e disegni dalla mascotte | Come sopra (o `--no-png`) |
 
 Il primo gira anche su GitHub prima di ogni pubblicazione: una traduzione incompleta blocca il deploy.
