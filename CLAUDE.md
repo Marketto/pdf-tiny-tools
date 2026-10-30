@@ -1,6 +1,6 @@
 # Schiaccia PDF (pdf-tiny-tools)
 
-Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini che contengono), le foto JPG e i video (ricodifica in HEVC o H.264 con qualità misurata). Le modalità si scambiano dal rullo nel titolo; la quarta, TUTTO, prende insieme PDF, foto e video di una cartella. Il verbo del titolo è un secondo rullo, Schiaccia → Cattura → Compila: in Cattura (o dal pulsante della fotocamera), solo per PDF e JPG, fa da scanner con una schermata propria: scatto, angoli e lati proposti, raddrizzamento e pulizia della luce, pagine da sistemare, salvataggio. In Compila trasforma un modulo stampato (PDF o foto, anche direttamente da Cattura) in un PDF compilabile: trova righe, caselle ed etichette, propone i tipi dei campi, si prova e si salva. Al primo avvio un giro con la mascotte spiega l'app; dopo un aggiornamento con funzioni nuove, un fumetto le presenta. Nessun server, nessuna build, nessun framework: quello che c'è nel repository è quello che viene pubblicato su GitHub Pages.
+Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini che contengono), le foto JPG e i video (ricodifica in HEVC o H.264 con qualità misurata). Le modalità si scambiano dal rullo nel titolo; la quarta, TUTTO, prende insieme PDF, foto e video di una cartella. Il verbo del titolo è un secondo rullo, Schiaccia → Cattura → Compila → Modifica: in Cattura (o dal pulsante della fotocamera), solo per PDF e JPG, fa da scanner con una schermata propria: scatto, angoli e lati proposti, raddrizzamento e pulizia della luce, pagine da sistemare, salvataggio. In Compila trasforma un modulo stampato (PDF o foto, anche direttamente da Cattura) in un PDF compilabile: trova righe, caselle ed etichette, propone i tipi dei campi, si prova e si salva. In Modifica cambia un PDF già fatto: testi (anche delle scansioni, letti con Tesseract) e immagini (spostare, ruotare, raddrizzare, separare più foto dentro un'immagine). Al primo avvio un giro con la mascotte spiega l'app; dopo un aggiornamento con funzioni nuove, un fumetto le presenta. Nessun server, nessuna build, nessun framework: quello che c'è nel repository è quello che viene pubblicato su GitHub Pages.
 
 ## Mappa
 
@@ -12,6 +12,7 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 | `motore.js` | Motore riusabile (R-APP-20): compressione di PDF, JPG e video, `window.Motore`; lo usa la pagina e lo usano altre app (SuriClean) |
 | `engine.js` | Motore delle immagini di PDF e JPG, eseguito nei worker in parallelo (o nella pagina) |
 | `compila.js` | Compila: ricerca dei campi, schermata e PDF compilabile; scaricato la prima volta che serve, parla con la pagina tramite `window.APP` |
+| `modifica.js` | Modifica: testi e immagini di un PDF già fatto (lettura del contenuto, schermata, PDF modificato); scaricato la prima volta che serve, parla con la pagina tramite `window.APP` |
 | `compila/` | Dati di Compila: parole chiave per lingua (`lingue/<sigla>.js`) ed elenchi per paese (`paesi/<sigla>.js`), scaricati solo quando servono |
 | `sw.js` | Cache offline (service worker) |
 | `manifest.webmanifest`, `icons/`, `favicon.ico` | Installazione come app |
@@ -24,7 +25,7 @@ Cosa deve fare l'app: `docs/REQUISITI.md` (voci con codice `R-AREA-nn`). Come è
 
 ## Come cercare, spendendo poco
 
-1. Requisito: `grep -n "R-SCN" docs/REQUISITI.md` (aree: PRI MOD CAR CMP JPG VID TUT SCN CPL BEN LST SAV UI AUD I18N APP REL DOC).
+1. Requisito: `grep -n "R-SCN" docs/REQUISITI.md` (aree: PRI MOD CAR CMP JPG VID TUT SCN CPL EDT BEN LST SAV UI AUD I18N APP REL DOC).
 2. Dove sta nel codice: tabella «Mappa del codice» in `docs/ARCHITETTURA.md`, poi `grep -n -- "---------- scansione" index.html` e leggi solo quella sezione.
 3. Testi: `grep -n "chiave:" i18n/*.js` (una riga per lingua).
 4. Non leggere `vendor/` né le parti SVG generate tra `<!-- mascot:… -->`.
@@ -42,6 +43,7 @@ Prima di lavorare, guarda in quale riga cade la richiesta e usa la skill o l'age
 | Nuova versione, tag, pubblicazione | skill `rilascio` |
 | Layout, stile, suoni, installazione, cartelle, giro di benvenuto e novità | lavora direttamente su `index.html`, poi skill `verifica` |
 | Compila: campi trovati male, tipi, parole di una lingua, elenchi di un paese | lavora su `compila.js` e `compila/`, poi skill `verifica` |
+| Modifica: testi o immagini letti male, salvataggio del PDF modificato | lavora su `modifica.js`, poi skill `verifica` |
 
 Se una richiesta tocca più righe, fai una cosa alla volta e chiudi sempre con `verifica`.
 

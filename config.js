@@ -92,9 +92,19 @@ window.CONFIG = {
      «Rendi compilabile» (R-CPL-13); regions = paesi dell'elenco pronto «Paesi», nomi dalla lingua dell'app */
   fill: { minWords: 8, maxPages: 12, listShow: 8, fontMin: 9, fontMax: 12, money: " €", formMin: 6,
     regions: "ad ae af al am ao ar at au az ba bd be bf bg bh bi bj bo br bt bw by bz ca cd cf cg ch ci cl cm cn co cr cu cv cy cz de dj dk do dz ec ee eg er es et fi fj fr ga gb ge gh gm gn gq gr gt gw gy hn hr ht hu id ie il in iq ir is it jm jo jp ke kg kh km kp kr kw kz la lb li lk lr ls lt lu lv ly ma mc md me mg mk ml mm mn mr mt mu mv mw mx my mz na ne ng ni nl no np nz om pa pe pg ph pk pl pt py qa ro rs ru rw sa sb sc sd se sg si sk sl sm sn so sr ss st sv sy sz td tg th tj tl tm tn to tr tt tw tz ua ug us uy uz va ve vn vu ws ye za zm zw" },
+  /* Modifica (R-EDT): maxPages = pagine aperte al massimo; dpi = anteprima delle pagine (punti per pollice, moltiplicati per
+     l'ingrandimento dello schermo fino a dpiMax); ocrDpi = pagina letta con Tesseract; scanCover = parte della pagina che un'immagine
+     deve coprire perché una pagina senza testo visibile si legga con Tesseract; joinGap = distanza massima tra due pezzi dello stesso
+     testo (in corpi); tilt = gradi oltre i quali un'immagine messa storta si raddrizza girandola (sotto, si cerca il foglio dentro);
+     dpiMax = risoluzione massima delle immagini rifatte; jpgQ = qualità dei JPEG nuovi; undo = passi di Annulla.
+     split (R-EDT-09, Separa): size = lato della copia piccola; minDiff/noise = differenza minima dallo sfondo (livelli; o volte il rumore
+     del bordo); close/open = pulizia della maschera (pixel della copia); minArea = foto più piccola (parte dell'immagine);
+     fill = sotto questa parte del rettangolo minimo una macchia si divide; grow = margine tolto intorno alle foto (pixel della copia) */
+  edit: { maxPages: 30, dpi: 110, dpiMax: 300, ocrDpi: 200, scanCover: 0.25, joinGap: 1.2, tilt: 0.4, jpgQ: 0.88, undo: 60,
+    split: { size: 600, minDiff: 10, noise: 1.5, close: 4, open: 2, minArea: 0.02, fill: 0.88, grow: 10 } },
   /* novità per versione (R-BEN-03): una voce per funzione nuova, con i testi (chiavi <key>T e <key>P) e dove porta «Provalo!».
      Le versioni con sole correzioni non hanno voci: per loro niente fumetti */
-  news: [ { v: "4.0.0", key: "newsFill", go: "fill" } ],
+  news: [ { v: "4.0.0", key: "newsFill", go: "fill" }, { v: "4.2.0", key: "newsEdit", go: "edit" } ],
   /* statistiche d'uso anonime (R-PRI-05): codice del sito GoatCounter, scritto qui dal flusso di pubblicazione
      dalla variabile GC_CODE del repository; vuoto = nessun conteggio. host = solo su questo sito, mai in locale */
   stats: { code: "", host: "marketto.github.io" },

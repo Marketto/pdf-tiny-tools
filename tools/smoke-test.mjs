@@ -640,7 +640,9 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.click("#modalBtns button >> nth=0");
   check(await page.evaluate(() => document.body.classList.contains("act-fill")), "Cattura: confermando il verbo passa a Compila (Schiaccia → Cattura → Compila)");
   await page.click("#actBtn");await page.waitForTimeout(300);
-  check(await page.evaluate(() => !document.body.classList.contains("act-cap") && !document.body.classList.contains("act-fill") && getComputedStyle(document.getElementById("go")).display !== "none"), "Cattura: da Compila il verbo torna a Schiaccia");
+  check(await page.evaluate(() => document.body.classList.contains("act-edit")), "Cattura: da Compila il verbo passa a Modifica (R-EDT-01)");
+  await page.click("#actBtn");await page.waitForTimeout(300);
+  check(await page.evaluate(() => !document.body.classList.contains("act-cap") && !document.body.classList.contains("act-fill") && !document.body.classList.contains("act-edit") && getComputedStyle(document.getElementById("go")).display !== "none"), "Cattura: da Modifica il verbo torna a Schiaccia");
   for (let k = 0; k < 4 && !(await page.evaluate(() => document.body.classList.contains("mode-video"))); k++) { await page.click("#modeBtn"); await page.waitForTimeout(150); }
   await page.click("#actBtn", { force: true });
   check(await page.evaluate(() => document.body.classList.contains("mode-video") && !document.body.classList.contains("act-cap")), "Cattura: in modalità video il verbo non cambia");
@@ -846,9 +848,9 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   await page.waitForSelector("#tour:not([hidden])", { timeout: 5000 }).catch(() => {});
   check(await page.locator("#tour").isVisible(), "Benvenuto: al primo avvio compare il giro con la mascotte");
   const titles = [];
-  for (let i = 0; i < 4; i++) { titles.push(await page.locator("#tourT").textContent()); if (i < 3) { await page.click("#tourNext"); await page.waitForTimeout(150); } }
+  for (let i = 0; i < 5; i++) { titles.push(await page.locator("#tourT").textContent()); if (i < 4) { await page.click("#tourNext"); await page.waitForTimeout(150); } }
   const hole = await page.evaluate(() => { const h = document.getElementById("tourHole").getBoundingClientRect(), v = document.getElementById("actBtn").getBoundingClientRect(); return !document.getElementById("tourHole").classList.contains("none") && h.left <= v.left && h.right >= v.right - 2; });
-  check(titles.length === 4 && new Set(titles).size === 4 && hole, `Benvenuto: quattro fumetti, l'ultimo illumina il verbo del titolo (${titles.join(" / ")})`);
+  check(titles.length === 5 && new Set(titles).size === 5 && hole, `Benvenuto: cinque fumetti, l'ultimo illumina il verbo del titolo (${titles.join(" / ")})`);
   check(/Iniziamo/.test(await page.locator("#tourNext").textContent()), "Benvenuto: l'ultimo fumetto ha «Iniziamo!»");
   await page.click("#tourNext");
   check(await page.locator("#tour").isHidden(), "Benvenuto: «Iniziamo!» chiude il giro");
@@ -920,6 +922,89 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Compila: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- Modifica (R-EDT): quarta faccia del verbo, testi e immagini di un PDF, Raddrizza, Separa, salvataggio, lavoro ripreso
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 } });
+  const page = await ctx.newPage();
+  const errors = [], reqs = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("request", (r) => reqs.push(r.url()));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.addInitScript(() => { delete window.showSaveFilePicker; delete window.showDirectoryPicker; });
+  await page.goto(url);await page.waitForTimeout(600);
+  check(!reqs.some((u) => /modifica\.js/.test(u)), "Modifica: niente codice di Modifica all'avvio");
+  for (let i = 0; i < 3; i++) { await page.click("#actBtn"); await page.waitForTimeout(300); }
+  await page.waitForSelector("#edit .fillTray", { timeout: 15000 });
+  const e1 = await page.evaluate(() => ({ edit: document.body.classList.contains("act-edit"), lock: document.getElementById("modeBtn").getAttribute("aria-disabled"), sub: document.querySelector("#sub,.sub") ? 1 : 1 }));
+  check(e1.edit && e1.lock === "true" && reqs.some((u) => /modifica\.js/.test(u)), "Modifica: dal verbo (… → Compila → Modifica), rullo della modalità fermo su PDF, codice scaricato solo ora");
+  /* un avviso: titolo, una data in grassetto in mezzo alla riga, una foto messa storta */
+  const pdfBytes = await page.evaluate(async () => {
+    const P = await __pdflib(), d = await P.PDFDocument.create(), p = d.addPage([595, 842]);
+    const f = await d.embedFont(P.StandardFonts.Helvetica), fb = await d.embedFont(P.StandardFonts.HelveticaBold);
+    p.drawText("Avviso ai genitori", { x: 60, y: 760, size: 22, font: fb });
+    p.drawText("La gita parte il", { x: 60, y: 720, size: 12, font: f });
+    p.drawText("14 novembre", { x: 60 + f.widthOfTextAtSize("La gita parte il ", 12), y: 720, size: 12, font: fb });
+    const c = document.createElement("canvas"); c.width = 300; c.height = 200; const g = c.getContext("2d"); g.fillStyle = "#e33"; g.fillRect(0, 0, 300, 200); g.fillStyle = "#ff0"; g.fillRect(40, 40, 120, 80);
+    const im = await d.embedJpg(await (await new Promise((r) => c.toBlob(r, "image/jpeg", .9))).arrayBuffer());
+    p.drawImage(im, { x: 150, y: 380, width: 240, height: 160, rotate: P.degrees(6) });
+    return [...await d.save()];
+  });
+  await page.setInputFiles("#edit input[type=file]", { name: "avviso.pdf", mimeType: "application/pdf", buffer: Buffer.from(pdfBytes) });
+  await page.waitForFunction(() => document.getElementById("loader").hidden && window.__edt && window.__edt.pages.length && document.querySelector(".ebox"), null, { timeout: 120000 });
+  const r1 = await page.evaluate(() => { const P = window.__edt.pages[0]; return { T: P.T.map((x) => x.str + (x.b ? "*" : "")), I: P.I.length }; });
+  check(r1.T.includes("Avviso ai genitori*") && r1.T.includes("La gita parte il") && r1.T.includes("14 novembre*") && r1.I === 1, `Modifica: testi letti dal PDF, la data in grassetto a parte (${r1.T.join(" / ")}; immagini ${r1.I})`);
+  const ti = r1.T.indexOf("14 novembre*");
+  await page.locator(".ebox.et").nth(ti).click();await page.waitForSelector(".esheet");
+  await page.locator(".esheet textarea").fill("21 novembre");
+  await page.locator(".esheet .acts .btn.ok").click();
+  await page.locator(".ebox.ei").click();await page.waitForSelector(".ebarI");
+  await page.locator(".ebarI .egrid .btn").nth(0).click();await page.waitForTimeout(300);
+  const ang = await page.evaluate(() => { const m = window.__edt.pages[0].I[0].cur; return Math.atan2(m[1], m[0]) * 180 / Math.PI; });
+  check(Math.abs(ang) < .1, `Raddrizza: la foto messa storta torna dritta (${ang.toFixed(2)}°)`);
+  await page.locator(".ebarI .edone").click();
+  const u0 = await page.evaluate(() => window.__edt.undo.length);
+  await page.locator(".erow .eico").first().click();await page.waitForTimeout(200);
+  const ang2 = await page.evaluate(() => { const m = window.__edt.pages[0].I[0].cur; return Math.atan2(m[1], m[0]) * 180 / Math.PI; });
+  await page.locator(".erow .eico").nth(1).click();await page.waitForTimeout(200);
+  check(u0 === 2 && Math.abs(ang2 - 6) < .1 && Math.abs(await page.evaluate(() => { const m = window.__edt.pages[0].I[0].cur; return Math.atan2(m[1], m[0]); })) < .01, `Annulla e Rifai: la rotazione torna e riparte (${ang2.toFixed(1)}°)`);
+  await page.locator(".ebar .btn").first().click();
+  await page.locator(".epage").click({ position: { x: 60, y: 300 } });
+  await page.waitForSelector(".esheet textarea");await page.locator(".esheet textarea").fill("Firma del genitore");
+  await page.locator(".esheet .acts .btn.ok").click();
+  await page.waitForTimeout(2500);
+  await page.reload();
+  await page.waitForFunction(() => document.body.classList.contains("act-edit") && window.__edt && window.__edt.pages.length && document.querySelector(".ebox"), null, { timeout: 60000 }).catch(() => {});
+  const back = await page.evaluate(() => { const P = window.__edt.pages[0]; return { a: P.A.length, d: P.T.some((x) => x.e && x.e.str === "21 novembre") }; });
+  check(back.a === 1 && back.d, "Lavoro salvato: riaperta l'app, Modifica torna con le modifiche");
+  await page.locator(".ebar .btn.ok").click();await page.waitForSelector(".esaveBig");
+  const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 120000 }), page.locator(".esaveBig").click()]);
+  const { readFile: rf } = await import("node:fs/promises");const out = [...await rf(await dl.path())];
+  const chk = await page.evaluate(async (b) => {
+    const m = await import(new URL("vendor/pdfjs/pdf.min.mjs", location.href).href);
+    const d = await m.getDocument({ data: new Uint8Array(b), isEvalSupported: false }).promise, p = await d.getPage(1), tc = await p.getTextContent();
+    return tc.items.map((i) => i.str).join("|");
+  }, out);
+  check(dl.suggestedFilename() === "avviso-modificato.pdf" && /21 novembre/.test(chk) && !/14 novembre/.test(chk) && /Firma del genitore/.test(chk) && /La gita parte il/.test(chk), `Salva: testo cambiato davvero (il vecchio sparisce), testo nuovo, il resto intatto (${dl.suggestedFilename()}: ${chk.replace(/\|+/g, " / ")})`);
+  /* Separa: due «foto» storte su un fondo chiaro, in un'unica immagine */
+  await page.evaluate(() => window.Modifica.clear());await page.evaluate(() => window.Modifica.render());
+  const two = await page.evaluate(async () => {
+    const P = await __pdflib(), d = await P.PDFDocument.create(), p = d.addPage([595, 842]);
+    const c = document.createElement("canvas"); c.width = 1240; c.height = 1754; const g = c.getContext("2d"); g.fillStyle = "#eceeed"; g.fillRect(0, 0, c.width, c.height);
+    [[380, 450, -.1, "#2a7fd8"], [760, 1200, .14, "#e0582f"]].forEach(([x, y, a, col]) => { g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = "#fff"; g.fillRect(-250, -180, 500, 360); g.fillStyle = col; g.fillRect(-235, -165, 470, 330); g.fillStyle = "#ffd23f"; g.fillRect(-120, -60, 160, 100); g.restore(); });
+    const im = await d.embedJpg(await (await new Promise((r) => c.toBlob(r, "image/jpeg", .9))).arrayBuffer());
+    p.drawImage(im, { x: 0, y: 0, width: 595, height: 842 });
+    return [...await d.save()];
+  });
+  await page.setInputFiles("#edit input[type=file]", { name: "foto.pdf", mimeType: "application/pdf", buffer: Buffer.from(two) });
+  await page.waitForFunction(() => document.getElementById("loader").hidden && window.__edt && window.__edt.pages.length && document.querySelector(".ebox.ei"), null, { timeout: 120000 });
+  await page.locator(".ebox.ei").click();await page.waitForSelector(".ebarI");
+  await page.locator(".ebarI .egrid .btn").nth(1).click();
+  await page.waitForFunction(() => document.getElementById("loader").hidden && window.__edt.pages[0].I.length > 1, null, { timeout: 120000 }).catch(() => {});
+  const sp = await page.evaluate(() => window.__edt.pages[0].I.filter((o) => o.k == null).map((o) => Math.round(Math.atan2(o.cur[1], o.cur[0]) * 180 / Math.PI)));
+  check(sp.length === 2 && sp.every((a) => a === 0), `Separa: due foto trovate nell'immagine, ognuna dritta e a sé (${sp.length})`);
+  check(errors.length === 0, `Modifica: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
 // --- giro unico (R-CPL-12/13): Cattura si accorge del modulo; con il giro la fascia e «Avanti: rendi compilabile»
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 } });
@@ -949,7 +1034,8 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(await page.evaluate(() => document.body.classList.contains("act-fill")) && n >= 5, `Giro: «Rendi compilabile» porta le pagine in Compila (${n} campi)`);
   /* da Compila: «Scegli PDF o foto» con una foto apre Cattura con la fascia del giro e «Avanti» */
   await page.click("#actBtn");if (await page.locator("#modal").isVisible()) await page.click("#modalBtns .danger");
-  await page.waitForTimeout(300);await page.click("#actBtn");await page.waitForTimeout(300);await page.click("#actBtn");
+  /* Compila → Modifica → Schiaccia → Cattura → Compila */
+  for (let i = 0; i < 3; i++) { await page.waitForTimeout(300); await page.click("#actBtn"); }
   await page.waitForSelector("#fill .fillTray");
   await page.setInputFiles("#fill input[type=file]", { name: "modulo.png", mimeType: "image/png", buffer: Buffer.from(png) });
   await page.waitForFunction(() => document.getElementById("loader").hidden && document.querySelector(".fillCheck") && document.querySelector(".capGo"), null, { timeout: 120000 }).catch(() => {});

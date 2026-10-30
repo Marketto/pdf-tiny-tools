@@ -40,7 +40,7 @@ async function modMap(){
   return MAP;
 }
 function rel(u){return decodeURIComponent(u.pathname.slice(BASE.pathname.length))}
-function isMod(p){return /^vendor\//.test(p)||/^i18n\/[a-z]{2}\.js$/.test(p)||p==="compila.js"||/^compila\//.test(p)}
+function isMod(p){return /^vendor\//.test(p)||/^i18n\/[a-z]{2}\.js$/.test(p)||p==="compila.js"||p==="modifica.js"||/^compila\//.test(p)}
 
 // Modulo: dalla cache se c'è con l'impronta giusta; altrimenti dalla rete, e la copia vecchia dello stesso
 // file si toglie. Senza rete, meglio la copia vecchia che niente.

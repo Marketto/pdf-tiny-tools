@@ -102,7 +102,7 @@ h1 .f-all{transform:rotateX(-270deg) translateZ(.5em);color:#c9a6ff}
 .mode-all h1 .f-all{animation:holoText 12s ease-in-out infinite}
 @keyframes holoText{0%,100%{color:#ff8fd1}33%{color:#6fd3ee}66%{color:#b98cff}}
 .ty{display:inline-block;font:700 12px/1.5 var(--body);border:2px solid var(--ink);border-radius:6px;padding:0 6px;margin-inline-end:6px;vertical-align:2px;color:var(--ink)}
-.ty-pdf{background:#ffb3c7}.ty-jpg{background:#a8ecd0}.ty-video{background:#d6c2ff}.ty-capture,.ty-fill{background:#ffd23f}
+.ty-pdf{background:#ffb3c7}.ty-jpg{background:#a8ecd0}.ty-video{background:#d6c2ff}.ty-capture,.ty-fill,.ty-edit{background:#ffd23f}
 .perType{margin-top:14px;border:var(--line);border-radius:14px;padding:8px 12px;background:#fff}
 .perType summary{font-weight:700;cursor:pointer}
 .perType>div{margin-top:12px}
@@ -269,8 +269,9 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 #actBtn .face{color:var(--paper)}
 #actBtn .f-cap{transform:rotateX(-90deg) translateZ(.5em)}
 #actBtn .f-fill{transform:rotateX(-180deg) translateZ(.5em)}
-/* in Compila il rullo della modalità resta su PDF (R-CPL-01) */
-.act-fill #modeBtn{cursor:default}.act-fill #modeBtn .chev{visibility:hidden}
+#actBtn .f-edit{transform:rotateX(-270deg) translateZ(.5em)}
+/* in Compila e in Modifica il rullo della modalità resta su PDF (R-CPL-01, R-EDT-01) */
+.act-fill #modeBtn,.act-edit #modeBtn{cursor:default}.act-fill #modeBtn .chev,.act-edit #modeBtn .chev{visibility:hidden}
 .mode-video #actBtn,.mode-all #actBtn{cursor:default}
 .capBig{display:flex;flex-direction:column;gap:12px}
 .capBig .btn,.dock .btn{display:flex}
@@ -313,9 +314,39 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .loader .scanScene,.loader.scan .fileScene,.loader.scan #loaderCancel{display:none}
 .loader.scan .scanScene{display:block}
 /* ---- Compila (R-CPL): schermata propria come Cattura; le sezioni della compressione restano nascoste ---- */
-.act-fill .squash{display:none!important}
+.act-fill .squash,.act-edit .squash{display:none!important}
 body:not(.act-fill) #fill{display:none}
-body.act-fill #capMsg{display:block}
+body:not(.act-edit) #edit{display:none}
+body.act-fill #capMsg,body.act-edit #capMsg{display:block}
+/* Modifica (R-EDT-04…07): contorni blu dei testi, arancioni delle immagini, maniglie */
+.ebox{position:absolute;padding:0;margin:0;background:transparent;border:2px dashed var(--c);border-radius:3px;cursor:pointer;min-width:6px;min-height:6px;--c:#2f6fdb}
+.ebox.ei{--c:#f08a24;border:0;outline:2.5px dashed var(--c);outline-offset:2px;box-shadow:0 0 0 2px rgba(255,255,255,.8);transform-origin:50% 50%}
+.ebox.ei.sel{outline:3px solid #ef5b8b;outline-offset:2px;border:0}
+.ebox.sel{border:3px solid var(--acc-s,#ef5b8b);background:color-mix(in srgb,#ef5b8b 10%,transparent);z-index:3;touch-action:none;cursor:move}
+.fscroll.z1 .ebox.et:not(.sel){border-width:1.5px}
+.epage.eadd{cursor:crosshair}
+.epage.eadd .ebox{pointer-events:none;opacity:.5}
+.egrip{position:absolute;width:16px;height:16px;border-radius:4px;background:#fff;border:3px solid #ef5b8b;touch-action:none}
+.egrip.nw{left:-10px;top:-10px;cursor:nwse-resize}.egrip.ne{right:-10px;top:-10px;cursor:nesw-resize}.egrip.se{right:-10px;bottom:-10px;cursor:nwse-resize}.egrip.sw{left:-10px;bottom:-10px;cursor:nesw-resize}
+.erot{position:absolute;left:50%;top:-36px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:#ef5b8b;border:3px solid #fff;box-shadow:0 0 0 2px var(--ink);cursor:grab;touch-action:none}
+.erot::after{content:"";position:absolute;left:50%;top:18px;width:3px;height:14px;margin-left:-1.5px;background:#ef5b8b}
+.erow{align-items:center}.erow .eico{margin:0;min-width:var(--h-sm);padding:4px}
+.fillBar.ebar{grid-template-columns:repeat(2,1fr)}
+.esheet .fin{font-weight:600}
+.esheet textarea.fin{resize:vertical;min-height:2.6em;font-family:var(--body)}
+.erowl{display:flex;align-items:center;gap:10px;justify-content:space-between}.erowl .esel{width:auto;flex:1;max-width:260px;margin:0}
+.erow2{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}.erow2 .flab{margin:0;margin-inline-end:auto}
+.estep{display:inline-flex;align-items:center;gap:4px}.estep .btn{margin:0;min-width:var(--h-sm)}.eval{min-width:3.2em;text-align:center;font-weight:800}
+.ebold,.eital{margin:0;min-width:var(--h-sm);font-family:Georgia,serif}.ebold{font-weight:900}.eital{font-style:italic}
+.ebold[aria-pressed="true"],.eital[aria-pressed="true"]{background:var(--acc-s);color:var(--paper)}
+.eswatch{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.esw{width:36px;height:36px;border-radius:50%;border:3px solid var(--ink);padding:0;cursor:pointer}
+.esw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--paper),0 0 0 6px #ef5b8b}
+.epick{background:conic-gradient(#ef5b8b,#f5c518,#3fc380,#2f6fdb,#ef5b8b);overflow:hidden}.epick::-webkit-color-swatch{border:0;opacity:0}.epick::-moz-color-swatch{border:0;opacity:0}
+.ewarn{color:#b4234f;font-weight:700}
+.ebarI .egrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.ebarI .egrid .btn{display:flex;gap:6px;margin:0}.ebarI .ewide{grid-column:1/-1}
+.ebarI .edone{display:flex;margin:12px auto 0}
+#edit.withSheet{padding-bottom:62vh}
 .fill{display:flex;flex-direction:column;gap:22px}
 .fill .panel.off{opacity:.55;display:flex;flex-direction:column;gap:6px;padding:12px 18px}
 .fill .panel.off .tag{background:transparent;border:0;padding:0;margin:0;transform:none;font-size:19px}
@@ -642,6 +673,7 @@ details p{margin:8px 0 0;max-width:65ch}
   </section>
   <div id="capture" class="capture"></div>
   <div id="fill" class="fill"></div>
+  <div id="edit" class="fill"></div>
   <p id="capMsg" class="capMsg" role="status" aria-live="polite"></p>
   <p class="hint statsRow" id="statsRow" hidden><span id="statsState"></span> <button type="button" class="linkish" id="statsBtn"></button></p>
   <p class="hint statsRow"><button type="button" class="linkish" id="tourAgain" data-i18n="tourAgain">Rivedi il giro</button></p>
@@ -796,8 +828,9 @@ function t(k,p){
   var d=I[lang]||{},e=I.en||{},sx=mode==="jpg"?"J":mode==="video"?"V":mode==="all"?"A":"";
   /* in Cattura vince prima "chiaveC" + J/V, poi "chiaveC" */
   if(act==="capture"&&(d[k+"C"]||e[k+"C"])&&k!=="h1")k=k+"C";
-  /* in Compila «chiaveF» (R-CPL) */
+  /* in Compila «chiaveF» (R-CPL), in Modifica «chiaveE» (R-EDT) */
   if(act==="fill"&&(d[k+"F"]||e[k+"F"])&&k!=="h1")k=k+"F";
+  if(act==="edit"&&(d[k+"E"]||e[k+"E"])&&k!=="h1")k=k+"E";
   var str=(sx&&(d[k+sx]||e[k+sx]))||d[k]||e[k]||k;
   if(mode==="jpg"&&k!=="h1")str=str.replace(/PDF/g,"JPG").replace(/pdf/g,"jpg");
   if((mode==="video"||mode==="all")&&k!=="h1"&&k!=="vWord"&&k!=="aWord"&&!(mode==="all"&&/A$/.test(k))&&!(d[k+sx]||e[k+sx])){var w=t(mode==="all"?"aWord":"vWord");if(mode==="all")str=str.split(w+" PDF").join(w);if(/^PDF/.test(str))str=w.charAt(0).toUpperCase()+w.slice(1)+str.slice(3);str=str.replace(/PDF/g,w).replace(/pdf/g,w)}
@@ -850,7 +883,7 @@ function applyLang(){
   lvlTexts();each(".pickBtns",function(b){if(b.offsetParent)fitBtns(b)});
   if(typeof bgShowState==="function"&&$("bgChange"))bgShowState();
   if($("demoMeta")){$("demoMeta").textContent=fmt(19293798)+" → "+fmt(3250586);$("demoPct").textContent="−"+nf(83)+"%"}
-  render();capRender();if(window.Compila)Compila.render();
+  render();capRender();if(window.Compila)Compila.render();if(window.Modifica)Modifica.render();
   setTimeout(textCheck,0);
 }
 
@@ -880,12 +913,12 @@ function verbFace(txt){var m=/^(\s*)(.*?)(\s*)$/.exec(txt);return {lead:m[1],wor
 function showTitle(){
   var h1=$("title"),b=$("modeBtn");
   if(!b||h1.getAttribute("data-lang")!==lang){
-    var sq=titleParts("h1"),ca=titleParts("h1C"),fi=titleParts("h1F"),pre=!!sq.before.trim(),fs=verbFace(pre?sq.before:sq.after),fc=verbFace(pre?ca.before:ca.after),ff=verbFace(pre?fi.before:fi.after);
+    var sq=titleParts("h1"),ca=titleParts("h1C"),fi=titleParts("h1F"),ed=titleParts("h1E"),pre=!!sq.before.trim(),fs=verbFace(pre?sq.before:sq.after),fc=verbFace(pre?ca.before:ca.after),ff=verbFace(pre?fi.before:fi.after),fe=verbFace(pre?ed.before:ed.after);
     h1.textContent="";h1.setAttribute("data-lang",lang);
     var v=document.createElement("button");v.type="button";v.id="actBtn";v.className="roll";
-    v.innerHTML='<span class="wob"><span class="drum"><span class="face f-sq"></span><span class="face f-cap"></span><span class="face f-fill"></span></span></span>'+ARROWS;
-    v.querySelector(".f-sq").textContent=fs.word;v.querySelector(".f-cap").textContent=fc.word;v.querySelector(".f-fill").textContent=ff.word||fc.word;
-    /* Schiaccia → Cattura → Compila → Schiaccia (R-CPL-01) */
+    v.innerHTML='<span class="wob"><span class="drum"><span class="face f-sq"></span><span class="face f-cap"></span><span class="face f-fill"></span><span class="face f-edit"></span></span></span>'+ARROWS;
+    v.querySelector(".f-sq").textContent=fs.word;v.querySelector(".f-cap").textContent=fc.word;v.querySelector(".f-fill").textContent=ff.word||fc.word;v.querySelector(".f-edit").textContent=fe.word||fc.word;
+    /* Schiaccia → Cattura → Compila → Modifica → Schiaccia (R-CPL-01, R-EDT-01) */
     v.addEventListener("click",function(){if(!capOff())setAction(NEXTACT[act])});
     var sp=document.createElement("span");
     if(pre){h1.appendChild(document.createTextNode(fs.lead));h1.appendChild(v);h1.appendChild(document.createTextNode(fs.trail));h1.appendChild(sp)}
@@ -893,19 +926,19 @@ function showTitle(){
     b=document.createElement("button");b.type="button";b.id="modeBtn";b.className="roll";
     b.innerHTML='<span class="wob"><span class="drum"><span class="face f-pdf">PDF</span><span class="face f-jpg">JPG</span><span class="face f-vid">VIDEO</span><span class="face f-all"></span></span></span>'+ARROWS;
     /* in Cattura il rullo alterna solo PDF e JPG (R-SCN-15) */
-    b.addEventListener("click",function(){if(act==="fill")return;setMode(act==="capture"?(mode==="pdf"?"jpg":"pdf"):MODES[(MODES.indexOf(mode)+1)%MODES.length])});
+    b.addEventListener("click",function(){if(act==="fill"||act==="edit")return;setMode(act==="capture"?(mode==="pdf"?"jpg":"pdf"):MODES[(MODES.indexOf(mode)+1)%MODES.length])});
     sp.replaceWith(b);
     turnDrum(true);turnVerb(true);fitTitle();
   }
   var fa=b.querySelector(".f-all");if(fa&&fa.textContent!==t("aFace")){fa.textContent=t("aFace");fitTitle()}
   b.setAttribute("aria-label",t("modeLbl",{kind:mode==="all"?t("aFace"):mode.toUpperCase()}));
-  /* in Compila il risultato è sempre un PDF: rullo fermo, senza frecce (R-CPL-01) */
-  b.setAttribute("aria-disabled",String(act==="fill"));
+  /* in Compila e in Modifica il risultato è sempre un PDF: rullo fermo, senza frecce (R-CPL-01, R-EDT-01) */
+  b.setAttribute("aria-disabled",String(act==="fill"||act==="edit"));
   var v2=$("actBtn");
   if(v2){v2.setAttribute("aria-label",t("actLbl"));v2.setAttribute("aria-disabled",String(capOff()))}
 }
-/* tre facce (Schiaccia, Cattura, Compila): il rullo gira sempre in avanti, come quello della modalità */
-var ACTS=["squash","capture","fill"],NEXTACT={squash:"capture",capture:"fill",fill:"squash"},verbAngle=0;
+/* quattro facce (Schiaccia, Cattura, Compila, Modifica): il rullo gira sempre in avanti, come quello della modalità */
+var ACTS=["squash","capture","fill","edit"],NEXTACT={squash:"capture",capture:"fill",fill:"edit",edit:"squash"},verbAngle=0;
 function turnVerb(now,show){
   var v=$("actBtn");if(!v)return;
   var d=v.querySelector(".drum"),i=ACTS.indexOf(show||act);
@@ -913,7 +946,7 @@ function turnVerb(now,show){
   else{var base=verbAngle-verbAngle%360,to=base+i*90;if(to<verbAngle)to+=360;if(i===0&&to!==verbAngle)to=base+360;verbAngle=to}
   d.classList.toggle("snap",!!now);
   d.style.transform="translateZ(-.5em) rotateX("+verbAngle+"deg)";
-  var f=v.querySelector([".f-sq",".f-cap",".f-fill"][i]),fs=parseFloat(getComputedStyle(d).fontSize)||1;
+  var f=v.querySelector([".f-sq",".f-cap",".f-fill",".f-edit"][i]),fs=parseFloat(getComputedStyle(d).fontSize)||1;
   if(f&&f.offsetWidth)d.style.width=(f.offsetWidth/fs)+"em";
   if(verbAngle>=360){var want=verbAngle;setTimeout(function(){if(verbAngle===want){verbAngle%=360;d.classList.add("snap");d.style.transform="translateZ(-.5em) rotateX("+verbAngle+"deg)";d.offsetWidth;d.classList.remove("snap")}},600)}
   else if(now){d.offsetWidth;d.classList.remove("snap")}
@@ -972,7 +1005,7 @@ function allLevel(k){
 }
 document.querySelectorAll('input[name="alvl"]').forEach(function(r){r.addEventListener("click",function(){if(!busy)allLevel(r.value)})});
 async function setMode(m,quiet,sure){
-  if(loading||MODES.indexOf(m)<0||m===mode&&!quiet||act==="capture"&&(m==="video"||m==="all")||act==="fill"&&m!=="pdf")return;
+  if(loading||MODES.indexOf(m)<0||m===mode&&!quiet||act==="capture"&&(m==="video"||m==="all")||(act==="fill"||act==="edit")&&m!=="pdf")return;
   if(!quiet&&!sure&&unsaved()){
     var lv=await ask({title:t("leaveTitle"),text:t("leaveBodyP"),buttons:[{label:t("pauseChange"),cls:"ok",value:"pause"},{label:t("leaveYes"),cls:"danger",value:1}]});
     if(!lv){
@@ -2584,8 +2617,10 @@ async function enhance(img,style){
   return img;
 }
 
-/* editor (R-SCN-02/09/10): 4 angoli + 4 maniglie dei lati + reticolato. Risolve con {work,q,mids,style}, "retake" o null */
-function editCorners(work,start){
+/* editor (R-SCN-02/09/10): 4 angoli + 4 maniglie dei lati + reticolato. Risolve con {work,q,mids,style}, "retake" o null.
+   Con opts.plain (Modifica, R-EDT-08) niente «Rifai» e il titolo parla dell'immagine */
+function editCorners(work,start,opts){
+  var plain=!!(opts&&opts.plain);
   return new Promise(function(res){
     var sc=$("scanner"),box=$("scanBox"),svg=$("scanSvg"),loupe=$("loupe"),lctx=loupe.getContext("2d");
     var W,H,q,mids,scale=1,drag=-1;
@@ -2660,6 +2695,7 @@ function editCorners(work,start){
     }
     function close(v){
       sc.hidden=true;$("app").inert=false;loupe.hidden=true;
+      $("scanRetake").hidden=false;$("scanTitle").textContent=t("fixCorners");
       window.removeEventListener("resize",fit);window.removeEventListener("keydown",key,true);
       svg.removeEventListener("pointerdown",down);svg.removeEventListener("pointermove",move);
       svg.removeEventListener("pointerup",up);svg.removeEventListener("pointercancel",up);
@@ -2679,6 +2715,7 @@ function editCorners(work,start){
     $("scanCancel").onclick=function(){close(null)};
     $("scanRetake").onclick=function(){close("retake");$("camInput").click()};
     $("scanOk").onclick=function(){close({work:work,q:q.slice(),mids:mids.slice(),style:scanStyle})};
+    $("scanRetake").hidden=plain;if(plain)$("scanTitle").textContent=t("fixCornersImg");
     sc.hidden=false;$("app").inert=true;
     requestAnimationFrame(fit);
   });
@@ -3446,27 +3483,30 @@ function capDone(msg){
 /* il verbo del titolo: Schiaccia → Cattura → Compila (R-SCN-14/15/18, R-CPL-01/14).
    Senza niente da perdere tutto avviene subito, senza attese: così chi chiama può aprire la fotocamera nello stesso tocco. */
 function fillBusy(){return !!(window.Compila&&Compila.busy())}
+function editBusy(){return !!(window.Modifica&&Modifica.busy())}
 async function setAction(a,sure){
-  if(a===act||loading||busy&&!sure||(a==="capture"||a==="fill")&&capOff())return;
-  var lose=act==="squash"?unsavedSquash():act==="capture"?cap.pages.length>0:fillBusy();
+  if(a===act||loading||busy&&!sure||(a==="capture"||a==="fill"||a==="edit")&&capOff())return;
+  var lose=act==="squash"?unsavedSquash():act==="capture"?cap.pages.length>0:act==="edit"?editBusy():fillBusy();
   var lv=null;
   if(lose&&!sure){
     var sq=act==="squash";
-    lv=await ask({title:t("leaveTitle"),text:t(sq?"leaveBodyP":act==="fill"?"leaveBodyF":"leaveBody"),buttons:(sq?[{label:t("pauseChange"),cls:"ok",value:"pause"}]:[]).concat([{label:t("leaveYes"),cls:"danger",value:1}])});
+    lv=await ask({title:t("leaveTitle"),text:t(sq?"leaveBodyP":act==="fill"?"leaveBodyF":act==="edit"?"leaveBodyE":"leaveBody"),buttons:(sq?[{label:t("pauseChange"),cls:"ok",value:"pause"}]:[]).concat([{label:t("leaveYes"),cls:"danger",value:1}])});
     if(!lv)return;
   }
   if(act==="squash"){if(lv==="pause")await pauseJob();else if(lose){await stopWork();if(jobId)jobDrop(jobId)}if(items.length){reset();tmpClean()}}
   else if(act==="capture"){capClear();cap.giro=false;ocrFree()}
+  else if(act==="edit"){if(window.Modifica)Modifica.clear();ocrFree()}
   else{if(window.Compila)Compila.clear();ocrFree()}
-  act=a;document.body.classList.toggle("act-cap",a==="capture");document.body.classList.toggle("act-fill",a==="fill");
-  /* Compila fa sempre un PDF (R-CPL-01) */
-  if(a==="fill"&&mode!=="pdf")setMode("pdf",true);
+  act=a;document.body.classList.toggle("act-cap",a==="capture");document.body.classList.toggle("act-fill",a==="fill");document.body.classList.toggle("act-edit",a==="edit");
+  /* Compila e Modifica fanno sempre un PDF (R-CPL-01, R-EDT-01) */
+  if((a==="fill"||a==="edit")&&mode!=="pdf")setMode("pdf",true);
   say("");applyLang();turnVerb();
   if(a==="fill")fillOpen();
+  if(a==="edit")editOpen();
   try{window.scrollTo({top:0,behavior:"smooth"})}catch(e){}
 }
 /* fotocamera: da Schiaccia a Cattura, da Cattura a Schiaccia; in Compila è «Fotografa il modulo» */
-$("camBtn").addEventListener("click",function(){if(loading)return;if(act==="fill"&&!fillBusy())toCapture("camera");else setAction(act==="squash"?"capture":"squash")});
+$("camBtn").addEventListener("click",function(){if(loading)return;if(act==="fill"&&!fillBusy())toCapture("camera");else setAction(act==="squash"||act==="edit"?"capture":"squash")});
 
 /* ---------- Compila: il codice sta in compila.js, scaricato la prima volta (R-CPL-15) ---------- */
 var fillP=null;
@@ -3480,6 +3520,19 @@ async function fillOpen(){
   if(!window.Compila){box.textContent="";box.appendChild(el("p","capEmpty",t("fillLoading")))}
   try{await fillLib()}catch(e){box.textContent="";say(t("fillNet"),true);return}
   if(act==="fill")Compila.render();
+}
+/* ---------- Modifica: il codice sta in modifica.js, scaricato la prima volta (R-EDT-14) ---------- */
+var editP=null;
+function editLib(){
+  if(window.Modifica)return Promise.resolve(window.Modifica);
+  if(!editP)editP=loadScript("modifica.js").then(function(){return window.Modifica}).catch(function(e){editP=null;throw e});
+  return editP;
+}
+async function editOpen(){
+  var box=$("edit");
+  if(!window.Modifica){box.textContent="";box.appendChild(el("p","capEmpty",t("editLoading")))}
+  try{await editLib()}catch(e){box.textContent="";say(t("editNet"),true);return}
+  if(act==="edit")Modifica.render();
 }
 /* giro unico (R-CPL-12): Cattura con il giro acceso, in PDF; la fotocamera parte subito (o le foto scelte vanno tra le pagine) */
 function toCapture(how,files){
@@ -3529,6 +3582,8 @@ window.APP={
   lensOff:loaderOff,
   saveBlob:saveBlob,savedAs:function(){return savedAs},festa:function(){music.festa()},
   checkBx:checkBx,fitBtns:fitBtns,isFill:function(){return act==="fill"},toCapture:toCapture,
+  /* per Modifica (R-EDT-08/09): gli attrezzi di Cattura */
+  isEdit:function(){return act==="edit"},detectPage:detectPage,editCorners:editCorners,warp:warp,projMids:projMids,toJpeg:toJpeg,
   /* lavoro salvato (R-APP-18) */
   jobPut:jobPut,jobDrop:jobDrop,filePut:filePut,fileGet:fileGet,JOBV:function(){return JOBV}
 };
@@ -4277,9 +4332,9 @@ function sessCard(r,onGo,onPick){
   var card=el("div","job"),lab=el("label","check"),cb=document.createElement("input");cb.type="checkbox";
   lab.appendChild(cb);lab.appendChild(checkBx());lab.setAttribute("aria-label",r.name);
   cb.addEventListener("change",function(){onPick(cb.checked)});
-  var vf=verbFace(titleParts(r.kind==="capture"?"h1C":"h1F")[titleParts("h1").before.trim()?"before":"after"]).word;
+  var vf=verbFace(titleParts(r.kind==="capture"?"h1C":r.kind==="edit"?"h1E":"h1F")[titleParts("h1").before.trim()?"before":"after"]).word;
   var ttl=el("b"),ty=el("span","ty ty-"+r.kind,vf);ttl.appendChild(ty);ttl.appendChild(document.createTextNode(r.name));
-  var bits=[r.kind==="capture"?t("capInfo",{n:nf(r.pages.length),size:fmt(r.size||0)}):t("fillFound",{n:nf(r.fields.length)})];
+  var bits=[r.kind==="capture"?t("capInfo",{n:nf(r.pages.length),size:fmt(r.size||0)}):r.kind==="edit"?t("editChanges",{n:nf(r.n||0)}):t("fillFound",{n:nf(r.fields.length)})];
   try{bits.push(new Date(r.t).toLocaleString(lang,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))}catch(e){}
   var go=el("button","btn ok jgo",t("jobResume"));go.type="button";go.addEventListener("click",onGo);
   card.appendChild(lab);card.appendChild(ttl);card.appendChild(el("small",null,bits.join(" · ")));card.appendChild(go);
@@ -4291,7 +4346,7 @@ async function jobsDialog(){
   var box=el("div","jobs"),picked={},pickN=0,chosen=null,closer=null,del=null;
   var KL={pdf:"PDF",jpg:"JPG",video:"VIDEO"};
   list.forEach(function(r){
-    if(r.kind==="capture"||r.kind==="fill"){box.appendChild(sessCard(r,function(){chosen=r;if(closer)closer("resume")},function(c){if(c){picked[r.id]=r;pickN++}else{delete picked[r.id];pickN--}if(del){del.textContent=t("jobsDelete",{n:nf(pickN)});del.disabled=!pickN}}));return}
+    if(r.kind==="capture"||r.kind==="fill"||r.kind==="edit"){box.appendChild(sessCard(r,function(){chosen=r;if(closer)closer("resume")},function(c){if(c){picked[r.id]=r;pickN++}else{delete picked[r.id];pickN--}if(del){del.textContent=t("jobsDelete",{n:nf(pickN)});del.disabled=!pickN}}));return}
     var n=r.files.length,dn=0,vn=0,an=0;
     r.files.forEach(function(f){if(f.status==="done"||f.status==="kept"||f.status==="over")dn++;if(f.kind==="video"){vn++;if(f.an||f.status!=="wait")an++}});
     var card=el("div","job"),lab=el("label","check"),cb=document.createElement("input");cb.type="checkbox";
@@ -4312,7 +4367,7 @@ async function jobsDialog(){
   var a=await ask({title:t("jobsTitle"),text:t("jobsBody"),body:box,noCancel:true,
     buttons:[{label:t("jobsDelete",{n:nf(0)}),cls:"danger",value:"del",check:function(){return pickN>0}},{label:t("jobsLater"),cls:"alt",value:null}],
     onOpen:function(close){closer=close;del=$("modalBtns").querySelector(".danger");if(del)del.disabled=true}});
-  if(a==="resume"&&chosen){if(chosen.kind==="capture"||chosen.kind==="fill")sessResume(chosen);else resumeJob(chosen);return}
+  if(a==="resume"&&chosen){if(chosen.kind==="capture"||chosen.kind==="fill"||chosen.kind==="edit")sessResume(chosen);else resumeJob(chosen);return}
   if(a==="del"){for(var id in picked)await jobDrop(id);toast(t("jobsDeleted"));jobsDialog()}
 }
 
@@ -4368,16 +4423,17 @@ async function sessResume(rec){
   var ok=false;
   if(rec.kind==="capture")ok=await capRestore(rec);
   else if(rec.kind==="fill"){try{await fillLib();setAction("fill",true);if(act==="fill")ok=await Compila.restore(rec)}catch(e){ok=false}}
+  else if(rec.kind==="edit"){try{await editLib();if(mode!=="pdf")await setMode("pdf",true);setAction("edit",true);if(act==="edit")ok=await Modifica.restore(rec)}catch(e){ok=false}}
   if(!ok){jobDrop(rec.id);say(t("failed"),true)}
   return ok;
 }
 /* riaperta da poco (Android chiude le app lasciate in secondo piano): si torna dove si era, senza domande */
 async function sessFresh(){
-  var list=(await jobsAll()).filter(function(r){return (r.kind==="capture"||r.kind==="fill")&&Date.now()-r.t<CFG.ui.resumeWithin}).sort(function(a,b){return b.t-a.t});
+  var list=(await jobsAll()).filter(function(r){return (r.kind==="capture"||r.kind==="fill"||r.kind==="edit")&&Date.now()-r.t<CFG.ui.resumeWithin}).sort(function(a,b){return b.t-a.t});
   return list[0]||null;
 }
-document.addEventListener("visibilitychange",function(){if(document.hidden){capSaveNow();if(window.Compila&&Compila.saveNow)Compila.saveNow()}});
-window.addEventListener("pagehide",function(){capSaveNow();if(window.Compila&&Compila.saveNow)Compila.saveNow()});
+document.addEventListener("visibilitychange",function(){if(document.hidden){capSaveNow();if(window.Compila&&Compila.saveNow)Compila.saveNow();if(window.Modifica&&Modifica.saveNow)Modifica.saveNow()}});
+window.addEventListener("pagehide",function(){capSaveNow();if(window.Compila&&Compila.saveNow)Compila.saveNow();if(window.Modifica&&Modifica.saveNow)Modifica.saveNow()});
 
 /* ---------- benvenuto: giro del primo avvio e novità dopo un aggiornamento (R-BEN) ---------- */
 var tour={steps:[],i:0,on:false,news:false,tadaa:false};
@@ -4392,7 +4448,8 @@ function tourSteps(){return [
   {t:"tour1T",p:"tour1P",at:null},
   {t:"tour2T",p:"tour2P",at:"#modeBtn"},
   {t:"tour3T",p:"tour3P",at:"#actBtn",verb:"capture"},
-  {t:"tour4T",p:"tour4P",at:"#actBtn",verb:"fill"}
+  {t:"tour4T",p:"tour4P",at:"#actBtn",verb:"fill"},
+  {t:"tour5T",p:"tour5P",at:"#actBtn",verb:"edit"}
 ]}
 /* le novità uscite dopo l'ultima versione vista (R-BEN-03); chi usava l'app prima vede quelle di questa versione */
 function newsSteps(seen,now,all){
@@ -4439,7 +4496,7 @@ function tourEnd(go){
   tour.on=false;$("tour").hidden=true;$("app").inert=appBusyScreen();
   lsSet("tour","1");var v=verNow();if(v!=="dev")lsSet("seen",v);
   turnVerb(false);
-  if(go==="fill")setTimeout(function(){if(!capOff())setAction("fill");else{setMode("pdf").then(function(){setAction("fill")})}},300);
+  if(go==="fill"||go==="edit")setTimeout(function(){if(!capOff())setAction(go);else{setMode("pdf").then(function(){setAction(go)})}},300);
   setTimeout(function(){if(!items.length&&!loading)jobsDialog()},400);
 }
 /* la mascotte del fumetto e della lente: copia di quella della testata, senza gli accessori di Cattura */
