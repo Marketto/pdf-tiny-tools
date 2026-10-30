@@ -841,7 +841,7 @@ function t(k,p){
 /* testi vecchi (R-I18N-04): subito dopo un aggiornamento la pagina nuova può ricevere dal service worker della versione
    prima il file dei testi vecchio, senza le chiavi nuove. Allora, appena il service worker nuovo prende il comando
    (o dopo 10 s), il file si richiede e i testi si rimettono a posto, senza ricaricare la pagina */
-var textMiss=false,textFix=false;
+var textMiss=false,textFix=false,textAfter=[];
 function textCheck(){
   if(!textMiss||textFix)return;textFix=true;
   var sw=navigator.serviceWorker,done=false;
@@ -852,7 +852,7 @@ function textCheck(){
     loadScript("i18n/"+l+".js"+r).then(function(){
       if(!I[l])I[l]=old;
       return l==="en"?null:loadScript("i18n/en.js"+r).catch(function(){});
-    },function(){I[l]=old}).then(function(){$("title").removeAttribute("data-lang");applyLang();if(tour.on)tourShow()});
+    },function(){I[l]=old}).then(function(){$("title").removeAttribute("data-lang");applyLang();if(tour.on)tourShow();var f=textAfter;textAfter=[];f.forEach(function(fn){try{fn()}catch(e){}})});
   }
   if(sw&&sw.controller){sw.addEventListener("controllerchange",function(){setTimeout(again,300)});setTimeout(again,10000)}
   else again();
@@ -4440,7 +4440,8 @@ var tour={steps:[],i:0,on:false,news:false,tadaa:false};
 function verNow(){var v=($("ver")&&$("ver").textContent||"").trim().replace(/^v/,"");return /^\d+\.\d+\.\d+$/.test(v)?v:"dev"}
 function cmpVer(a,b){a=String(a).split(".").map(Number);b=String(b).split(".").map(Number);for(var i=0;i<3;i++){if((a[i]||0)!==(b[i]||0))return (a[i]||0)-(b[i]||0)}return 0}
 /* i fumetti nominano PDF, JPG e VIDEO insieme: niente sostituzioni della modalità */
-function tr(k){var d=I[lang]||{},e=I.en||{};return d[k]||e[k]||k}
+function tr(k){var d=I[lang]||{},e=I.en||{};if(!d[k]&&!e[k]&&I[lang])textMiss=true;return d[k]||e[k]||k}
+function hasText(k){var d=I[lang]||{},e=I.en||{};return !!(d[k]||e[k])}
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 /* i quattro fumetti del primo avvio (R-BEN-01); at = l'elemento da illuminare, verb = faccia del verbo da mostrare */
@@ -4519,7 +4520,15 @@ function welcome(){
   if(!lsGet("tour")&&!VETERAN)return tourStart(tourSteps());
   if(!lsGet("tour"))lsSet("tour","1");
   if(now==="dev"||seen===now){if(now!=="dev")lsSet("seen",now);return false}
-  var ok=tourStart(newsSteps(seen,now),true);
+  var st=newsSteps(seen,now);
+  /* testi della versione prima (R-I18N-04): le novità aspettano i testi nuovi, invece di mostrare i nomi delle chiavi */
+  if(st.some(function(x){return !hasText(x.t)||!hasText(x.p)})){
+    textMiss=true;
+    textAfter.push(function(){if(!tour.on&&st.every(function(x){return hasText(x.t)&&hasText(x.p)})&&tourStart(st,true))return});
+    setTimeout(textCheck,0);
+    return true;
+  }
+  var ok=tourStart(st,true);
   if(!ok)lsSet("seen",now);
   return ok;
 }
