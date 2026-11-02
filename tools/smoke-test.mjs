@@ -934,16 +934,25 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     const c = document.createElement("canvas"); c.width = 900; c.height = 1600; const g = c.getContext("2d");
     for (let x = 0; x < 900; x += 6) { g.fillStyle = `rgb(${150 + (x * 7 % 40)},${110 + (x * 5 % 25)},${70 + (x * 3 % 20)})`; g.fillRect(x, 0, 6, 1600); }
     g.save(); g.translate(450, 790); g.rotate(.015); g.fillStyle = "#f4f5f2"; g.fillRect(-430, -680, 860, 1350);
-    g.fillStyle = "#222"; g.font = "28px Arial"; for (let i = 0; i < 18; i++) g.fillText("Ricevuta riga " + (i + 1) + " ............", -360, -560 + i * 66); g.restore();
+    g.fillStyle = "#222"; g.font = "28px Arial"; for (let i = 0; i < 18; i++) g.fillText("Ricevuta riga " + (i + 1) + " ............", -360, -560 + i * 66);
+    /* il riquadro stampato (dritto) e una stampa fuori registro, di traverso, come sulla ricevuta delle Poste */
+    g.strokeStyle = "#5a2a14"; g.lineWidth = 4; g.strokeRect(-390, 250, 780, 300); for (let y = 290; y < 550; y += 40) { g.beginPath(); g.moveTo(-390, y); g.lineTo(390, y); g.lineWidth = 2; g.stroke(); }
+    g.rotate(.025); g.font = "30px Courier New"; g.fillText("SCADENZA RICEVUTA 22A0: 25/02/2027", -370, 330); g.fillText("FRAZ. 55910   SEZ. 03   OPERAZ. 98", -370, 600); g.restore();
     return [...new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/png"))).arrayBuffer())];
   });
   await page.click("#actBtn");await page.waitForTimeout(300);
   await page.setInputFiles("#galInput", { name: "ricevuta.png", mimeType: "image/png", buffer: Buffer.from(png) });
   await page.waitForFunction(() => window.__cap && window.__cap.pages.length && window.__cap.pages[0].blob && document.getElementById("loader").hidden, null, { timeout: 120000 });
-  const r = await page.evaluate(async () => { const p = window.__cap.pages[0], b = await createImageBitmap(p.blob); return { q: p.q.map((v) => v.map(Math.round)), ratio: b.height / b.width }; });
+  const r = await page.evaluate(async () => {
+    const p = window.__cap.pages[0], b = await createImageBitmap(p.blob), c = document.createElement("canvas"); c.width = b.width; c.height = b.height; const g = c.getContext("2d"); g.drawImage(b, 0, 0);
+    /* il lato basso del riquadro: riga più scura vicino al 68–75% dell'altezza, a sinistra e a destra */
+    const d = g.getImageData(0, 0, c.width, c.height).data, row = (x) => { let best = 0, by = 0; for (let y = Math.round(c.height * .66); y < c.height * .76; y++) { let s2 = 0; for (let dx = -6; dx <= 6; dx++) { const i = (y * c.width + x + dx) * 4; s2 += 765 - d[i] - d[i + 1] - d[i + 2]; } if (s2 > best) { best = s2; by = y; } } return by; };
+    return { q: p.q.map((v) => v.map(Math.round)), ratio: b.height / b.width, tilt: Math.abs(row(Math.round(c.width * .2)) - row(Math.round(c.width * .8))) };
+  });
   /* angoli veri del foglio (860×1350 ruotato di 0,015 rad attorno a 450,790) */
   const okQ = r.q.every((p, i) => Math.hypot(p[0] - [30, 890, 870, 10][i], p[1] - [104, 117, 1466, 1454][i]) < 10);
   check(okQ && Math.abs(r.ratio - 1350 / 860) < .05, `Ricevuta su legno: lati sul bordo della carta, proporzioni tenute (non A4) (${JSON.stringify(r.q)}, ${r.ratio.toFixed(2)})`);
+  check(r.tilt <= 3, `Ricevuta su legno: la stampa di traverso non piega il riquadro dritto (dislivello del lato basso ${r.tilt} px)`);
   await page.locator("#capture img").first().click();await page.waitForTimeout(400);
   if (await page.locator("#viewer").isHidden()) { await page.locator("#capture img").first().click(); await page.waitForTimeout(400); }
   const v = await page.evaluate(() => { const i = document.getElementById("viewImg").getBoundingClientRect(), s = document.getElementById("viewStage").getBoundingClientRect(); return { doc: document.documentElement.scrollWidth, inW: innerWidth, fit: i.left >= s.left - 1 && i.right <= s.right + 1 && i.top >= s.top - 1 && i.bottom <= s.bottom + 1 && s.right <= 358 }; });

@@ -90,7 +90,10 @@ window.CONFIG = {
        servono almeno minLines linee, altrimenti la pagina resta com'è; passes = passate di correzione, composte in una sola; una linea vale se
        ha inchiostro su almeno cover della sua lunghezza; una pagina con più di maxColor di colori decisi non si distende;
        né una pagina le cui linee tremano (scarto mediano dalla loro parabola) più di maxWobble px: è scritta a mano */
-    unfold: { maxColor: 0.15, maxWobble: 2.2, passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3 }
+    unfold: { maxColor: 0.15, maxWobble: 2.2, passes: 2, size: 1000, minLen: 0.1, cover: 0.65, maxH: 0.06, along: 0.02, across: 0.12, grid: 48, maxShift: 0.04, minLines: 3,
+      /* linee già dritte che la mappa piegherebbe (R-SCN-27): lunghe almeno straightLen della pagina, scarto dalla retta sotto straightRms px;
+         se la mappa ne piega una di più di straight px (copia di analisi) la pagina non si distende */
+      straight: 1.5, straightRms: 0.6, straightLen: 0.35 }
   },
   /* Compila (R-CPL): minWords = parole del testo vero del PDF sotto cui si legge la pagina con Tesseract; maxPages = pagine lette al massimo;
      listShow = voci di una lista mostrate prima di «… altre N»; fontMin/fontMax = grandezza del testo nei campi (punti);
