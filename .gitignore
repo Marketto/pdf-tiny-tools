@@ -1,3 +1,28 @@
 node_modules/
 tools/package-lock.json
 _site/
+# Foto, PDF e documenti d'esempio del proprietario non entrano mai nel repository (vedi CLAUDE.md):
+# le prove creano i loro file finti al volo. Restano ammesse solo le icone dell'app.
+*.jpg
+*.jpeg
+*.png
+*.pdf
+*.heic
+*.heif
+*.webp
+*.tif
+*.tiff
+*.gif
+*.bmp
+*.mp4
+*.mov
+*.m4v
+*.webm
+*.mkv
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.odt
+*.zip
+!icons/*.png
