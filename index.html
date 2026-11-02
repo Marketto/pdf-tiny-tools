@@ -255,7 +255,10 @@ h1 .f-all{transform:rotateX(-270deg) translateZ(.5em);color:#c9a6ff}
 .viewStage{flex:1;min-height:0;width:100%;position:relative;overflow:hidden;touch-action:none;cursor:zoom-in}
 .viewStage.zoomed{cursor:grab}
 .viewStage img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none;box-shadow:0 0 0 3px #fffdf3;background:#fff}
-.viewActs{width:min(520px,100%);grid-auto-columns:auto!important;grid-template-columns:auto 1fr auto}
+.viewActs{width:min(520px,100%);grid-auto-columns:auto!important;grid-template-columns:auto minmax(0,1fr) auto}
+/* il testo del pulsante centrale va a capo: un'etichetta lunga (russo) non deve allargare la finestra oltre lo schermo */
+.viewActs #viewBack{min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.1}
+.viewer{max-width:100vw;overflow:hidden}
 .viewActs .ib{padding-inline:14px}
 /* ---- Cattura (R-SCN-14…19): le sezioni della compressione hanno la classe squash ---- */
 .act-cap .squash{display:none!important}
@@ -287,8 +290,9 @@ body:not(.act-cap) #capture,body:not(.act-cap) #capMsg{display:none}
 .num{position:absolute;inset-inline-start:4px;top:4px;background:var(--ink);color:var(--paper);font:700 12px/1.5 var(--body);border-radius:999px;padding:0 7px}
 .chip{position:absolute;inset-inline-end:4px;bottom:4px;background:var(--acc);border:2px solid var(--ink);font:700 11px/1.4 var(--body);border-radius:999px;padding:0 6px;color:var(--ink)}
 .add{flex:none;width:86px;min-height:110px;border:3px dashed var(--ink);border-radius:10px;display:grid;place-items:center;font:40px var(--display);background:#fff;color:var(--ink);cursor:pointer}
-.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.tools .btn,.moveBar .btn{gap:6px;width:100%;margin:0;padding:4px}
+.tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+/* un'etichetta lunga (russo, ucraino, finlandese) va a capo invece di allargare la pagina oltre lo schermo */
+.tools .btn,.moveBar .btn{gap:6px;width:100%;margin:0;padding:4px;min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.1}
 .moveBar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
 .moveBar .btn:disabled{opacity:.4;box-shadow:none}
 .straightSeg button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
@@ -2101,7 +2105,97 @@ function quadOuter(G,Q){
   return Q;
 }
 function inQuad(Q,p){for(var j=0;j<4;j++){var a=Q[j],b=Q[(j+1)%4];if((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])<0)return false}return true}
+/* i bordi proposti, poi ogni lato appoggiato al bordo vero della carta (R-SCN-35) */
 function detectPage(work){
+  var r=detectPage0(work);
+  if(r)try{var f=sideFit(work,r.q,r.mids);if(f){if(PERF)(window.__fit=window.__fit||[]).push({from:r.q.map(function(p){return p.map(Math.round)}),to:f.q.map(function(p){return p.map(Math.round)}),moved:f.moved});r.q=f.q;r.mids=f.mids}}catch(e){}
+  return r;
+}
+/* lati sul bordo vero (R-SCN-35): lungo ogni lato, n punti; per ognuno, cercando lungo la perpendicolare, il passaggio più netto
+   da carta (dentro, chiara e senza colore) a sfondo (fuori). Con abbastanza punti validi, il lato segue una parabola su quei punti
+   (per una carta un po' incurvata); gli angoli si spostano con i due lati che vi arrivano */
+function sideFit(work,q,mids){
+  var F=CFG.scan.fit;if(!F||!F.on)return null;
+  var W=work.width,H=work.height,k=Math.min(1,F.size/Math.max(W,H)),w=Math.max(16,Math.round(W*k)),h=Math.max(16,Math.round(H*k)),n=w*h,i;
+  var cv=document.createElement("canvas");cv.width=w;cv.height=h;var g=cv.getContext("2d",{willReadFrequently:true});g.drawImage(work,0,0,w,h);
+  var d=g.getImageData(0,0,w,h).data;cv.width=cv.height=0;
+  var P=new Float32Array(n);for(i=0;i<n;i++){var r=d[i*4],gg=d[i*4+1],b=d[i*4+2],mx=Math.max(r,gg,b),mn=Math.min(r,gg,b);P[i]=r*.3+gg*.59+b*.11-F.sat*(mx-mn)}
+  function at(x,y){x=Math.round(x);y=Math.round(y);if(x<0||y<0||x>=w||y>=h)return NaN;return P[y*w+x]}
+  var Q=q.map(function(p){return [p[0]*k,p[1]*k]}),M=(mids||projMids(q)).map(function(p){return [p[0]*k,p[1]*k]});
+  var C=[(Q[0][0]+Q[1][0]+Q[2][0]+Q[3][0])/4,(Q[0][1]+Q[1][1]+Q[2][1]+Q[3][1])/4],band=Math.max(4,F.band*Math.max(w,h)),fit=[],moved=0;
+  /* il foglio dev'essere carta chiara: la mediana dentro il quadrilatero (un volantino colorato non si tocca) */
+  var smp=[];for(var yy=0;yy<h;yy+=4)for(var xx=0;xx<w;xx+=4)if(inQuad(Q,[xx,yy]))smp.push(P[yy*w+xx]);
+  smp.sort(function(a,b){return a-b});var paper=smp.length?smp[smp.length>>1]:0;if(paper<F.paper)return null;
+  function curve(A,Mm,B,tt){return [A[0]*(1-tt)*(1-2*tt)+4*Mm[0]*tt*(1-tt)+B[0]*tt*(2*tt-1),A[1]*(1-tt)*(1-2*tt)+4*Mm[1]*tt*(1-tt)+B[1]*tt*(2*tt-1)]}
+  for(var j=0;j<4;j++){
+    var A=Q[j],B=Q[(j+1)%4],Mm=M[j],dx=B[0]-A[0],dy=B[1]-A[1],L=Math.hypot(dx,dy)||1,nx=dy/L,ny=-dx/L;
+    if((Mm[0]-C[0])*nx+(Mm[1]-C[1])*ny<0){nx=-nx;ny=-ny}
+    var pts=[];
+    for(var s2=0;s2<F.n;s2++){
+      var tt=.02+.96*s2/(F.n-1),c=curve(A,Mm,B,tt),best=-1e9,bo=0;
+      for(var o=-band;o<=band;o++){
+        var inn=0,out=0,ni=0,no=0;
+        for(var e=2;e<=8;e++){var v1=at(c[0]+nx*(o-e),c[1]+ny*(o-e)),v2=at(c[0]+nx*(o+e),c[1]+ny*(o+e));if(v1===v1){inn+=v1;ni++}if(v2===v2){out+=v2;no++}}
+        if(ni<4)continue;
+        /* oltre il margine della foto: lo sfondo non si vede, il foglio può finire lì */
+        /* dentro dev'essere carta (chiara e senza colore): i passaggi tra i colori di un volantino non contano */
+        if(inn/ni<paper*F.inner)continue;
+        var diff=no?inn/ni-out/no:F.step;
+        if(diff>best){best=diff;bo=o}
+      }
+      if(best>=F.step)pts.push([tt,bo]);
+    }
+    if(pts.length<F.min*F.n){fit.push(null);continue}
+    /* parabola sugli spostamenti (minimi quadrati), poi via i punti lontani e di nuovo */
+    var cf=null;
+    for(var it=0;it<2;it++){
+      cf=quadFit(pts);if(!cf)break;
+      var res=pts.map(function(p){return Math.abs(p[1]-(cf[0]+cf[1]*p[0]+cf[2]*p[0]*p[0]))}),sr=res.slice().sort(function(a,b){return a-b}),med=sr[sr.length>>1];
+      var keep=pts.filter(function(p,ii){return res[ii]<=Math.max(2,3*med)});if(keep.length<F.min*F.n*.8)break;pts=keep;
+    }
+    if(!cf){fit.push(null);continue}
+    /* curvo solo se la parabola segue i punti nettamente meglio della retta: altrimenti agli angoli la curva scappa */
+    var ln=quadFit(pts,true),rms=function(cc){return Math.sqrt(pts.reduce(function(sum,p){var e2=p[1]-(cc[0]+cc[1]*p[0]+cc[2]*p[0]*p[0]);return sum+e2*e2},0)/pts.length)};
+    if(ln&&(rms(cf)>.85*rms(ln)||Math.abs(cf[2])/4>.015*L))cf=ln;
+    /* agli angoli conta il tratto vicino (una carta incurvata piega soprattutto lì): retta sui punti del primo e dell'ultimo terzo */
+    var gl=function(cc){return function(x){return cc[0]+cc[1]*x+cc[2]*x*x}}(cf),lo2=pts.filter(function(p){return p[0]<.4}),hi2=pts.filter(function(p){return p[0]>.6});
+    var l0=lo2.length>=4?quadFit(lo2,true):null,l1=hi2.length>=4?quadFit(hi2,true):null;
+    /* appena dentro il bordo (inset px della copia): niente filo di sfondo */
+    var o0=(l0?l0[0]:gl(0))-F.inset,o1=(l1?l1[0]+l1[1]:gl(1))-F.inset;
+    fit.push({n:[nx,ny],o:function(g2,a0,a1){return function(x){return x===0?a0:x===1?a1:g2(x)-F.inset}}(gl,o0,o1)});
+  }
+  if(!fit.some(function(f){return f}))return null;
+  var NQ=Q.map(function(p,jj){
+    var x=p[0],y=p[1],a=fit[jj],b2=fit[(jj+3)%4];
+    if(a){var oa=a.o(0);x+=a.n[0]*oa;y+=a.n[1]*oa}
+    if(b2){var ob=b2.o(1);x+=b2.n[0]*ob;y+=b2.n[1]*ob}
+    return [x,y];
+  });
+  var NM=M.map(function(p,jj){
+    var f=fit[jj],A2=NQ[jj],B2=NQ[(jj+1)%4],old=projMids([Q[0],Q[1],Q[2],Q[3]])[jj];
+    /* la curvatura di prima, più quella trovata ora */
+    var bend=[p[0]-(Q[jj][0]+Q[(jj+1)%4][0])/2,p[1]-(Q[jj][1]+Q[(jj+1)%4][1])/2],mid=[(A2[0]+B2[0])/2+bend[0],(A2[1]+B2[1])/2+bend[1]];
+    if(f){var om=f.o(.5)-(f.o(0)+f.o(1))/2;mid[0]+=f.n[0]*om;mid[1]+=f.n[1]*om}
+    return mid;
+  });
+  NQ.forEach(function(p,jj){moved=Math.max(moved,Math.hypot(p[0]-Q[jj][0],p[1]-Q[jj][1]))});
+  /* per sicurezza: niente salti più grandi della fascia cercata, area simile */
+  if(moved>band*1.6)return null;
+  var a0=quadArea(Q),a1=quadArea(NQ);if(a1<a0*.8||a1>a0*1.25)return null;
+  return {q:NQ.map(function(p){return [p[0]/k,p[1]/k]}),mids:NM.map(function(p){return [p[0]/k,p[1]/k]}),moved:moved/k};
+}
+function quadFit(pts,line){
+  /* minimi quadrati di o = a + b t + c t² (con line, solo la retta: c = 0) */
+  if(line){var n=pts.length,st=0,so=0,stt=0,sto=0;pts.forEach(function(p){st+=p[0];so+=p[1];stt+=p[0]*p[0];sto+=p[0]*p[1]});var den=n*stt-st*st;if(!n||Math.abs(den)<1e-9)return null;var bb=(n*sto-st*so)/den;return [(so-bb*st)/n,bb,0]}
+  var S=[[0,0,0],[0,0,0],[0,0,0]],R=[0,0,0];
+  pts.forEach(function(p){var v=[1,p[0],p[0]*p[0]];for(var a=0;a<3;a++){R[a]+=v[a]*p[1];for(var b=0;b<3;b++)S[a][b]+=v[a]*v[b]}});
+  /* Gauss */
+  for(var c=0;c<3;c++){var piv=c;for(var r=c+1;r<3;r++)if(Math.abs(S[r][c])>Math.abs(S[piv][c]))piv=r;if(Math.abs(S[piv][c])<1e-9)return null;
+    var tS=S[c];S[c]=S[piv];S[piv]=tS;var tR=R[c];R[c]=R[piv];R[piv]=tR;
+    for(r=0;r<3;r++)if(r!==c){var f=S[r][c]/S[c][c];for(var cc=0;cc<3;cc++)S[r][cc]-=f*S[c][cc];R[r]-=f*R[c]}}
+  return [R[0]/S[0][0],R[1]/S[1][1],R[2]/S[2][2]];
+}
+function detectPage0(work){
   var G=edgeGrad(work),k=G.k,E=CFG.scan.edges,cands=[];
   var f=detectPageSeg(work);
   if(f){
@@ -2132,7 +2226,7 @@ function detectPage(work){
        più scuro: i lati dritti erano quelli del divano o del tavolo, il foglio è il colorato */
     if(c.vivid&&ed&&vividWins(work,c.q,ed.g.map(function(p){return [p[0]/k,p[1]/k]})))c.v=Math.max(c.v,ed.s+1+c.s);
     if(!best||c.v>best.v)best=c});
-  if(PERF)(window.__det=window.__det||[]).push(cands.map(function(c){return {seg:c.seg,s:Math.round(c.s),min:Math.round(c.min*100)/100,sup:c.sup.map(function(v){return Math.round(v*100)/100}),cont:c.cont,best:c===best}}));
+  if(PERF)(window.__det=window.__det||[]).push(cands.map(function(c){return {g:c.g.map(function(p){return [Math.round(p[0]/k),Math.round(p[1]/k)]}),vivid:!!c.vivid,seg:c.seg,s:Math.round(c.s),min:Math.round(c.min*100)/100,sup:c.sup.map(function(v){return Math.round(v*100)/100}),cont:c.cont,best:c===best}}));
   /* un lato spostato su un contorno debole abbassa il punteggio: conta quello di prima */
   if(Math.max(best.s,best.pre||-1)<=0)return null;
   /* cornice colorata: vale per qualunque proposta */
@@ -2731,7 +2825,7 @@ async function pageCanvas(r){
   var q=r.q,W=Math.max(dist(q[0],q[1]),dist(q[3],q[2])),H=Math.max(dist(q[0],q[3]),dist(q[1],q[2]));
   /* proporzioni vicine ad A4 (un foglio fotografato di sbieco si accorcia): riportate ad A4 */
   var ratio=Math.max(W,H)/Math.min(W,H);
-  if(ratio>1.25&&ratio<1.6){if(H>=W)H=W*Math.SQRT2;else W=H*Math.SQRT2}
+  var A4=CFG.scan.a4||[1.36,1.47];if(ratio>A4[0]&&ratio<A4[1]){if(H>=W)H=W*Math.SQRT2;else W=H*Math.SQRT2}
   var k=Math.min(1,2400/Math.max(W,H));W=Math.max(1,Math.round(W*k));H=Math.max(1,Math.round(H*k));
   /* angoli o lati fuori dalla foto (foglio che esce dall'inquadratura): lì la pagina è bianca, non la riga del bordo ripetuta */
   var pts=q.concat(r.mids||[]),x0=Math.min.apply(0,pts.map(function(p){return p[0]})),y0=Math.min.apply(0,pts.map(function(p){return p[1]}));

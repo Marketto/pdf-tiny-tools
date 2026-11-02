@@ -922,6 +922,35 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Compila: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- ricevuta su un tavolo di legno (R-SCN-04/35) e anteprima della pagina in una lingua lunga (ucraino, 358 px)
+{
+  const ctx = await browser.newContext({ locale: "uk-UA", viewport: { width: 358, height: 760 }, isMobile: true, hasTouch: true });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url + "?perf=1");await page.waitForTimeout(600);
+  const png = await page.evaluate(async () => {
+    const c = document.createElement("canvas"); c.width = 900; c.height = 1600; const g = c.getContext("2d");
+    for (let x = 0; x < 900; x += 6) { g.fillStyle = `rgb(${150 + (x * 7 % 40)},${110 + (x * 5 % 25)},${70 + (x * 3 % 20)})`; g.fillRect(x, 0, 6, 1600); }
+    g.save(); g.translate(450, 790); g.rotate(.015); g.fillStyle = "#f4f5f2"; g.fillRect(-430, -680, 860, 1350);
+    g.fillStyle = "#222"; g.font = "28px Arial"; for (let i = 0; i < 18; i++) g.fillText("Ricevuta riga " + (i + 1) + " ............", -360, -560 + i * 66); g.restore();
+    return [...new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/png"))).arrayBuffer())];
+  });
+  await page.click("#actBtn");await page.waitForTimeout(300);
+  await page.setInputFiles("#galInput", { name: "ricevuta.png", mimeType: "image/png", buffer: Buffer.from(png) });
+  await page.waitForFunction(() => window.__cap && window.__cap.pages.length && window.__cap.pages[0].blob && document.getElementById("loader").hidden, null, { timeout: 120000 });
+  const r = await page.evaluate(async () => { const p = window.__cap.pages[0], b = await createImageBitmap(p.blob); return { q: p.q.map((v) => v.map(Math.round)), ratio: b.height / b.width }; });
+  /* angoli veri del foglio (860×1350 ruotato di 0,015 rad attorno a 450,790) */
+  const okQ = r.q.every((p, i) => Math.hypot(p[0] - [30, 890, 870, 10][i], p[1] - [104, 117, 1466, 1454][i]) < 10);
+  check(okQ && Math.abs(r.ratio - 1350 / 860) < .05, `Ricevuta su legno: lati sul bordo della carta, proporzioni tenute (non A4) (${JSON.stringify(r.q)}, ${r.ratio.toFixed(2)})`);
+  await page.locator("#capture img").first().click();await page.waitForTimeout(400);
+  if (await page.locator("#viewer").isHidden()) { await page.locator("#capture img").first().click(); await page.waitForTimeout(400); }
+  const v = await page.evaluate(() => { const i = document.getElementById("viewImg").getBoundingClientRect(), s = document.getElementById("viewStage").getBoundingClientRect(); return { doc: document.documentElement.scrollWidth, inW: innerWidth, fit: i.left >= s.left - 1 && i.right <= s.right + 1 && i.top >= s.top - 1 && i.bottom <= s.bottom + 1 && s.right <= 358 }; });
+  check(v.doc <= 358 && v.inW === 358 && v.fit, `Anteprima della pagina: entra nello schermo anche con le etichette lunghe (pagina ${v.doc} px, immagine dentro: ${v.fit})`);
+  check(errors.length === 0, `Ricevuta: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
 // --- Modifica (R-EDT): quarta faccia del verbo, testi e immagini di un PDF, Raddrizza, Separa, salvataggio, lavoro ripreso
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 } });

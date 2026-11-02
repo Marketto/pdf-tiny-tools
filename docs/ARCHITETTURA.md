@@ -14,7 +14,7 @@ Tutto il JavaScript è in `index.html`, dentro un'unica funzione, diviso da comm
 | `motore` | ponte verso `motore.js` (`MI = Motore.internal`, `pdfLib`, `squeezePdf`/`squeezeJpg` sulle schede), `lvlOf`, `jpgOpts`, `squashList`, `workEnd`, gestore di `goBtn` | CMP, JPG, TUT-04, APP-20 |
 | `video` | `checkVideo` (codec da `MI.probeCodec`), `vRecall`, `vRemember`, `vFingerprint`, `vMemShow`, `clearTmp`/`tmpClean`, `vLv`, `videoOne` (ponte: memoria, annullamento, `keepDone`), `videoLoop`; l'algoritmo è in `motore.js` | VID, APP-20 |
 | `salvataggio` | `saveBlob`, `ask`, `writeJobs`, `finish`, gestori di `saveAs`/`saveElse`/`saveBeside`/`overBtn` | SAV |
-| `scansione con la fotocamera` | `detectPage` (lati dritti: `edgeGrad`, `edgeLines`, `edgeQuad`, `quadScoreG`, `quadSides`, `quadPolish`, `quadTrim`, `quadOuter`, `quadInset`, `edgeMids`; maschera: `detectPageSeg`, `detectPageAt`), `editCorners`, `makePage`, `warp`, `enhance`, `scanFileName` | SCN |
+| `scansione con la fotocamera` | `detectPage` = `detectPage0` + `sideFit` (SCN-35: lati sul bordo vero, `quadFit`) (lati dritti: `edgeGrad`, `edgeLines`, `edgeQuad`, `quadScoreG`, `quadSides`, `quadPolish`, `quadTrim`, `quadOuter`, `quadInset`, `edgeMids`; maschera: `detectPageSeg`, `detectPageAt`), `editCorners`, `makePage`, `warp`, `enhance`, `scanFileName` | SCN |
 | `bordi` / `orientamento` | `paperMap`, `snapCorner`, `refineQuad`, `ocrWorker`, `autoOrient`, `findSkew`, `turnCanvas` | SCN-20…24 |
 | `cattura` | `setAction`, `turnVerb`, `capRender`, `scanFile`, `galleryFiles`, `capBuild`, `capManual`, `capMove`, `edgeClean`, `colorFrac`, `flatScan`, `capSave`, `giroAsk` | SCN-14…19, 31…33, CPL-12/13 |
 | `Compila` (in `index.html`) | `fillLib`, `fillOpen`, `toCapture`, `capToFill`, `formScan`, `formSeen`, ponte `window.APP` | CPL-01/12/13/15 |
@@ -178,6 +178,10 @@ Sezioni `bordi` e `orientamento` in `index.html`, dopo `detectPage`.
 | Scansione, 3 pagine (JS; WebGL non misurabile qui) | 0,79 s | 0,78 s |
 | Analisi video, 4 s | 12,4 s | 6,1–6,9 s |
 Sui telefoni contano anche più core (fino a 4 worker) e la grafica vera.
+
+## Lati sul bordo vero (SCN-35)
+`detectPage` chiama `detectPage0` (maschera, foglio colorato, lati dritti: la scelta di sempre) e poi `sideFit`: su una copia di `scan.fit.size` px, «carta» = luce − `sat` × colore. Se la mediana della carta dentro il quadrilatero è sotto `paper` (volantino colorato, foglio scuro) non si tocca niente. Per ogni lato, `n` punti (2–98% del lato, sulla curva dei lati con la maniglia di metà); per ognuno, lungo la perpendicolare fino a `band`, lo spostamento dove la media dentro (2–8 px) meno quella fuori è massima, purché dentro valga almeno `inner` × mediana e la differenza almeno `step`. Con almeno `min` dei punti: parabola (`quadFit`) con due giri di scarto dei punti lontani; resta parabola solo se segue i punti nettamente meglio della retta e la curvatura è piccola. Gli angoli si spostano con le rette dei tratti vicini (primo e ultimo terzo di ogni lato); la maniglia di metà prende la curvatura trovata. Tutto rientra di `inset` px; si rinuncia se un angolo salta oltre 1,6 × `band` o l'area cambia oltre −20%/+25%. Con `?perf=1` `window.__fit` (prima/dopo) e in `window.__det` anche i quadrilateri dei candidati. Proporzioni: `pageCanvas` riporta ad A4 solo tra `scan.a4` (SCN-04).
+- Anteprima (SCN-26): `.viewActs` ha la colonna di mezzo `minmax(0,1fr)` e `#viewBack` va a capo; `.tools` e `.moveBar` hanno colonne `minmax(0,1fr)` e testi che vanno a capo. Un pulsante più largo della sua colonna allargava il documento: sul telefono la finestra «fissa» dell'anteprima diventava più grande dello schermo e la pagina usciva a destra.
 
 ## Scansione (SCN)
 1. «Scatta» in Cattura apre `<input id="camInput" capture="environment">`: fotocamera di sistema, nessun permesso.

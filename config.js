@@ -65,6 +65,12 @@ window.CONFIG = {
     /* immagini che sono già una scansione (R-SCN-33): se almeno share del contorno (fascia del 2%) è carta chiara (tutti i canali
        almeno white, differenza tra i canali al massimo sat), la pagina è l'immagine intera */
     flat: { share: 0.97, white: 215, sat: 30 },
+    /* proporzioni riportate ad A4 solo tra a4[0] e a4[1] (lato lungo / lato corto, R-SCN-04) */
+    a4: [1.36, 1.47],
+    /* lati sul bordo vero (R-SCN-35): copia con il lato lungo di size px; n punti per lato, cercati fino a band (parte del lato lungo)
+       dentro e fuori; carta = luce − sat × colore; il foglio si tocca solo se la mediana della carta dentro vale almeno paper; un punto vale se dentro vale almeno inner volte quella mediana e supera lo sfondo fuori di almeno step;
+       un lato si sposta solo se valgono almeno min dei suoi punti; alla fine i lati rientrano di inset px della copia */
+    fit: { on: true, size: 1000, n: 28, band: 0.035, sat: 1.2, paper: 160, inner: 0.7, step: 30, min: 0.6, inset: 2 },
     edges: { size: 480, minGrad: 3, lines: 28, outside: 0.15, minArea: 0.08,
       miss: 1, unseen: 0.3, cont: 2, contReach: 0.1, contPaper: 60, contInk: 50, growSat: 60,
       keep: 5, sideRange: 0.3, sideTilt: 12, paperSat: 35, cutInk: 0.4,
