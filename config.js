@@ -61,7 +61,9 @@ window.CONFIG = {
        - alla fine i lati rientrano di inset px e si curvano solo se così il contorno sotto di loro cresce di almeno curveGain;
        - bordi della maschera (R-SCN-09/28): punteggio × segBias (× segGoodBias se ogni lato ha almeno segGood di contorno); vincono anche
          se contengono quelli dei lati dritti e ogni loro lato ha almeno segMin di contorno;
-       - pagina finita: lo sfondo scuro (sotto cleanDark, senza colore) attaccato ai bordi entro cleanBand diventa bianco */
+       - pagina finita: lo sfondo scuro (sotto cleanDark, senza colore) attaccato ai bordi entro cleanBand diventa bianco; se la carta è
+         chiara (luce almeno cleanPaper), da ogni lato le righe di bordo con più di cleanRow di pixel fuori dalla carta (sotto cleanShade
+         della sua luce o colorati oltre cleanSat: legno, ombra di un bordo arricciato) diventano carta fino alla prima pulita (R-SCN-35) */
     /* immagini che sono già una scansione (R-SCN-33): se almeno share del contorno (fascia del 2%) è carta chiara (tutti i canali
        almeno white, differenza tra i canali al massimo sat), la pagina è l'immagine intera */
     flat: { share: 0.97, white: 215, sat: 30 },
@@ -76,7 +78,7 @@ window.CONFIG = {
       keep: 5, sideRange: 0.3, sideTilt: 12, paperSat: 35, cutInk: 0.4,
       trimFrom: 0.3, trimMin: 0.1, trimTurn: 30, trimInk: 0.03,
       frame: 0.1, frameSup: 0.7, frameSat: 35, inset: 2, curveGain: 0.005,
-      segBias: 1.1, segGood: 0.8, segGoodBias: 1.35, segMin: 0.3, cleanBand: 0.03, cleanDark: 90,
+      segBias: 1.1, segGood: 0.8, segGoodBias: 1.35, segMin: 0.3, cleanBand: 0.03, cleanDark: 90, cleanPaper: 200, cleanShade: 0.82, cleanSat: 45, cleanRow: 0.02,
       /* foglio colorato (R-SCN-34): vince se dentro è più luminoso dello sfondo attorno di almeno vividGap (0–255) e copre almeno vividArea della foto */
       vividGap: 60, vividArea: 0.2 },
     /* ombre delle pieghe (R-SCN-29): analisi su una copia con il lato lungo di size px; luce fine con raggio fine, luce del foglio con

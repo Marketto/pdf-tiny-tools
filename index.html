@@ -3165,10 +3165,26 @@ function colorFrac(cv){
 function edgeClean(cv){
   var C=CFG.scan.edges,W=cv.width,H=cv.height,g=cv.getContext("2d",{willReadFrequently:true}),img=g.getImageData(0,0,W,H),d=img.data,n=W*H;
   var bx=Math.max(2,Math.round(W*C.cleanBand)),by=Math.max(2,Math.round(H*C.cleanBand)),seen=new Uint8Array(n),st=new Int32Array(n),sp=0,ch=0;
-  function dark(i){var r=d[i*4],gg=d[i*4+1],b=d[i*4+2],mx=Math.max(r,gg,b);return mx<C.cleanDark&&mx-Math.min(r,gg,b)<40}
+  /* luce della carta: mediana del canale più forte nella parte centrale */
+  var sm=[];for(var yy=Math.round(H*.2);yy<H*.8;yy+=Math.max(1,H/60|0))for(var xx=Math.round(W*.2);xx<W*.8;xx+=Math.max(1,W/60|0)){var j=(yy*W+xx)*4;sm.push(Math.max(d[j],d[j+1],d[j+2]))}
+  sm.sort(function(a,b){return a-b});var paper=sm.length?sm[sm.length>>1]:255;
+  function dark(i){var r=d[i*4],gg=d[i*4+1],b=d[i*4+2],mx=Math.max(r,gg,b),mn=Math.min(r,gg,b);
+    return mx<C.cleanDark&&mx-mn<40}
   function push(x,y){if(x<0||y<0||x>=W||y>=H)return;if(x>=bx&&x<W-bx&&y>=by&&y<H-by)return;var i=y*W+x;if(seen[i]||!dark(i))return;seen[i]=1;st[sp++]=i}
   for(var x=0;x<W;x++){push(x,0);push(x,H-1)}for(var y=0;y<H;y++){push(0,y);push(W-1,y)}
   while(sp){var i=st[--sp],px=i%W,py=(i/W)|0;d[i*4]=d[i*4+1]=d[i*4+2]=255;ch++;push(px-1,py);push(px+1,py);push(px,py-1);push(px,py+1)}
+  /* margini dritti (R-SCN-35): da ogni lato, le righe (o colonne) di bordo che non sono ancora carta pulita (oltre cleanRow di pixel fuori
+     dalla carta: legno, ombra del bordo arricciato) diventano carta, fino alla prima pulita; così i lati della pagina escono dritti */
+  if(paper>=C.cleanPaper){
+    function off(i){var r=d[i*4],gg=d[i*4+1],b=d[i*4+2],mx=Math.max(r,gg,b),mn=Math.min(r,gg,b);return mx<paper*C.cleanShade||mx-mn>C.cleanSat&&mx<paper*.95}
+    var sides=[[W,by,function(k,t){return t*W+k}],[W,by,function(k,t){return (H-1-t)*W+k}],[H,bx,function(k,t){return k*W+t}],[H,bx,function(k,t){return k*W+W-1-t}]];
+    sides.forEach(function(sd){
+      var len=sd[0],band=sd[1],at=sd[2],depth=0;
+      for(var t=0;t<band;t++){var o=0;for(var k=0;k<len;k++)if(off(at(k,t)))o++;if(o<=len*C.cleanRow)break;depth=t+1}
+      if(depth>=band)return;
+      for(t=0;t<depth;t++)for(var k=0;k<len;k++){var i=at(k,t);d[i*4]=d[i*4+1]=d[i*4+2]=Math.min(255,paper);ch++}
+    });
+  }
   if(ch)g.putImageData(img,0,0);
 }
 /* rifà la pagina: raddrizzamento, pieghe, stile, rotazione */
