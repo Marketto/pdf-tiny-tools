@@ -206,6 +206,18 @@ h1 .f-all{transform:rotateX(-270deg) translateZ(.5em);color:#c9a6ff}
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
 .hint{font-size:15px;color:var(--muted);margin:14px 0 0}
 .statsRow{color:var(--ink);text-align:center;margin:18px 12px 0;font-size:14px}
+/* condizioni d'uso e note legali (R-PRI-06/07) */
+.legal{z-index:32}
+.legalBox{max-height:min(88vh,760px);display:flex;flex-direction:column;width:min(640px,100%)}
+.legalTabs{margin:4px 0 10px}.legalTabs button{white-space:normal;line-height:1.1;min-width:0}
+.legalText{overflow:auto;flex:1;min-height:0;font-size:15px;line-height:1.45;padding-inline-end:4px}
+.legalText p{margin:0 0 10px}
+.legalText ul{margin:0 0 10px;padding-inline-start:18px}.legalText li{margin:0 0 6px}
+.legalText a{color:var(--ink);font-weight:700}
+.terms p{margin:0 0 10px;line-height:1.4}
+.terms .legalLinks{font-size:14px;margin:4px 0 12px}
+.terms .check{margin:6px 0 2px;font-weight:700}
+.termsNeed{color:#b4234f;font-weight:700;margin:4px 0 0}.termsNeed:empty{display:none}
 @media (hover:none) and (pointer:coarse){
   .tray{border:0;padding:0;background:none}
   .tray>p,.hint.desk{display:none}
@@ -681,6 +693,7 @@ details p{margin:8px 0 0;max-width:65ch}
   <p id="capMsg" class="capMsg" role="status" aria-live="polite"></p>
   <p class="hint statsRow" id="statsRow" hidden><span id="statsState"></span> <button type="button" class="linkish" id="statsBtn"></button></p>
   <p class="hint statsRow"><button type="button" class="linkish" id="tourAgain" data-i18n="tourAgain">Rivedi il giro</button></p>
+  <p class="hint statsRow legalLinks" id="legalRow"></p>
 </div>
 
 <div class="loader" id="loader" role="dialog" aria-modal="true" aria-labelledby="loaderTitle" hidden>
@@ -749,6 +762,15 @@ details p{margin:8px 0 0;max-width:65ch}
   </div>
 </div>
 
+<div class="modal legal" id="legal" role="dialog" aria-modal="true" aria-labelledby="legalTitle" hidden>
+  <div class="panel modalBox legalBox">
+    <h2 id="legalTitle" data-i18n="legalTitle">Note legali</h2>
+    <div class="seg sm legalTabs" id="legalTabs"></div>
+    <div class="legalText" id="legalText" tabindex="0"></div>
+    <div class="btns"><button class="btn ok" type="button" id="legalClose" data-i18n="legalClose">Chiudi</button></div>
+  </div>
+</div>
+
 <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
 
 <script src="config.js"></script>
@@ -781,7 +803,7 @@ var mode="pdf",MODES=["pdf","jpg","video","all"],rollAngle=0;
 /* cosa si fa: "squash" (Schiaccia) o "capture" (Cattura, solo PDF e JPG). Si cambia dal verbo del titolo. */
 var act="squash";
 /* chi aveva già usato l'app prima del giro di benvenuto ha già delle scelte salvate (R-BEN-02): si guarda prima che l'avvio ne scriva */
-var VETERAN=(function(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k!=="tour"&&k!=="seen")return true}}catch(e){}return false})();
+var VETERAN=(function(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k!=="tour"&&k!=="seen"&&k!=="terms")return true}}catch(e){}return false})();
 var $=function(id){return document.getElementById(id)};
 /* misure dei tempi, solo con ?perf=1 (per confrontare prima e dopo un'ottimizzazione): window.__perf = [[etichetta, ms], …] */
 var PERF=/[?&]perf=1/.test(location.search);if(PERF)window.__perf=[];
@@ -879,6 +901,7 @@ function applyLang(){
   var r=document.documentElement;r.lang=lang;r.dir=t("dir");
   document.title=t("title");
   try{statsRow()}catch(e){}
+  try{legalLinks($("legalRow"))}catch(e){}
   var md=document.querySelector('meta[name="description"]');if(md)md.content=t("desc");
   each("[data-i18n]",function(n){n.textContent=t(n.getAttribute("data-i18n"))});
   each("[data-i18n-html]",function(n){n.innerHTML=t(n.getAttribute("data-i18n-html"))});
@@ -3757,6 +3780,8 @@ applyLang();
 if(!hadMode&&mode==="pdf"&&$("modeBtn"))$("modeBtn").classList.add("wiggle");
 /* lavori in pausa da riprendere (R-APP-13) */
 setTimeout(async function(){
+  /* condizioni d'uso, una volta (R-PRI-06): prima del lavoro da riprendere, del giro e delle novità */
+  await termsGate();
   if(items.length||loading)return;
   var live=await sessFresh();
   if(live&&await sessResume(live)){toast(t("jobBack"));return}
@@ -4706,6 +4731,77 @@ window.addEventListener("appinstalled",function(){deferred=null;instBtn.hidden=t
 if(isIOS&&!standalone)instBtn.hidden=false;
 /* statistiche (R-PRI-05): un'apertura, da app installata o da browser, con la lingua; riga in fondo con l'interruttore */
 STATS.hit("/",false);stat("avvio/"+(standalone?"app":"browser"));stat("lingua/"+lang);
+/* ---------- condizioni d'uso e note legali (R-PRI-06/07) ---------- */
+/* librerie e caratteri usati (R-PRI-07): nome, versione, licenza, autori, indirizzo */
+var LEGAL_LIBS=[
+  ["pdf-lib","1.17.1","MIT","Andrew Dillon","https://github.com/Hopding/pdf-lib"],
+  ["tslib (in pdf-lib)","","Apache-2.0","Microsoft","https://github.com/microsoft/tslib"],
+  ["JSZip","3.10.1","MIT / GPL-3.0","Stuart Knightley","https://github.com/Stuk/jszip"],
+  ["pako (in JSZip)","","MIT","Vitaly Puzrin, Andrei Tuputcyn","https://github.com/nodeca/pako"],
+  ["Mediabunny","","MPL-2.0","Vanilagy","https://github.com/Vanilagy/mediabunny"],
+  ["Tesseract.js","7.0.0","Apache-2.0","Project Naptha","https://github.com/naptha/tesseract.js"],
+  ["tesseract.js-core","6.1.2","Apache-2.0","Project Naptha","https://github.com/naptha/tesseract.js-core"],
+  ["Tesseract OCR (tessdata)","4.0.0","Apache-2.0","Tesseract OCR","https://github.com/tesseract-ocr/tessdata_best"],
+  ["PDF.js","4.10.38","Apache-2.0","Mozilla","https://github.com/mozilla/pdf.js"]
+];
+var LEGAL_FONTS=[["Lilita One","Juan Montoreano"],["Baloo 2, Baloo Da 2, Baloo Bhaijaan 2","Ek Type"],["Rubik","Hubert & Fischer"],["Commissioner","Kostas Bartsokas"]];
+function termsOk(){return lsGet("terms")===String(CFG.legal.version)}
+/* i tre collegamenti piccoli: condizioni, privacy, licenze */
+function legalLinks(node){
+  if(!node)return;node.textContent="";
+  [["terms","legalTerms"],["privacy","legalPrivacy"],["licenses","legalLicenses"]].forEach(function(x,i){
+    if(i)node.appendChild(document.createTextNode(" · "));
+    var b=el("button","linkish",t(x[1]));b.type="button";b.addEventListener("click",function(){legalOpen(x[0])});node.appendChild(b);
+  });
+}
+/* un paragrafo con il titoletto (la prima frase breve) in grassetto */
+function legalPara(txt){
+  var p=el("p"),m=/^(.{2,48}?[.:。：।۔])\s*/.exec(txt);
+  if(m){p.appendChild(el("b",null,m[1]));p.appendChild(document.createTextNode(" "+txt.slice(m[0].length)))}else p.textContent=txt;
+  return p;
+}
+var legalTab="terms";
+function legalShow(tab){
+  legalTab=tab;var box=$("legalText"),tabs=$("legalTabs");box.textContent="";tabs.textContent="";
+  [["terms","legalTerms"],["privacy","legalPrivacy"],["licenses","legalLicenses"]].forEach(function(x){
+    var b=el("button",null,t(x[1]));b.type="button";b.setAttribute("aria-pressed",String(x[0]===tab));b.addEventListener("click",function(){legalShow(x[0])});tabs.appendChild(b);
+  });
+  if(tab==="terms")["legalT1","legalT2","legalT3","legalT4","legalT5","legalT6","legalT7"].forEach(function(k){box.appendChild(legalPara(t(k)))});
+  else if(tab==="privacy"){["legalP1","legalP2","legalP3","legalP4","legalP5"].forEach(function(k){box.appendChild(legalPara(t(k)))});
+    var a=el("a",null,CFG.legal.repo.replace(/^https:\/\//,""));a.href=CFG.legal.repo+"/issues";a.target="_blank";a.rel="noopener";var p=el("p");p.appendChild(a);box.appendChild(p)}
+  else{
+    box.appendChild(el("p",null,t("legalL1")));
+    /* nomi, versioni e licenze restano da sinistra a destra anche in arabo e in urdu */
+    var ul=el("ul");ul.dir="ltr";
+    LEGAL_LIBS.forEach(function(l){var li=el("li"),a2=el("a",null,l[0]+(l[1]?" "+l[1]:""));a2.href=l[4];a2.target="_blank";a2.rel="noopener";li.appendChild(a2);li.appendChild(document.createTextNode(" — "+l[2]+" — "+l[3]));li.translate=false;ul.appendChild(li)});
+    box.appendChild(ul);
+    box.appendChild(el("p",null,t("legalFonts")+":"));
+    var uf=el("ul");uf.dir="ltr";LEGAL_FONTS.forEach(function(f){var li=el("li",null,f[0]+" — SIL Open Font License 1.1 — "+f[1]+" (Google Fonts)");li.translate=false;uf.appendChild(li)});box.appendChild(uf);
+    var pc=el("p"),ac=el("a",null,CFG.legal.repo.replace(/^https:\/\//,""));ac.href=CFG.legal.repo;ac.target="_blank";ac.rel="noopener";pc.appendChild(document.createTextNode(t("legalCode")+": "));pc.appendChild(ac);box.appendChild(pc);
+  }
+  box.scrollTop=0;
+}
+function legalOpen(tab){
+  var m=$("legal");legalShow(tab||"terms");
+  var wasInert=$("app").inert;m.hidden=false;$("app").inert=true;
+  function key(e){if(e.key==="Escape"){e.preventDefault();e.stopPropagation();close()}}
+  function close(){m.hidden=true;$("app").inert=wasInert||!$("modal").hidden||appBusyScreen();window.removeEventListener("keydown",key,true);$("legalClose").onclick=null}
+  window.addEventListener("keydown",key,true);$("legalClose").onclick=close;
+  setTimeout(function(){$("legalClose").focus()},0);
+}
+/* alla prima apertura, prima di tutto il resto: le condizioni si accettano una volta (R-PRI-06) */
+function termsGate(){
+  if(termsOk())return Promise.resolve(true);
+  var box=el("div","terms");
+  ["termsP1","termsP2","termsP3","termsP4"].forEach(function(k){box.appendChild(el("p",null,t(k)))});
+  var links=el("p","legalLinks");legalLinks(links);box.appendChild(links);
+  var lab=el("label","check termsCheck"),cb=document.createElement("input");cb.type="checkbox";
+  lab.appendChild(cb);lab.appendChild(checkBx());lab.appendChild(el("span",null,t("termsCheck")));box.appendChild(lab);
+  var need=el("p","termsNeed");box.appendChild(need);
+  cb.addEventListener("change",function(){if(cb.checked)need.textContent=""});
+  return ask({title:t("termsT"),body:box,noCancel:true,buttons:[{label:t("termsOk"),cls:"ok",value:1,check:function(){if(!cb.checked){need.textContent=t("termsNeed");return false}return true}}]})
+    .then(function(){lsSet("terms",String(CFG.legal.version));return true});
+}
 function statsRow(){
   var row=$("statsRow");if(!STATS.on){row.hidden=true;return}
   row.hidden=false;var off=STATS.dnt||STATS.off();

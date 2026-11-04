@@ -116,6 +116,9 @@ window.CONFIG = {
   /* novità per versione (R-BEN-03): una voce per funzione nuova, con i testi (chiavi <key>T e <key>P) e dove porta «Provalo!».
      Le versioni con sole correzioni non hanno voci: per loro niente fumetti */
   news: [ { v: "4.0.0", key: "newsFill", go: "fill" }, { v: "4.2.0", key: "newsEdit", go: "edit" } ],
+  /* condizioni d'uso e note legali (R-PRI-06/07): version = versione delle condizioni accettate (cambiandola, la finestra torna una
+     volta); repo = dove sta il codice dell'app (contatti, Issues) */
+  legal: { version: 1, repo: "https://github.com/Marketto/pdf-tiny-tools" },
   /* statistiche d'uso anonime (R-PRI-05): codice del sito GoatCounter, scritto qui dal flusso di pubblicazione
      dalla variabile GC_CODE del repository; vuoto = nessun conteggio. host = solo su questo sito, mai in locale */
   stats: { code: "", host: "marketto.github.io" },

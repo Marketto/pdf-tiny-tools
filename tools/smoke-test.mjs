@@ -26,6 +26,8 @@ const newContext = browser.newContext.bind(browser);
 browser.newContext = async (o = {}) => { const c = await newContext(o); if (!o.askBg) await c.addInitScript(() => { try { if (localStorage.getItem("bg") === null) localStorage.setItem("bg", "0"); } catch {} });
   // il giro di benvenuto (R-BEN-01) è già visto in tutte le prove, tranne quella che lo prova
   if (!o.tour) await c.addInitScript(() => { try { if (localStorage.getItem("tour") === null) localStorage.setItem("tour", "1"); } catch {} });
+  // le condizioni d'uso (R-PRI-06) sono già accettate in tutte le prove, tranne quella che le prova
+  if (!o.terms) await c.addInitScript(() => { try { if (localStorage.getItem("terms") === null) localStorage.setItem("terms", "1"); } catch {} });
   // pdf-lib non si carica più all'avvio (R-APP-04): le prove che costruiscono PDF lo chiedono così
   await c.addInitScript(() => { window.__pdflib = () => window.PDFLib ? Promise.resolve(window.PDFLib) : new Promise((res, rej) => { const s = document.createElement("script"); s.src = "vendor/pdf-lib.min.js"; s.onload = () => res(window.PDFLib); s.onerror = rej; document.head.appendChild(s); }); });
   return c; };
@@ -835,6 +837,37 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   const langs = reqs.filter((u) => /lang\/\w+\.traineddata/.test(u)).map((u) => u.split("/").pop());
   check(langs.length === 1 && /^ita\./.test(langs[0]), `Caricamento pigro: al salvataggio scaricata solo la lingua che serve (${langs.join(", ")})`);
   check(errors.length === 0, `Orientamento e bordi: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
+// --- condizioni d'uso una volta e note legali (R-PRI-06/07)
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 }, terms: true, tour: true, askBg: true });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+  await page.goto(url);
+  await page.waitForSelector("#modal:not([hidden]) .terms", { timeout: 8000 }).catch(() => {});
+  const m = await page.evaluate(() => ({ t: document.getElementById("modalTitle").textContent, tour: !document.getElementById("tour").hidden, n: document.querySelectorAll("#modalBtns button").length }));
+  check(/Prima di cominciare/.test(m.t) && !m.tour && m.n === 1, `Condizioni: alla prima apertura, prima del giro, una finestra con un solo pulsante («${m.t}»)`);
+  await page.click("#modalBtns .btn.ok");await page.waitForTimeout(200);
+  check(await page.locator("#modal").isVisible() && /Spunta/.test(await page.locator(".termsNeed").textContent()), "Condizioni: senza la casella «Accetto» non chiude");
+  await page.locator(".terms .legalLinks button").nth(2).click();await page.waitForTimeout(200);
+  const lic = await page.evaluate(() => ({ open: !document.getElementById("legal").hidden, tabs: document.querySelectorAll("#legalTabs button").length, txt: document.getElementById("legalText").textContent }));
+  check(lic.open && lic.tabs === 3 && /pdf-lib/.test(lic.txt) && /MPL-2\.0/.test(lic.txt) && /Apache-2\.0/.test(lic.txt) && /Open Font License/.test(lic.txt), "Note legali: dalla finestra, «Licenze» apre le licenze delle librerie e dei caratteri");
+  await page.locator("#legalTabs button").nth(0).click();
+  check(/sollevare/.test(await page.locator("#legalText").textContent()), "Note legali: le condizioni intere con l'esclusione di responsabilità");
+  await page.click("#legalClose");
+  await page.click(".terms .check .bx");await page.click("#modalBtns .btn.ok");await page.waitForTimeout(600);
+  check(await page.locator("#modal").isHidden() && await page.evaluate(() => localStorage.getItem("terms")) === "1" && await page.locator("#tour").isVisible(), "Condizioni: accettate, si chiudono e parte il giro di benvenuto");
+  await page.click("#tourSkip").catch(() => {});
+  await page.reload();await page.waitForTimeout(1200);
+  check(!(await page.locator("#modal .terms").count()) || await page.locator("#modal").isHidden(), "Condizioni: alla seconda apertura non tornano");
+  await page.locator("#legalRow button").nth(1).click();await page.waitForTimeout(200);
+  check(await page.locator("#legal").isVisible() && /GoatCounter/.test(await page.locator("#legalText").textContent()), "Note legali: in fondo alla pagina, «Privacy» apre l'informativa");
+  await page.keyboard.press("Escape");
+  check(await page.locator("#legal").isHidden(), "Note legali: Esc chiude");
+  check(errors.length === 0, `Condizioni: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
 // --- benvenuto (R-BEN): giro del primo avvio una volta sola, novità con ?news=1, «Provalo!» porta a Compila
