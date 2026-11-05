@@ -4600,6 +4600,15 @@ function cmpVer(a,b){a=String(a).split(".").map(Number);b=String(b).split(".").m
 /* i fumetti nominano PDF, JPG e VIDEO insieme: niente sostituzioni della modalità */
 function tr(k){var d=I[lang]||{},e=I.en||{};if(!d[k]&&!e[k]&&I[lang])textMiss=true;return d[k]||e[k]||k}
 function hasText(k){var d=I[lang]||{},e=I.en||{};return !!(d[k]||e[k])}
+/* testi della versione prima (R-I18N-04): si aspetta che arrivino quelli nuovi; risolve true se ci sono tutte le chiavi */
+function needTexts(keys){
+  if(keys.every(hasText))return Promise.resolve(true);
+  return new Promise(function(res){
+    textMiss=true;textAfter.push(function(){res(keys.every(hasText))});setTimeout(textCheck,0);
+    /* se la riparazione è già passata (o non arriva), non si resta fermi */
+    setTimeout(function(){res(keys.every(hasText))},15000);
+  });
+}
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 /* i quattro fumetti del primo avvio (R-BEN-01); at = l'elemento da illuminare, verb = faccia del verbo da mostrare */
@@ -4790,8 +4799,15 @@ function legalOpen(tab){
   setTimeout(function(){$("legalClose").focus()},0);
 }
 /* alla prima apertura, prima di tutto il resto: le condizioni si accettano una volta (R-PRI-06) */
-function termsGate(){
-  if(termsOk())return Promise.resolve(true);
+var TERMS_KEYS=["termsT","termsP1","termsP2","termsP3","termsP4","termsCheck","termsOk","termsNeed","legalTerms","legalPrivacy","legalLicenses","legalTitle","legalClose","legalT1","legalT7","legalP1","legalP5","legalL1"];
+async function termsGate(){
+  if(termsOk())return true;
+  /* subito dopo un aggiornamento i testi possono essere ancora quelli di prima: la finestra aspetta i nuovi; se non arrivano,
+     le condizioni si chiederanno alla prossima apertura invece di mostrare i nomi delle chiavi */
+  if(!(await needTexts(TERMS_KEYS)))return false;
+  return termsAsk();
+}
+function termsAsk(){
   var box=el("div","terms");
   ["termsP1","termsP2","termsP3","termsP4"].forEach(function(k){box.appendChild(el("p",null,t(k)))});
   var links=el("p","legalLinks");legalLinks(links);box.appendChild(links);
