@@ -2323,7 +2323,7 @@ function formSeen(){var n=0,any=false;cap.pages.forEach(function(p){if(p.formN>=
 /* ponte per compila.js: solo quello che gli serve */
 window.APP={
   t:t,nf:nf,lang:function(){return lang},say:say,stat:stat,bucket:bucket,loadScript:loadScript,pdfLib:pdfLib,
-  ocrRecWorker:ocrRecWorker,ocrLangFor:ocrLangFor,ocrTouch:ocrTouch,
+  ocrRecWorker:ocrRecWorker,ocrLangFor:ocrLangFor,ocrTouch:ocrTouch,parole:SC.parole,
   loaderOn:loaderOn,loaderOff:loaderOff,cancelled:function(){return cancelLoad},
   loaderN:function(s){$("loaderN").textContent=s||""},loaderTitle:function(s){$("loaderTitle").textContent=s||""},
   lensOn:function(title){$("lensMarks").textContent="";$("lensImg").removeAttribute("src");loaderOn("lens",title)},

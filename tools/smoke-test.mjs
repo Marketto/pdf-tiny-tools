@@ -704,6 +704,13 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(r.api, "Scansione riusabile: window.Scansione con pagina, testo e le funzioni di Cattura, caricato da solo dopo config.js");
   check(r.a[1] > r.a[0] * 1.8 && r.a[1] <= 2400, `Scansione riusabile: pagina() trova il foglio stretto e lo raddrizza (${r.a.join("×")}, giro ${r.deg}°)`);
   check(r.b[0] >= r.a[0], `Scansione riusabile: con max più grande la pagina non perde risoluzione (${r.b.join("×")})`);
+  const pw = await page.evaluate(async () => {
+    const c = document.createElement("canvas"); c.width = 1000; c.height = 1400; const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, 1000, 1400); g.fillStyle = "#111"; g.font = "30px monospace";
+    for (let i = 0; i < 12; i++) { g.save(); g.translate(60, 80 + i * 52); g.rotate((i < 6 ? 5 : 0) * Math.PI / 180); g.fillText("RIGA" + "ABCDEFGHIJKL"[i] + " PRODOTTO PROVA", 0, 0); g.restore(); }
+    const ws = await Scansione.parole(c, { lingua: "eng", psm: "6" }), b = ws.find((q) => q.t === "RIGAB");
+    return { n: ws.length, b: b && [Math.round(b.x), Math.round(b.y1)], fasce: Scansione.fasceInclinate(c, 5) };
+  });
+  check(pw.b && Math.abs(pw.b[0] - 60) < 15 && Math.abs(pw.b[1] - 132) < 18 && pw.fasce[0] !== pw.fasce[4], `Scansione riusabile (R-SCN-37): parole lette a fasce raddrizzate, riportate sulla pagina (RIGAB a ${pw.b}, fasce ${pw.fasce.join(" ")})`);
   check(!errors.length, "Scansione riusabile: nessun errore JavaScript" + (errors.length ? " → " + errors.join("; ") : ""));
   await ctx.close();
 }

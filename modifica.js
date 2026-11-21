@@ -338,16 +338,13 @@ async function readDoc(bytes,ocrSaved){
 async function ocrPage(pdoc,P){
   var k=E.ocrDpi/72,cv=await renderTo(pdoc,P.n+1,k);
   var code=APP.ocrLangFor(null)||"eng";
-  var w=await APP.ocrRecWorker(code,function(){APP.loaderN(t("ocrLang"))});APP.loaderN("");
-  try{await w.setParameters({tessedit_pageseg_mode:"3"})}catch(e){}
-  var r=await w.recognize(cv,{},{tsv:true,text:false,blocks:false});APP.ocrTouch();
+  /* parole con la posizione: sui fogli piegati a fasce raddrizzate (R-SCN-37) */
+  var ws=await APP.parole(cv,{lingua:code,psm:"3",onLang:function(){APP.loaderN(t("ocrLang"))}});APP.loaderN("");
   var lines={},order=[];
-  String(r&&r.data&&r.data.tsv||"").split("\n").slice(1).forEach(function(row){
-    var c=row.split("\t");if(c.length<12||c[0]!=="5")return;
-    var tx=(c[11]||"").trim(),cf=parseFloat(c[10]);if(!tx||cf<30)return;
-    var key=c[2]+"."+c[3]+"."+c[4],x=+c[6],y=+c[7],ww=+c[8],hh=+c[9];
-    if(!lines[key]){lines[key]={w:[]};order.push(key)}
-    lines[key].w.push({t:tx,x:x,y:y,x1:x+ww,y1:y+hh});
+  ws.forEach(function(p){
+    if(p.conf<30)return;
+    if(!lines[p.line]){lines[p.line]={w:[]};order.push(p.line)}
+    lines[p.line].w.push({t:p.t,x:p.x,y:p.y,x1:p.x1,y1:p.y1});
   });
   var g=cv.getContext("2d",{willReadFrequently:true}),W=cv.width,H=cv.height,img=g.getImageData(0,0,W,H).data,T=[];
   order.forEach(function(key,i){

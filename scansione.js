@@ -1438,6 +1438,68 @@ async function costruisci(p,style,hooks){
   return out;
 }
 
+/* ---------- parole con la posizione, anche da fogli piegati (R-SCN-37) ---------- */
+/* copia per la lettura del testo: grigio, più contrasto, ingrandita di k */
+function perOcr(cv,k){
+  k=k||1;var c=document.createElement("canvas");c.width=Math.max(1,Math.round(cv.width*k));c.height=Math.max(1,Math.round(cv.height*k));
+  var g=c.getContext("2d");g.imageSmoothingQuality="high";g.filter="grayscale(1) contrast(1.4)";g.drawImage(cv,0,0,c.width,c.height);g.filter="none";
+  return c;
+}
+function cropCanvas(cv,x0,y0,x1,y1){var c=document.createElement("canvas");c.width=x1-x0;c.height=y1-y0;c.getContext("2d").drawImage(cv,x0,y0,x1-x0,y1-y0,0,0,x1-x0,y1-y0);return c}
+/* inclinazione (gradi, come findSkew) di n fasce orizzontali di una zona */
+function fasceInclinate(cv,n){
+  var out=[],hb=cv.height/n;
+  for(var i=0;i<n;i++){var y0=Math.max(0,Math.round(i*hb-hb*.2)),y1=Math.min(cv.height,Math.round((i+1)*hb+hb*.2)),c=cropCanvas(cv,0,y0,cv.width,y1);out.push(findSkew(c));c.width=c.height=0}
+  return out;
+}
+/* parole di una tabella TSV di Tesseract: {t,x,y,x1,y1,conf,line} */
+function tsvParole(tsv,pre){
+  var out=[];
+  String(tsv||"").split("\n").slice(1).forEach(function(row){
+    var c=row.split("\t");if(c.length<12||c[0]!=="5")return;
+    var tx=(c[11]||"").trim(),cf=parseFloat(c[10]);if(!tx)return;
+    var x=+c[6],y=+c[7];out.push({t:tx,x:x,y:y,x1:x+ +c[8],y1:y+ +c[9],conf:cf,line:(pre||"")+c[2]+"."+c[3]+"."+c[4]});
+  });
+  return out;
+}
+/* parole con la posizione in pixel di cv. opts: lingua (codice di Tesseract), psm ("3"), colonne ([[0,1]], frazioni della
+   larghezza: ogni colonna letta a parte), fasce (true: decide da sé; false: mai). Foglio dritto: una lettura come prima. */
+async function parole(cv,opts){
+  opts=opts||{};
+  var W=cv.width,H=cv.height,cols=opts.colonne||[[0,1]],psm=opts.psm||"3",out=[];
+  var w=await ocrRecWorker(opts.lingua||"eng",opts.onLang);
+  async function read(c,pre){try{await w.setParameters({tessedit_pageseg_mode:psm})}catch(e){}var r=await w.recognize(c,{},{tsv:true,text:false,blocks:false});ocrTouch();return tsvParole(r&&r.data&&r.data.tsv,pre)}
+  for(var ci=0;ci<cols.length;ci++){
+    var x0=Math.round(cols[ci][0]*W),x1=Math.round(cols[ci][1]*W),zone=cols.length===1?cv:cropCanvas(cv,x0,0,x1,H);
+    var n=Math.max(3,Math.min(10,Math.round(H/260))),angs=opts.fasce===false?[0]:fasceInclinate(zone,n);
+    var spread=Math.max.apply(0,angs)-Math.min.apply(0,angs);
+    if(opts.fasce===false||spread<1){
+      /* foglio dritto: la zona intera, come prima */
+      (await read(zone,ci+"/")).forEach(function(p){out.push({t:p.t,x:p.x+x0,y:p.y,x1:p.x1+x0,y1:p.y1,conf:p.conf,line:p.line})});
+    }else{
+      var hb=H/n;
+      for(var i=0;i<n;i++){
+        var y0=Math.max(0,Math.round(i*hb-hb*.2)),y1=Math.min(H,Math.round((i+1)*hb+hb*.2)),band=cropCanvas(zone,0,y0,zone.width,y1),a=angs[i];
+        var rc=Math.abs(a)>=.3?turnCanvas(band,0,-a):band,ps=await read(rc,ci+"/"+i+"/");
+        /* dal pezzo raddrizzato alla pagina: rotazione inversa attorno ai centri */
+        var r=a*Math.PI/180,cs=Math.cos(r),sn=Math.sin(r);
+        var back=function(x,y){var dx=x-rc.width/2,dy=y-rc.height/2;return [dx*cs-dy*sn+band.width/2+x0,dx*sn+dy*cs+band.height/2+y0]};
+        var lines={};
+        ps.forEach(function(p){
+          var A=rc===band?[p.x+x0,p.y+y0]:back(p.x,p.y),B=rc===band?[p.x1+x0,p.y1+y0]:back(p.x1,p.y1);
+          var q={t:p.t,x:Math.min(A[0],B[0]),y:Math.min(A[1],B[1]),x1:Math.max(A[0],B[0]),y1:Math.max(A[1],B[1]),conf:p.conf,line:p.line};
+          (lines[p.line]=lines[p.line]||[]).push(q);
+        });
+        /* righe del centro della fascia: le altre le legge la fascia accanto */
+        Object.keys(lines).forEach(function(k){var L=lines[k],cy=L.reduce(function(s,q){return s+(q.y+q.y1)/2},0)/L.length;if(cy>=i*hb&&cy<(i+1)*hb)L.forEach(function(q){out.push(q)})});
+        if(rc!==band)rc.width=rc.height=0;band.width=band.height=0;
+      }
+    }
+    if(zone!==cv)zone.width=zone.height=0;
+  }
+  return out;
+}
+
 /* tutto il giro di una foto (R-APP-21): file → foglio trovato → pagina raddrizzata e pulita, su canvas.
    opts.stile: "doc" (predefinito), "bw" o "photo"; opts.max: lato lungo della pagina (2400); opts.lavoro: lato lungo della foto di lavoro (3000) */
 async function pagina(file,opts){
@@ -1461,7 +1523,7 @@ var S={
   version:"dev",
   setPerf:function(on){PERF=!!on},
   ocrState:function(){return {started:!!ocrP,bad:ocrBad}},
-  pagina:pagina,testo:testo,costruisci:costruisci,quadSane:quadSane,
+  pagina:pagina,testo:testo,costruisci:costruisci,quadSane:quadSane,parole:parole,perOcr:perOcr,fasceInclinate:fasceInclinate,tsvParole:tsvParole,
   dist:dist,
   homography:homography,
   applyH:applyH,

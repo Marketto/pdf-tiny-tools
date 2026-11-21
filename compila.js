@@ -190,22 +190,11 @@ function decSep(){try{return (1.5).toLocaleString(APP.lang()+"-"+country().toUpp
 var TESS2LANG={ita:"it",eng:"en",spa:"es",fra:"fr",por:"pt",deu:"de",ind:"id",ces:"cs",hrv:"hr",dan:"da",nld:"nl",est:"et",fin:"fi",hun:"hu",gle:"ga",lav:"lv",lit:"lt",mlt:"mt",pol:"pl",ron:"ro",slk:"sk",slv:"sl",swe:"sv",nor:"no",isl:"is",sqi:"sq",bos:"bs",rus:"ru",ukr:"uk",bul:"bg",srp:"sr",mkd:"mk",bel:"be",ell:"el",ara:"ar",urd:"ur",hin:"hi",ben:"bn",chi_sim:"zh"};
 
 /* ---------- lettura del testo: pdf.js per i PDF con testo vero, Tesseract per le immagini ---------- */
-function tsvWords(tsv){
-  var out=[];
-  String(tsv||"").split("\n").slice(1).forEach(function(line){
-    var c=line.split("\t");if(c.length<12)return;
-    var tx=(c[11]||"").trim(),cf=parseFloat(c[10]);if(!tx||cf<0)return;
-    var x=+c[6],y=+c[7],w=+c[8],h=+c[9];
-    out.push({t:tx,x:x,y:y,w:w,h:h,x1:x+w,y1:y+h,conf:cf});
-  });
-  return out;
-}
+/* parole della pagina con la posizione: Scansione.parole, che sui fogli piegati legge a fasce raddrizzate (R-SCN-37) */
 async function ocrWords(cv,code){
-  var w=await APP.ocrRecWorker(code,function(){APP.loaderN(t("ocrLang"))});
+  var ws=await APP.parole(cv,{lingua:code,psm:"3",onLang:function(){APP.loaderN(t("ocrLang"))}});
   APP.loaderN("");
-  try{await w.setParameters({tessedit_pageseg_mode:"3"})}catch(e){}
-  var r=await w.recognize(cv,{},{tsv:true,text:false,blocks:false});APP.ocrTouch();
-  return tsvWords(r&&r.data&&r.data.tsv);
+  return ws.filter(function(p){return p.conf>=0}).map(function(p){return {t:p.t,x:p.x,y:p.y,w:p.x1-p.x,h:p.y1-p.y,x1:p.x1,y1:p.y1,conf:p.conf}});
 }
 /* una striscia letta da sola come una riga (psm 7), ingrandita due volte e con un margine bianco */
 async function ocrStrip(g,W,H,code,x0,x1,y0,y1){
