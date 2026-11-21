@@ -33,12 +33,14 @@ for (const [c, v] of Object.entries(window.LANGS)) {
   if (d.name !== v.name || d.dir !== v.dir) fail(`i18n/index.js: nome o direzione di «${c}» diversi da i18n/${c}.js`);
 }
 for (const c of Object.keys(I)) if (!window.LANGS[c]) fail(`«${c}» manca in i18n/index.js`);
-const html = readFileSync(join(root, "index.html"), "utf8");
-const used = new Set([
-  ...[...html.matchAll(/data-i18n(?:-html|-aria)?="(\w+)"/g)].map((m) => m[1]),
-  ...[...html.matchAll(/\bt\("(\w+)"/g)].map((m) => m[1]),
-]);
-for (const k of used) if (!base.includes(k)) fail(`index.html usa «${k}» che non esiste nei testi`);
+for (const f of ["index.html", "compila.js", "modifica.js"]) {
+  const src = readFileSync(join(root, f), "utf8");
+  const used = new Set([
+    ...[...src.matchAll(/data-i18n(?:-html|-aria)?="(\w+)"/g)].map((m) => m[1]),
+    ...[...src.matchAll(/\bt\("(\w+)"/g)].map((m) => m[1]),
+  ]);
+  for (const k of used) if (!base.includes(k)) fail(`${f} usa «${k}» che non esiste nei testi`);
+}
 
 console.log(`${Object.keys(I).length} lingue, ${base.length} chiavi, problemi: ${bad}`);
 process.exit(bad ? 1 : 0);

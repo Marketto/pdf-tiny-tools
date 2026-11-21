@@ -14,7 +14,7 @@ Poi leggi le modifiche recenti (`git diff` o `git log -p -3`) e cerca ciò che i
 - testi scritti direttamente in `index.html` invece che nei file di `i18n/`;
 - chiamate di rete nuove, o qualsiasi cosa che faccia uscire dati dal dispositivo;
 - percorsi assoluti che si rompono sotto `/pdf-tiny-tools/`;
-- file nuovi non elencati in `sw.js` (`CORE`) o nel passo «Prepara il sito» di `pages.yml`;
+- file nuovi non elencati in `sw.js` (in `CORE`, oppure tra i moduli: `isMod` di `sw.js` e `tools/moduli.mjs`) o nel passo «Prepara il sito» di `pages.yml`;
 - animazioni non spente con `prefers-reduced-motion`;
 - azioni distruttive senza conferma.
 

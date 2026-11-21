@@ -378,6 +378,7 @@ function pdfjs(){
 /* ogni pagina del PDF a 200 dpi, con le parole del testo vero (se c'è) in pixel della pagina */
 async function pdfPages(bytes){
   var lib=await pdfjs(),doc=await lib.getDocument({data:bytes.slice(0),isEvalSupported:false}).promise,out=[];
+  try{
   for(var i=1;i<=doc.numPages&&i<=C.maxPages;i++){
     var p=await doc.getPage(i),vp=p.getViewport({scale:DPI/72}),cv=document.createElement("canvas");
     cv.width=Math.round(vp.width);cv.height=Math.round(vp.height);
@@ -398,7 +399,7 @@ async function pdfPages(bytes){
     out.push({n:i-1,cv:cv,words:words,wPt:vp1.width,hPt:vp1.height});
     p.cleanup();
   }
-  try{doc.destroy()}catch(e){}
+  }finally{try{doc.destroy()}catch(e){}}
   return out;
 }
 /* pagina da un’immagine (Cattura): portata a 200 dpi supponendo la larghezza di un A4 (210 mm in verticale, 297 in orizzontale) */
@@ -840,9 +841,10 @@ function sig(){return JSON.stringify([S.fields,S.view,S.filled])}
 function saveSoon(){if(!S.pages.length)return;clearTimeout(S.saveT);S.saveT=setTimeout(saveNow,1500)}
 function sessDrop(){clearTimeout(S.saveT);if(S.sid){APP.jobDrop(S.sid);S.sid=null}S.stored=false}
 async function saveNow(){
-  clearTimeout(S.saveT);if(!S.pages.length||S.saving)return;
+  clearTimeout(S.saveT);if(!S.pages.length)return;
+  if(S.saving){S.again=true;return}
   var g=sig();if(g===S.cleanSig||g===S.lastSig&&S.sid)return;
-  S.saving=true;
+  S.saving=true;S.again=false;
   try{
     if(!S.sid){S.sid="f"+Date.now();S.stored=false}
     var id=S.sid;
@@ -856,7 +858,7 @@ async function saveNow(){
       pages:S.pages.map(function(p){return {n:p.n,W:p.W,H:p.H,wPt:p.wPt,hPt:p.hPt,script:p.script,code:p.code,photo:!!p.blob}})});
     S.lastSig=g;
   }catch(e){}
-  finally{S.saving=false}
+  finally{S.saving=false;if(S.again){S.again=false;saveSoon()}}
 }
 async function restore(rec){
   var pages=[],src;
@@ -882,7 +884,7 @@ function qcWorker(){
       "\nvar DPI="+DPI+";self.onmessage=async function(e){var r=-1;try{var b=await createImageBitmap(e.data.blob),land=b.width>b.height,W=Math.round((land?297:210)/25.4*DPI),k=W/b.width,H=Math.round(b.height*k),c=new OffscreenCanvas(W,H);c.getContext('2d').drawImage(b,0,0,W,H);if(b.close)b.close();r=countMarks(grayOf(c),W,H)}catch(x){}self.postMessage({id:e.data.id,n:r})};";
     qcW=new Worker(URL.createObjectURL(new Blob([src],{type:"text/javascript"})));
     qcW.onmessage=function(e){var f=qcWait[e.data.id];delete qcWait[e.data.id];if(f)f(e.data.n)};
-    qcW.onerror=function(){qcW=false};
+    qcW.onerror=function(){qcW=false;var w=qcWait;qcWait={};Object.keys(w).forEach(function(k){w[k](-1)})};
   }catch(e){qcW=false}
   return qcW;
 }

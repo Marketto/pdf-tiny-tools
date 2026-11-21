@@ -37,7 +37,7 @@ jobs:
           grep -n "const CACHE" _site/sw.js
           # Numero di versione mostrato accanto al titolo
           sed -i "s|<span class=\"ver\" id=\"ver\" translate=\"no\">dev</span>|<span class=\"ver\" id=\"ver\" translate=\"no\">v$(tr -d '[:space:]' < VERSION)</span>|" _site/index.html
-          grep -o 'id="ver"[^<]*<' _site/index.html
+          grep -q "id=\"ver\" translate=\"no\">v$(tr -d '[:space:]' < VERSION)<" _site/index.html
           sed -i "s|version:\"dev\"|version:\"$(tr -d '[:space:]' < VERSION)\"|" _site/motore.js
           grep -o 'version:"[^"]*"' _site/motore.js
           sed -i "s|version:\"dev\"|version:\"$(tr -d '[:space:]' < VERSION)\"|" _site/scansione.js

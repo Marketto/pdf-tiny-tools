@@ -1105,10 +1105,11 @@ function sig(){return snap()+"|"+S.view}
 function saveSoon(){if(!S.pages.length)return;clearTimeout(S.saveT);S.saveT=setTimeout(saveNow,1500)}
 function sessDrop(){clearTimeout(S.saveT);if(S.sid){APP.jobDrop(S.sid);S.sid=null}S.stored=false;S.storedB={}}
 async function saveNow(){
-  clearTimeout(S.saveT);if(!S.pages.length||S.saving)return;
+  clearTimeout(S.saveT);if(!S.pages.length)return;
+  if(S.saving){S.again=true;return}
   var g=sig();if(g===S.cleanSig||g===S.lastSig&&S.sid)return;
   if(!edits()&&!S.sid)return;
-  S.saving=true;
+  S.saving=true;S.again=false;
   try{
     if(!S.sid){S.sid="e"+Date.now();S.stored=false;S.storedB={}}
     var id=S.sid;S.storedB=S.storedB||{};
@@ -1124,7 +1125,7 @@ async function saveNow(){
       blobIds:Object.keys(S.blobs),ocr:ocr,snap:snap()});
     S.lastSig=g;
   }catch(e){}
-  finally{S.saving=false}
+  finally{S.saving=false;if(S.again){S.again=false;saveSoon()}}
 }
 async function restore(rec){
   var sb=await APP.fileGet(rec.id,"src");if(!sb)return false;

@@ -88,14 +88,7 @@ function startPool(){
         });
         if(ok){
           pool={free:ws.slice(),queue:[],wait:{}};
-          ws.forEach(function(w){
-            w.onmessage=function(e){
-              var m=e.data,j=pool.wait[m.id];if(!j)return;
-              if(m.pct!=null){if(j.onPct)j.onPct(m.pct);return}
-              delete pool.wait[m.id];pool.free.push(w);pump();
-              if(m.ok)j.res(m.r);else j.rej(new Error(m.err));
-            };
-          });
+          ws.forEach(hook);
           return pool;
         }
         ws.forEach(function(w){w.terminate()});
@@ -107,9 +100,27 @@ function startPool(){
   })();
   return poolP;
 }
+/* un worker che si chiude da solo (memoria finita) non deve lasciare il compito in sospeso: lo si rifiuta e il worker si rifà */
+function hook(w){
+  w.onmessage=function(e){
+    var m=e.data,j=pool.wait[m.id];if(!j)return;
+    if(m.pct!=null){if(j.onPct)j.onPct(m.pct);return}
+    delete pool.wait[m.id];w.cur=0;pool.free.push(w);pump();
+    if(m.ok)j.res(m.r);else j.rej(new Error(m.err));
+  };
+  w.onerror=function(ev){
+    if(ev&&ev.preventDefault)ev.preventDefault();
+    var j=w.cur&&pool.wait[w.cur];if(j)delete pool.wait[w.cur];
+    try{w.terminate()}catch(e){}
+    var i=pool.free.indexOf(w);if(i>=0)pool.free.splice(i,1);
+    try{var nw=new Worker(url("engine.js"));hook(nw);pool.free.push(nw)}catch(e){}
+    if(j)j.rej(new Error("worker"));
+    pump();
+  };
+}
 function pump(){
   while(pool&&pool.free.length&&pool.queue.length){
-    var w=pool.free.pop(),j=pool.queue.shift();pool.wait[j.msg.id]=j;w.postMessage(j.msg,j.transfer||[]);
+    var w=pool.free.pop(),j=pool.queue.shift();pool.wait[j.msg.id]=j;w.cur=j.msg.id;w.postMessage(j.msg,j.transfer||[]);
   }
 }
 async function poolWidth(){await startPool();return pool?pool.free.length+Object.keys(pool.wait).length:1}
