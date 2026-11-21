@@ -463,9 +463,17 @@ function quadOuter(G,Q){
 }
 function inQuad(Q,p){for(var j=0;j<4;j++){var a=Q[j],b=Q[(j+1)%4];if((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])<0)return false}return true}
 /* i bordi proposti, poi ogni lato appoggiato al bordo vero della carta (R-SCN-35) */
+/* angoli del quadrilatero tra 60° e 120°: altrimenti non è un foglio fotografato (R-SCN-36) */
+function quadSane(q){
+  for(var i=0;i<4;i++){var a=q[(i+3)%4],b=q[i],c=q[(i+1)%4],ux=a[0]-b[0],uy=a[1]-b[1],vx=c[0]-b[0],vy=c[1]-b[1],L=Math.hypot(ux,uy)*Math.hypot(vx,vy);
+    if(!L)return false;var g=Math.acos(Math.max(-1,Math.min(1,(ux*vx+uy*vy)/L)))*180/Math.PI;if(g<60||g>120)return false}
+  return true;
+}
 function detectPage(work){
   var r=detectPage0(work);
+  if(r&&!quadSane(r.q))return null;
   if(r)try{var f=sideFit(work,r.q,r.mids);if(f){if(PERF)(window.__fit=window.__fit||[]).push({from:r.q.map(function(p){return p.map(Math.round)}),to:f.q.map(function(p){return p.map(Math.round)}),moved:f.moved});r.q=f.q;r.mids=f.mids}}catch(e){}
+  if(r&&!quadSane(r.q))return null;
   return r;
 }
 /* lati sul bordo vero (R-SCN-35): lungo ogni lato, n punti; per ognuno, cercando lungo la perpendicolare, il passaggio più netto
@@ -560,7 +568,7 @@ function detectPage0(work){
     var rf=null;try{rf=refineQuad(work,f.q,f.mids)}catch(err){}
     if(rf)cands.push({q:rf.q,mids:rf.mids,seg:true});
   }
-  /* foglio colorato: la maschera del colore più luminoso (R-SCN-34) */
+  /* foglio colorato: la maschera del colore più luminoso (R-SCN-36) */
   var fv=null;try{fv=detectPageAt(work,0,true)}catch(err){}
   if(fv){
     cands.push({q:fv.q,mids:fv.mids,seg:true,vivid:true});
@@ -626,7 +634,7 @@ function detectPageSeg(work){
   var inside=Bx[0]>A[0]+mx&&Bx[1]>A[1]+my&&Bx[2]<A[2]-mx&&Bx[3]<A[3]-my;
   return inside&&b.area<a.area*.7&&b.area>.08?b:a;
 }
-/* vivid: foglio colorato (volantino, copertina) su uno sfondo scuro: conta la luminosità del colore più forte, non il bianco (R-SCN-34) */
+/* vivid: foglio colorato (volantino, copertina) su uno sfondo scuro: conta la luminosità del colore più forte, non il bianco (R-SCN-36) */
 function detectPageAt(work,lvl,vivid){
   var W=work.width,H=work.height,k=Math.min(1,360/Math.max(W,H)),w=Math.max(16,Math.round(W*k)),h=Math.max(16,Math.round(H*k));
   var cv=document.createElement("canvas");cv.width=w;cv.height=h;
@@ -1453,7 +1461,7 @@ var S={
   version:"dev",
   setPerf:function(on){PERF=!!on},
   ocrState:function(){return {started:!!ocrP,bad:ocrBad}},
-  pagina:pagina,testo:testo,costruisci:costruisci,
+  pagina:pagina,testo:testo,costruisci:costruisci,quadSane:quadSane,
   dist:dist,
   homography:homography,
   applyH:applyH,
