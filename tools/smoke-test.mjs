@@ -687,6 +687,26 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(outs[0].px.length === outs[1].px.length && diff < 6, `Scansione: stesso risultato sulla scheda grafica e in JavaScript (differenza media ${diff.toFixed(1)} su 255)`);
   check(!outs[0].err.length && !outs[1].err.length, "Scansione su scheda grafica: nessun errore JavaScript");
 }
+// --- Scansione riusabile (R-APP-21): scansione.js da solo, fuori dalla pagina, come lo usa un'altra app
+{
+  const ctx = await browser.newContext({ locale: "it-IT" }), page = await ctx.newPage(), errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto(url + "favicon.ico");
+  await page.addScriptTag({ url: url + "config.js" }); await page.addScriptTag({ url: url + "scansione.js" });
+  const r = await page.evaluate(async () => {
+    const c = document.createElement("canvas"); c.width = 1200; c.height = 1600; const g = c.getContext("2d");
+    g.fillStyle = "#4b3a2a"; g.fillRect(0, 0, 1200, 1600); g.fillStyle = "#e9e2d2"; g.beginPath(); g.moveTo(300, 200); g.lineTo(820, 220); g.lineTo(840, 1420); g.lineTo(280, 1400); g.closePath(); g.fill();
+    g.fillStyle = "#222"; g.font = "28px monospace"; for (let i = 0; i < 24; i++) g.fillText("Riga " + i + "   1,00", 330, 300 + i * 44);
+    const blob = await new Promise((res) => c.toBlob(res, "image/jpeg", .92));
+    const a = await Scansione.pagina(blob), b = await Scansione.pagina(blob, { max: 4000 });
+    return { api: ["pagina", "testo", "costruisci", "detectPage", "pageCanvas", "autoOrient", "ocrFree"].every((k) => typeof Scansione[k] === "function"), a: [a.canvas.width, a.canvas.height], b: [b.canvas.width, b.canvas.height], deg: a.deg };
+  });
+  check(r.api, "Scansione riusabile: window.Scansione con pagina, testo e le funzioni di Cattura, caricato da solo dopo config.js");
+  check(r.a[1] > r.a[0] * 1.8 && r.a[1] <= 2400, `Scansione riusabile: pagina() trova il foglio stretto e lo raddrizza (${r.a.join("×")}, giro ${r.deg}°)`);
+  check(r.b[0] >= r.a[0], `Scansione riusabile: con max più grande la pagina non perde risoluzione (${r.b.join("×")})`);
+  check(!errors.length, "Scansione riusabile: nessun errore JavaScript" + (errors.length ? " → " + errors.join("; ") : ""));
+  await ctx.close();
+}
 // --- Cattura: pieghe distese (R-SCN-27): un foglio con righe ondulate deve uscire con le righe dritte
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 } });

@@ -10,6 +10,7 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 | `config.js` | Tutte le soglie e i parametri numerici (`window.CONFIG`), commentati con il requisito |
 | `i18n/` | Tutti i testi: un file per lingua (`i18n/it.js`…, 39 lingue, `window.I18N`) e l'elenco `i18n/index.js`; se ne carica solo quella in uso |
 | `motore.js` | Motore riusabile (R-APP-20): compressione di PDF, JPG e video, `window.Motore`; lo usa la pagina e lo usano altre app (SuriClean) |
+| `scansione.js` | Scansione riusabile (R-APP-21): tutto il calcolo di Cattura (bordi, prospettiva, pieghe, ombre, orientamento) e i motori di Tesseract, `window.Scansione`; lo usa la pagina e lo usano altre app (Kapibo) |
 | `engine.js` | Motore delle immagini di PDF e JPG, eseguito nei worker in parallelo (o nella pagina) |
 | `compila.js` | Compila: ricerca dei campi, schermata e PDF compilabile; scaricato la prima volta che serve, parla con la pagina tramite `window.APP` |
 | `modifica.js` | Modifica: testi e immagini di un PDF già fatto (lettura del contenuto, schermata, PDF modificato); scaricato la prima volta che serve, parla con la pagina tramite `window.APP` |
