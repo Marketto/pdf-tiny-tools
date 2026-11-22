@@ -5,6 +5,7 @@
   "description": "Strumenti di sviluppo. Il sito non ha dipendenze né build: questi servono solo a controllarlo.",
   "scripts": {
     "check": "node check-i18n.mjs",
+    "unit": "node --test ../tests/*.test.mjs",
     "test": "node smoke-test.mjs",
     "icons": "node build-icons.mjs"
   },

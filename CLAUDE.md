@@ -19,6 +19,7 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 | `manifest.webmanifest`, `icons/`, `favicon.ico` | Installazione come app |
 | `vendor/` | pdf-lib, JSZip, Mediabunny (video), Tesseract (orientamento e testo delle scansioni) e pdf.js (pagine dei PDF in Compila), copiati così come sono: non modificarli. Si scaricano solo quando servono e restano sul dispositivo tra una versione e l'altra (R-APP-16) |
 | `tools/` | Strumenti di sviluppo (controlli, prova nel browser, icone) |
+| `tests/` | Prove della logica pura senza browser (`node --test`, R-APP-22) |
 | `.claude/` | Skill e agenti descritti sotto |
 | `docs/` | Requisiti, architettura e guida al lavoro con gli agenti |
 
@@ -69,6 +70,7 @@ Se una richiesta tocca più righe, fai una cosa alla volta e chiudi sempre con `
 
 ```bash
 node tools/check-i18n.mjs      # controllo traduzioni, nessuna dipendenza
+node --test tests/*.test.mjs   # prove della logica pura (R-APP-22), nessuna dipendenza
 cd tools && npm install        # una volta sola, per i due comandi sotto
 node tools/smoke-test.mjs      # prova nel browser: lingue, layout, compressione reale
 node tools/motore-test.mjs     # prova motore.js da solo, come lo usa un'altra app

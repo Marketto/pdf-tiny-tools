@@ -11,9 +11,10 @@ Due livelli. Il primo è obbligatorio dopo ogni modifica, il secondo ogni volta 
 
 ```bash
 node tools/check-i18n.mjs
+node --test tests/*.test.mjs
 ```
 
-Deve finire con `problemi: 0`. È lo stesso controllo che blocca la pubblicazione su GitHub.
+Il primo deve finire con `problemi: 0`, il secondo con `fail 0`. È lo stesso controllo che blocca la pubblicazione su GitHub.
 
 ## 2. Prova nel browser
 

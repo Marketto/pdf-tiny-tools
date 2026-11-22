@@ -775,7 +775,6 @@ details p{margin:8px 0 0;max-width:65ch}
 
 <script src="config.js"></script>
 <script src="motore.js"></script>
-<script src="scansione.js"></script>
 <script src="i18n/index.js"></script>
 <script>
 /* lingua all'avvio (R-I18N-01): si scarica solo il file dei testi della lingua in uso */
@@ -794,7 +793,16 @@ if(!window.I18N||!window.I18N[window.LANG0])document.write('<script src="i18n/it
 (function(){
 "use strict";
 /* Scansione (R-APP-21): le funzioni di Cattura stanno in scansione.js */
-var SC=window.Scansione,dist=SC.dist,homography=SC.homography,applyH=SC.applyH,projMids=SC.projMids,pageMap=SC.pageMap,glSetup=SC.glSetup,glTex=SC.glTex,glDraw=SC.glDraw,glPage=SC.glPage,warp=SC.warp,edgeGrad=SC.edgeGrad,edgeLines=SC.edgeLines,quadScoreG=SC.quadScoreG,edgeQuad=SC.edgeQuad,paperBand=SC.paperBand,inkBand=SC.inkBand,quadSides=SC.quadSides,quadArea=SC.quadArea,quadOrder=SC.quadOrder,edgeMids=SC.edgeMids,quadPolish=SC.quadPolish,quadTrim=SC.quadTrim,quadInset=SC.quadInset,quadOuter=SC.quadOuter,inQuad=SC.inQuad,detectPage=SC.detectPage,sideFit=SC.sideFit,quadFit=SC.quadFit,detectPage0=SC.detectPage0,quadScore=SC.quadScore,vividWins=SC.vividWins,detectPageSeg=SC.detectPageSeg,detectPageAt=SC.detectPageAt,paperMap=SC.paperMap,pmAt=SC.pmAt,lineFit=SC.lineFit,lineCross=SC.lineCross,edgeAlong=SC.edgeAlong,refineQuad=SC.refineQuad,ocrWorker=SC.ocrWorker,scaledGray=SC.scaledGray,turnCanvas=SC.turnCanvas,findSkew=SC.findSkew,autoOrient=SC.autoOrient,ocrRecWorker=SC.ocrRecWorker,ocrTouch=SC.ocrTouch,ocrFree=SC.ocrFree,percentile=SC.percentile,enhance=SC.enhance,pageCanvas=SC.pageCanvas,ufRows=SC.ufRows,ufT=SC.ufT,ufLines=SC.ufLines,ufGrid=SC.ufGrid,ufBin=SC.ufBin,lineDir=SC.lineDir,ufWobble=SC.ufWobble,unfoldField=SC.unfoldField,unfoldApply=SC.unfoldApply,shMax=SC.shMax,shBlur=SC.shBlur,shadeMap=SC.shadeMap,shadeApply=SC.shadeApply,ufAt=SC.ufAt,unfoldMap=SC.unfoldMap,ufBends=SC.ufBends,colorFrac=SC.colorFrac,edgeClean=SC.edgeClean,workFrom=SC.workFrom,flatScan=SC.flatScan,insetQuad=SC.insetQuad;
+/* scaricato la prima volta che serve (entrando in Cattura, Compila o Modifica): chi comprime soltanto non lo legge.
+   I nomi restano gli stessi di prima: ognuno chiama la funzione di window.Scansione quando c'è */
+var SC=null,scP=null;
+function scLib(){
+  if(SC)return Promise.resolve(SC);
+  if(!scP)scP=loadScript("scansione.js").then(function(){SC=window.Scansione;SC.onPerf=perf;SC.setPerf(PERF);return SC}).catch(function(e){scP=null;throw e});
+  return scP;
+}
+function scFn(n,soft){return function(){if(!SC){if(soft)return;throw new Error("scansione.js")}return SC[n].apply(null,arguments)}}
+var dist=scFn("dist"),homography=scFn("homography"),applyH=scFn("applyH"),projMids=scFn("projMids"),pageMap=scFn("pageMap"),glSetup=scFn("glSetup"),glTex=scFn("glTex"),glDraw=scFn("glDraw"),glPage=scFn("glPage"),warp=scFn("warp"),edgeGrad=scFn("edgeGrad"),edgeLines=scFn("edgeLines"),quadScoreG=scFn("quadScoreG"),edgeQuad=scFn("edgeQuad"),paperBand=scFn("paperBand"),inkBand=scFn("inkBand"),quadSides=scFn("quadSides"),quadArea=scFn("quadArea"),quadOrder=scFn("quadOrder"),edgeMids=scFn("edgeMids"),quadPolish=scFn("quadPolish"),quadTrim=scFn("quadTrim"),quadInset=scFn("quadInset"),quadOuter=scFn("quadOuter"),inQuad=scFn("inQuad"),detectPage=scFn("detectPage"),sideFit=scFn("sideFit"),quadFit=scFn("quadFit"),detectPage0=scFn("detectPage0"),quadScore=scFn("quadScore"),vividWins=scFn("vividWins"),detectPageSeg=scFn("detectPageSeg"),detectPageAt=scFn("detectPageAt"),paperMap=scFn("paperMap"),pmAt=scFn("pmAt"),lineFit=scFn("lineFit"),lineCross=scFn("lineCross"),edgeAlong=scFn("edgeAlong"),refineQuad=scFn("refineQuad"),ocrWorker=scFn("ocrWorker"),scaledGray=scFn("scaledGray"),turnCanvas=scFn("turnCanvas"),findSkew=scFn("findSkew"),autoOrient=scFn("autoOrient"),ocrRecWorker=scFn("ocrRecWorker"),ocrTouch=scFn("ocrTouch",1),ocrFree=scFn("ocrFree",1),percentile=scFn("percentile"),enhance=scFn("enhance"),pageCanvas=scFn("pageCanvas"),ufRows=scFn("ufRows"),ufT=scFn("ufT"),ufLines=scFn("ufLines"),ufGrid=scFn("ufGrid"),ufBin=scFn("ufBin"),lineDir=scFn("lineDir"),ufWobble=scFn("ufWobble"),unfoldField=scFn("unfoldField"),unfoldApply=scFn("unfoldApply"),shMax=scFn("shMax"),shBlur=scFn("shBlur"),shadeMap=scFn("shadeMap"),shadeApply=scFn("shadeApply"),ufAt=scFn("ufAt"),unfoldMap=scFn("unfoldMap"),ufBends=scFn("ufBends"),colorFrac=scFn("colorFrac"),edgeClean=scFn("edgeClean"),workFrom=scFn("workFrom"),flatScan=scFn("flatScan"),insetQuad=scFn("insetQuad");
 /* soglie e parametri: config.js (R-DOC-03) */
 var CFG=window.CONFIG,LVK=["soft","mid","hard"];
 /* i tre livelli di forza, uguali in tutte le modalità (R-CMP-01): valori in config.js */
@@ -811,7 +819,6 @@ var $=function(id){return document.getElementById(id)};
 /* misure dei tempi, solo con ?perf=1 (per confrontare prima e dopo un'ottimizzazione): window.__perf = [[etichetta, ms], …] */
 var PERF=/[?&]perf=1/.test(location.search);if(PERF)window.__perf=[];
 function perf(label,t0){if(PERF)window.__perf.push([label,Math.round(performance.now()-t0)])}
-SC.onPerf=perf;SC.setPerf(PERF);
 /* statistiche d'uso anonime (R-PRI-05): un conteggio = una richiesta a GoatCounter, senza cookie né script esterni.
    Solo sul sito pubblicato con il codice configurato; ?stats=test le raccoglie in window.__stats senza rete (prove) */
 var STATS=(function(){
@@ -1860,6 +1867,7 @@ var STYLES=[["doc","styleDoc"],["bw","styleBwS"],["photo","stylePhoto"]];
 function capStyle(p){return p.style||scanStyle}
 /* rifà la pagina: raddrizzamento, pieghe, stile, rotazione */
 async function capBuild(p){
+  await scLib();
   var style=capStyle(p),out=await SC.costruisci(p,style,{ocrLoad:function(){$("loaderN").textContent=t("ocrLoad")}}),blob=await toJpeg(out,style==="bw"?.8:.85);
   out.width=out.height=0;
   if(p.url)URL.revokeObjectURL(p.url);
@@ -1878,6 +1886,7 @@ function shoot(target){capTarget=target==null?-1:target;$("camInput").click()}
 /* scatto: come la galleria, bordi proposti e pagina fatta subito (raddrizzamento automatico, R-SCN-32); gli angoli si
    sistemano dopo con «Angoli a mano». La schermata di lavoro compare prima dei calcoli, così l'app non sembra bloccata */
 async function scanFile(file){
+  try{await scLib()}catch(e){capTarget=-1;say(t("failed"),true);return}
   var target=capTarget;capTarget=-1;
   loaderOn("scan",t("scanning"));
   await new Promise(function(r){setTimeout(r,40)});
@@ -1896,6 +1905,7 @@ async function scanFile(file){
 }
 /* galleria: più foto insieme, bordi proposti senza editor (si correggono con «Bordi») */
 async function galleryFiles(files){
+  try{await scLib()}catch(e){say(t("failed"),true);return}
   var list=[];
   loaderOn("scan",t("scanning"));
   await new Promise(function(r){setTimeout(r,40)});
@@ -2255,6 +2265,7 @@ async function setAction(a,sure){
   else if(act==="capture"){capClear();cap.giro=false;ocrFree()}
   else if(act==="edit"){if(window.Modifica)Modifica.clear();ocrFree()}
   else{if(window.Compila)Compila.clear();ocrFree()}
+  if(a!=="squash")scLib().catch(function(){});
   act=a;document.body.classList.toggle("act-cap",a==="capture");document.body.classList.toggle("act-fill",a==="fill");document.body.classList.toggle("act-edit",a==="edit");
   /* Compila e Modifica fanno sempre un PDF (R-CPL-01, R-EDT-01) */
   if((a==="fill"||a==="edit")&&mode!=="pdf")setMode("pdf",true);
@@ -2270,7 +2281,7 @@ $("camBtn").addEventListener("click",function(){if(loading)return;if(act==="fill
 var fillP=null;
 function fillLib(){
   if(window.Compila)return Promise.resolve(window.Compila);
-  if(!fillP)fillP=loadScript("compila.js").then(function(){return window.Compila}).catch(function(e){fillP=null;throw e});
+  if(!fillP)fillP=Promise.all([scLib(),loadScript("compila.js")]).then(function(){return window.Compila}).catch(function(e){fillP=null;throw e});
   return fillP;
 }
 async function fillOpen(){
@@ -2283,7 +2294,7 @@ async function fillOpen(){
 var editP=null;
 function editLib(){
   if(window.Modifica)return Promise.resolve(window.Modifica);
-  if(!editP)editP=loadScript("modifica.js").then(function(){return window.Modifica}).catch(function(e){editP=null;throw e});
+  if(!editP)editP=Promise.all([scLib(),loadScript("modifica.js")]).then(function(){return window.Modifica}).catch(function(e){editP=null;throw e});
   return editP;
 }
 async function editOpen(){
@@ -2325,7 +2336,7 @@ function formSeen(){var n=0,any=false;cap.pages.forEach(function(p){if(p.formN>=
 /* ponte per compila.js: solo quello che gli serve */
 window.APP={
   t:t,nf:nf,lang:function(){return lang},say:say,stat:stat,bucket:bucket,loadScript:loadScript,pdfLib:pdfLib,
-  ocrRecWorker:ocrRecWorker,ocrLangFor:ocrLangFor,ocrTouch:ocrTouch,parole:SC.parole,
+  ocrRecWorker:ocrRecWorker,ocrLangFor:ocrLangFor,ocrTouch:ocrTouch,parole:scFn("parole"),
   loaderOn:loaderOn,loaderOff:loaderOff,cancelled:function(){return cancelLoad},
   loaderN:function(s){$("loaderN").textContent=s||""},loaderTitle:function(s){$("loaderTitle").textContent=s||""},
   lensOn:function(title){$("lensMarks").textContent="";$("lensImg").removeAttribute("src");loaderOn("lens",title)},
@@ -3162,6 +3173,7 @@ async function capSaveNow(){
 }
 async function capRestore(rec){
   setAction("capture",true);if(act!=="capture")return false;
+  try{await scLib()}catch(e){return false}
   if(mode!==rec.mode)setMode(rec.mode,true);
   if(rec.style){scanStyle=rec.style}
   loaderOn("scan",t("scanning"));

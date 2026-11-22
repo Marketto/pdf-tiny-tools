@@ -24,6 +24,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Controlla le traduzioni
         run: node tools/check-i18n.mjs
+      - name: Prove della logica
+        run: node --test tests/*.test.mjs
       - name: Prepara il sito
         # Solo i file dell'app: strumenti, documentazione e configurazione degli agenti restano fuori.
         run: |
