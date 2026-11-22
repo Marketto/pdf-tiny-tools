@@ -858,7 +858,7 @@ async function saveNow(){
       pages:S.pages.map(function(p){return {n:p.n,W:p.W,H:p.H,wPt:p.wPt,hPt:p.hPt,script:p.script,code:p.code,photo:!!p.blob}})});
     S.lastSig=g;
   }catch(e){}
-  finally{S.saving=false;if(S.again){S.again=false;saveSoon()}}
+  finally{S.saving=false;if(S.again){S.again=false;if(document.hidden)saveNow();else saveSoon()}}
 }
 async function restore(rec){
   var pages=[],src;

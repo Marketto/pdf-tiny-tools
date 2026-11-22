@@ -39,8 +39,17 @@ for (const f of ["index.html", "compila.js", "modifica.js"]) {
     ...[...src.matchAll(/data-i18n(?:-html|-aria)?="(\w+)"/g)].map((m) => m[1]),
     ...[...src.matchAll(/\bt\("(\w+)"/g)].map((m) => m[1]),
   ]);
+  // chiavi scritte come stringhe: fumetti del giro ({t:"…",p:"…"}) e condizioni d'uso (TERMS_KEYS)
+  if (f === "index.html") {
+    for (const m of src.matchAll(/\{t:"(\w+)",p:"(\w+)"/g)) used.add(m[1]), used.add(m[2]);
+    const tk = src.match(/TERMS_KEYS=\[([^\]]*)\]/);
+    if (tk) for (const m of tk[1].matchAll(/"(\w+)"/g)) used.add(m[1]);
+  }
   for (const k of used) if (!base.includes(k)) fail(`${f} usa «${k}» che non esiste nei testi`);
 }
+// novità (R-BEN-03): ogni voce di config.js vuole «chiaveT» e «chiaveP»
+for (const m of readFileSync(join(root, "config.js"), "utf8").matchAll(/key:\s*"(\w+)"/g))
+  for (const s of ["T", "P"]) if (!base.includes(m[1] + s)) fail(`config.js (news) usa «${m[1] + s}» che non esiste nei testi`);
 
 console.log(`${Object.keys(I).length} lingue, ${base.length} chiavi, problemi: ${bad}`);
 process.exit(bad ? 1 : 0);

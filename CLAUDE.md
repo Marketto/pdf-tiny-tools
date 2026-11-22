@@ -45,6 +45,7 @@ Prima di lavorare, guarda in quale riga cade la richiesta e usa la skill o l'age
 | Layout, stile, suoni, installazione, cartelle, giro di benvenuto e novità | lavora direttamente su `index.html`, poi skill `verifica` |
 | Compila: campi trovati male, tipi, parole di una lingua, elenchi di un paese | lavora su `compila.js` e `compila/`, poi skill `verifica` |
 | Modifica: testi o immagini letti male, salvataggio del PDF modificato | lavora su `modifica.js`, poi skill `verifica` |
+| Cattura: bordi, prospettiva, pieghe, ombre, orientamento, lettura del testo | lavora su `scansione.js` (API `window.Scansione` usata anche da Kapibo: non rinominare), poi skill `verifica` |
 
 Se una richiesta tocca più righe, fai una cosa alla volta e chiudi sempre con `verifica`.
 

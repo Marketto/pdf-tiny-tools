@@ -52,6 +52,8 @@ flowchart TD
 | `node tools/smoke-test.mjs` | Lingue, layout a larghezza telefono, compressione reale di un PDF di prova | `cd tools && npm install` |
 | `node tools/motore-test.mjs` | `motore.js` da solo (R-APP-20): foto, PDF e video con `Motore.squeeze` | `cd tools && npm install` |
 | `node tools/build-icons.mjs` | Rigenera icone e disegni dalla mascotte | Come sopra (o `--no-png`) |
+| `node tools/bench.mjs [nome]` | Tempi delle operazioni pesanti, prima e dopo una modifica | Come sopra |
+| `node tools/moduli.mjs` | Impronte dei moduli (`moduli.json`); lo usa `pages.yml` | No |
 
 Il primo gira anche su GitHub prima di ogni pubblicazione: una traduzione incompleta blocca il deploy.
 
@@ -64,7 +66,7 @@ Si scrive in linguaggio normale; lo smistamento fa il resto.
 - «Fai sorridere di più la mascotte» → skill `mascotte-e-icone`.
 - «Questo PDF non si alleggerisce, perché?» → agente `motore-pdf`.
 - «Siamo pronti per pubblicare?» → agente `collaudo`.
-- «Rilascia la 1.3» → skill `rilascio`.
+- «Rilascia la 1.3.0» → skill `rilascio`.
 
 Per chiamare un pezzo in modo esplicito: `/traduzioni`, `/rilascio`, oppure «usa l'agente collaudo».
 

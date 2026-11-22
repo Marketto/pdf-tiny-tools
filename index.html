@@ -862,8 +862,10 @@ function t(k,p){
   if(act==="fill"&&(d[k+"F"]||e[k+"F"])&&k!=="h1")k=k+"F";
   if(act==="edit"&&(d[k+"E"]||e[k+"E"])&&k!=="h1")k=k+"E";
   var str=(sx&&(d[k+sx]||e[k+sx]))||d[k]||e[k]||k;
-  if(mode==="jpg"&&k!=="h1")str=str.replace(/PDF/g,"JPG").replace(/pdf/g,"jpg");
-  if((mode==="video"||mode==="all")&&k!=="h1"&&k!=="vWord"&&k!=="aWord"&&!(mode==="all"&&/A$/.test(k))&&!(d[k+sx]||e[k+sx])){var w=t(mode==="all"?"aWord":"vWord");if(mode==="all")str=str.split(w+" PDF").join(w);if(/^PDF/.test(str))str=w.charAt(0).toUpperCase()+w.slice(1)+str.slice(3);str=str.replace(/PDF/g,w).replace(/pdf/g,w)}
+  /* giro, novità e note legali parlano dell'app intera: «PDF» lì non cambia con la modalità */
+  var fixed=k==="h1"||/^(tour|news|terms|legal)/.test(k);
+  if(mode==="jpg"&&!fixed)str=str.replace(/PDF/g,"JPG").replace(/pdf/g,"jpg");
+  if((mode==="video"||mode==="all")&&!fixed&&k!=="vWord"&&k!=="aWord"&&!(mode==="all"&&/A$/.test(k))&&!(d[k+sx]||e[k+sx])){var w=t(mode==="all"?"aWord":"vWord");if(mode==="all")str=str.split(w+" PDF").join(w);if(/^PDF/.test(str))str=w.charAt(0).toUpperCase()+w.slice(1)+str.slice(3);str=str.replace(/PDF/g,w).replace(/pdf/g,w)}
   if(p)for(var x in p)str=str.split("{"+x+"}").join(p[x]);
   if(str===k&&I[lang])textMiss=true;
   return str;
@@ -3144,18 +3146,19 @@ async function capSaveNow(){
   cap.saving=true;cap.again=false;
   try{
     if(!cap.sid)cap.sid="c"+Date.now();
-    var id=cap.sid,size=0;
+    var id=cap.sid,size=0,gone=[];
     for(var i=0;i<cap.pages.length;i++){
       var p=cap.pages[i];
       if(!p.sw){p.sw="w"+Date.now()+"-"+i;await filePut(id,p.sw,await toJpeg(p.work,.92))}
-      if(p.blob&&p.sb!==p.blob){var nb="p"+Date.now()+"-"+i;await filePut(id,nb,p.blob);if(p.sbName){var old=p.sbName;idbDo(true,function(st){return st.delete(id+"/"+old)},"files").catch(function(){})}p.sb=p.blob;p.sbName=nb}
+      if(p.blob&&p.sb!==p.blob){var nb="p"+Date.now()+"-"+i;await filePut(id,nb,p.blob);if(p.sbName)gone.push(p.sbName);p.sb=p.blob;p.sbName=nb}
       size+=p.blob?p.blob.size:0;
     }
     if(cap.sid!==id)return;
     await jobPut({id:id,v:JOBV,kind:"capture",t:Date.now(),mode:mode,name:t("scanName"),giro:!!cap.giro,style:scanStyle,sel:cap.sel,size:size,
       pages:cap.pages.map(function(p){return {w:p.sw,b:p.sbName,q:p.q,mids:p.mids,rot:p.rot,style:p.style,manual:!!p.manual,flat:!!p.flat,refined:!!p.refined,auto:p.auto||null,formN:p.formN,prop:p.prop?{q:p.prop.q,mids:p.prop.mids,edge:!!p.prop.edge}:null}})});
+    gone.forEach(function(nm){idbDo(true,function(st){return st.delete(id+"/"+nm)},"files").catch(function(){})});
   }catch(e){}
-  finally{cap.saving=false;if(cap.again){cap.again=false;capSaveSoon()}}
+  finally{cap.saving=false;if(cap.again){cap.again=false;if(document.hidden)capSaveNow();else capSaveSoon()}}
 }
 async function capRestore(rec){
   setAction("capture",true);if(act!=="capture")return false;
@@ -3212,7 +3215,7 @@ function needTexts(keys){
 }
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
-/* i quattro fumetti del primo avvio (R-BEN-01); at = l'elemento da illuminare, verb = faccia del verbo da mostrare */
+/* i cinque fumetti del primo avvio (R-BEN-01); at = l'elemento da illuminare, verb = faccia del verbo da mostrare */
 function tourSteps(){return [
   {t:"tour1T",p:"tour1P",at:null},
   {t:"tour2T",p:"tour2P",at:"#modeBtn"},
@@ -3450,7 +3453,7 @@ if("serviceWorker" in navigator&&location.protocol==="https:"){
     var last=0;try{last=+sessionStorage.getItem("swReload")||0}catch(e){}
     if(Date.now()-last<120000)return;
     var idle=!document.querySelector("#rows .row:not(.demo)")&&document.getElementById("loader").hidden&&document.getElementById("modal").hidden&&
-      document.getElementById("scanner").hidden&&!document.body.matches(".act-cap,.act-fill,.act-edit");
+      document.getElementById("scanner").hidden&&document.getElementById("tour").hidden&&document.getElementById("legal").hidden&&!document.body.matches(".act-cap,.act-fill,.act-edit");
     if(idle){reloaded=true;try{sessionStorage.setItem("swReload",Date.now())}catch(e){}location.reload()}
   });
   navigator.serviceWorker.register("sw.js").catch(function(){});

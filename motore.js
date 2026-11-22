@@ -87,7 +87,7 @@ function startPool(){
           ws[0].postMessage({kind:"ping",id:0});
         });
         if(ok){
-          pool={free:ws.slice(),queue:[],wait:{}};
+          pool={free:ws.slice(),all:ws.slice(),queue:[],wait:{},fails:0};
           ws.forEach(hook);
           return pool;
         }
@@ -113,8 +113,11 @@ function hook(w){
     var j=w.cur&&pool.wait[w.cur];if(j)delete pool.wait[w.cur];
     try{w.terminate()}catch(e){}
     var i=pool.free.indexOf(w);if(i>=0)pool.free.splice(i,1);
-    try{var nw=new Worker(url("engine.js"));hook(nw);pool.free.push(nw)}catch(e){}
+    pool.all=pool.all.filter(function(x){return x!==w});
+    if(pool.fails++<2)try{var nw=new Worker(url("engine.js"));hook(nw);pool.all.push(nw);pool.free.push(nw)}catch(e){}
     if(j)j.rej(new Error("worker"));
+    /* senza più worker: i compiti in coda si rifiutano e i prossimi girano nella pagina */
+    if(!pool.all.length){var q=pool.queue;pool=false;poolP=loadScript("engine.js").then(function(){return false});q.forEach(function(x){x.rej(new Error("worker"))});return}
     pump();
   };
 }

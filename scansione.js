@@ -964,16 +964,18 @@ async function ocrRecWorker(code,onNew){
     recP.catch(function(){recP=null});
   }
   var w=await recP;
+  /* una lettura in corso tiene acceso il motore anche oltre il minuto di riposo */
+  if(!w.__busy){var rc=w.recognize.bind(w);w.__busy=1;w.recognize=function(){ocrBusy++;return rc.apply(null,arguments).finally(function(){ocrBusy--;ocrTouch()})}}
   if(recLang!==code){await w.reinitialize(code,1);recLang=code}
   recSeen[code]=1;ocrTouch();
   return w;
 }
-/* i motori di Tesseract occupano decine di MB: si spengono un minuto dopo l'ultimo uso o uscendo da Cattura,
+/* i motori di Tesseract occupano decine di MB: si spengono un minuto dopo l'ultimo uso o uscendo da Cattura, Compila o Modifica,
    e si riaccendono da soli alla prossima pagina (R-APP-17) */
-var ocrIdle=0;
-function ocrTouch(){clearTimeout(ocrIdle);ocrIdle=setTimeout(ocrFree,CFG.scan.ocrIdleMs||60000)}
+var ocrIdle=0,ocrBusy=0;
+function ocrTouch(){clearTimeout(ocrIdle);ocrIdle=setTimeout(function(){if(ocrBusy>0)ocrTouch();else ocrFree()},CFG.scan.ocrIdleMs||60000)}
 function ocrFree(){
-  clearTimeout(ocrIdle);
+  clearTimeout(ocrIdle);ocrBusy=0;
   if(ocrP){var p=ocrP;ocrP=null;p.then(function(w){w.terminate()}).catch(function(){})}
   if(recP){var q=recP;recP=null;recLang="";q.then(function(w){w.terminate()}).catch(function(){})}
 }

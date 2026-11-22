@@ -45,7 +45,7 @@ function tokenize(src){
     if(c===37){while(i<n&&src[i]!=="\n"&&src[i]!=="\r")i++;continue}
     var st=i,o=readObj();
     if(o.t==="op"){
-      if(o.raw==="BI"){var id=src.indexOf("ID",i),ei=id;do{ei=src.indexOf("EI",ei+2)}while(ei>0&&!(ws(src.charCodeAt(ei-1))&&(ei+2>=n||ws(src.charCodeAt(ei+2)))));i=ei<0?n:ei+2;ops.push({op:"BI",args:[],s:st,e:i});args=[];continue}
+      if(o.raw==="BI"){var id=src.indexOf("ID",i),ei=id;if(id>=0)do{ei=src.indexOf("EI",ei+2)}while(ei>0&&!(ws(src.charCodeAt(ei-1))&&(ei+2>=n||ws(src.charCodeAt(ei+2)))));i=ei<i?n:ei+2;ops.push({op:"BI",args:[],s:st,e:i});args=[];continue}
       ops.push({op:o.raw,args:args,s:args.length?args[0].s:st,e:i});args=[];
     }else{o.s=st;args.push(o)}
   }
@@ -291,10 +291,11 @@ async function readDoc(bytes,ocrSaved){
   if(doc.isEncrypted)throw new Error("locked");
   S.fontsById={};S.seen={};
   var pdoc=await lib.getDocument({data:bytes.slice(0),isEvalSupported:false}).promise;
+  try{
   var md=null,mcache={},metric=async function(name){if(!md)md=await L.PDFDocument.create();if(!mcache[name])mcache[name]=await md.embedFont(L.StandardFonts[name]);return mcache[name]};
   var fcache={},pages=[],n=Math.min(doc.getPageCount(),E.maxPages);
   for(var i=0;i<n;i++){
-    if(APP.cancelled())return null;
+    if(APP.cancelled()){pdoc.destroy();return null}
     if(n>1)APP.loaderN(nf(i+1)+" / "+nf(n));
     var page=doc.getPage(i),pp=await pdoc.getPage(i+1),vp=pp.getViewport({scale:1});
     var P={n:i,vw:vp.width,vh:vp.height,vt:vp.transform.slice(),R:[],T:[],I:[],A:[],ocr:false,fonts:{}};
@@ -333,6 +334,7 @@ async function readDoc(bytes,ocrSaved){
     pages.push(P);
   }
   return {doc:doc,pdoc:pdoc,pages:pages,total:doc.getPageCount()};
+  }catch(e){try{pdoc.destroy()}catch(x){}throw e}
 }
 /* una scansione letta con Tesseract: ogni riga è un testo, con inchiostro, carta e corpo misurati (R-EDT-03) */
 async function ocrPage(pdoc,P){
@@ -1125,7 +1127,7 @@ async function saveNow(){
       blobIds:Object.keys(S.blobs),ocr:ocr,snap:snap()});
     S.lastSig=g;
   }catch(e){}
-  finally{S.saving=false;if(S.again){S.again=false;saveSoon()}}
+  finally{S.saving=false;if(S.again){S.again=false;if(document.hidden)saveNow();else saveSoon()}}
 }
 async function restore(rec){
   var sb=await APP.fileGet(rec.id,"src");if(!sb)return false;
