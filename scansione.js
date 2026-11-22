@@ -1454,6 +1454,40 @@ function fasceInclinate(cv,n){
   for(var i=0;i<n;i++){var y0=Math.max(0,Math.round(i*hb-hb*.2)),y1=Math.min(cv.height,Math.round((i+1)*hb+hb*.2)),c=cropCanvas(cv,0,y0,cv.width,y1);out.push(findSkew(c));c.width=c.height=0}
   return out;
 }
+/* luce uniforme per la lettura del testo (R-SCN-38): sfondo stimato a blocchi (massimo locale, poi allargato e
+   sfocato), ogni pixel diviso per il suo sfondo, livelli stirati tra 1° e 99° percentile. Restituisce un canvas nuovo in
+   grigio. opts.sfondo=false: solo i livelli (cifre dei contatori). */
+function sfondoBlocchi(L,w,h,S){
+  var bw=Math.ceil(w/S),bh=Math.ceil(h/S),bg=new Float32Array(bw*bh),tmp=new Float32Array(bw*bh),x,y;
+  for(var by=0;by<bh;by++)for(var bx=0;bx<bw;bx++){var mx=0;for(y=by*S;y<Math.min(h,by*S+S);y+=2)for(x=bx*S;x<Math.min(w,bx*S+S);x+=2){var v=L[y*w+x];if(v>mx)mx=v}bg[by*bw+bx]=mx}
+  function pass(src,dst,dx,dy,r,useMax){for(var yy=0;yy<bh;yy++)for(var xx=0;xx<bw;xx++){var a=0,k=0;for(var s=-r;s<=r;s++){var X=xx+dx*s,Y=yy+dy*s;if(X<0||Y<0||X>=bw||Y>=bh)continue;var v=src[Y*bw+X];if(useMax){if(v>a)a=v}else{a+=v;k++}}dst[yy*bw+xx]=useMax?a:a/k}}
+  pass(bg,tmp,1,0,2,true);pass(tmp,bg,0,1,2,true);
+  for(var it=0;it<2;it++){pass(bg,tmp,1,0,3,false);pass(tmp,bg,0,1,3,false)}
+  return {bg:bg,bw:bw,bh:bh};
+}
+function grigio(cv){var w=cv.width,h=cv.height,d=cv.getContext("2d",{willReadFrequently:true}).getImageData(0,0,w,h).data,L=new Float32Array(w*h);for(var i=0;i<w*h;i++)L[i]=d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11;return L}
+/* quanto è irregolare la luce: rapporto fra sfondo chiaro (90° percentile) e scuro (10°) dei blocchi */
+function luceIrregolare(cv){
+  var c=scaledGray(cv,800),w=c.width,h=c.height,L=grigio(c),b=sfondoBlocchi(L,w,h,16),a=Array.prototype.slice.call(b.bg).sort(function(p,q){return p-q});c.width=c.height=0;
+  return a[Math.floor(a.length*.9)]/Math.max(20,a[Math.floor(a.length*.1)]);
+}
+function luceUniforme(cv,opts){
+  opts=opts||{};
+  var w=cv.width,h=cv.height,n=w*h,L=grigio(cv),S=16,i,x,y;
+  if(opts.sfondo!==false){
+    var b=sfondoBlocchi(L,w,h,S),bg=b.bg,bw=b.bw,bh=b.bh;
+    for(y=0;y<h;y++){var gy=Math.min(bh-1.001,Math.max(0,y/S-.5)),y0=gy|0,fy=gy-y0;
+      for(x=0;x<w;x++){var gx=Math.min(bw-1.001,Math.max(0,x/S-.5)),x0=gx|0,fx=gx-x0,j=y0*bw+x0;
+        var B=(bg[j]*(1-fx)+bg[j+1]*fx)*(1-fy)+(bg[j+bw]*(1-fx)+bg[j+bw+1]*fx)*fy;L[y*w+x]=Math.min(255,L[y*w+x]*248/Math.max(B,40))}}
+  }
+  var hist=new Uint32Array(256);for(i=0;i<n;i++)hist[L[i]|0]++;
+  function pct(p){var a=0;for(var k=0;k<256;k++){a+=hist[k];if(a>=n*p)return k}return 255}
+  var lo=pct(.01),hi=Math.max(lo+1,pct(.99)),c=document.createElement("canvas");c.width=w;c.height=h;
+  var g=c.getContext("2d"),img=g.createImageData(w,h),d=img.data;
+  for(i=0;i<n;i++){var v=Math.max(0,Math.min(255,(L[i]-lo)*255/(hi-lo)));d[i*4]=d[i*4+1]=d[i*4+2]=v;d[i*4+3]=255}
+  g.putImageData(img,0,0);return c;
+}
+
 /* parole di una tabella TSV di Tesseract: {t,x,y,x1,y1,conf,line} */
 function tsvParole(tsv,pre){
   var out=[];
@@ -1468,6 +1502,8 @@ function tsvParole(tsv,pre){
    larghezza: ogni colonna letta a parte), fasce (true: decide da sé; false: mai). Foglio dritto: una lettura come prima. */
 async function parole(cv,opts){
   opts=opts||{};
+  /* luce molto irregolare (ombre nette, foto): si legge una copia con la luce uniforme (R-SCN-38) */
+  if(opts.luce===true||(opts.luce!==false&&luceIrregolare(cv)>1.5))cv=luceUniforme(cv);
   var W=cv.width,H=cv.height,cols=opts.colonne||[[0,1]],psm=opts.psm||"3",out=[];
   var w=await ocrRecWorker(opts.lingua||"eng",opts.onLang);
   async function read(c,pre){try{await w.setParameters({tessedit_pageseg_mode:psm})}catch(e){}var r=await w.recognize(c,{},{tsv:true,text:false,blocks:false});ocrTouch();return tsvParole(r&&r.data&&r.data.tsv,pre)}
@@ -1525,7 +1561,7 @@ var S={
   version:"dev",
   setPerf:function(on){PERF=!!on},
   ocrState:function(){return {started:!!ocrP,bad:ocrBad}},
-  pagina:pagina,testo:testo,costruisci:costruisci,quadSane:quadSane,parole:parole,perOcr:perOcr,fasceInclinate:fasceInclinate,tsvParole:tsvParole,
+  pagina:pagina,testo:testo,costruisci:costruisci,quadSane:quadSane,parole:parole,perOcr:perOcr,luceUniforme:luceUniforme,luceIrregolare:luceIrregolare,fasceInclinate:fasceInclinate,tsvParole:tsvParole,
   dist:dist,
   homography:homography,
   applyH:applyH,
