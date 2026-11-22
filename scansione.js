@@ -1420,7 +1420,9 @@ async function costruisci(p,style,hooks){
   /* orientamento sulla pagina com'è uscita dai bordi (la distensione non lo cambia e il riconoscimento ci si trova meglio) */
   if(!p.auto){
     if(!ocrP&&!ocrBad&&hooks.ocrLoad)hooks.ocrLoad();
-    p.auto=await autoOrient(cv);
+    /* l'orientamento è facoltativo: se Tesseract non risponde (schermo spento, motore chiuso) si va avanti dritti (R-SCN-39) */
+    var tmo,late=new Promise(function(res){tmo=setTimeout(function(){ocrFree();res({deg:0,script:null,late:true})},CFG.scan.orientMs||25000)});
+    p.auto=await Promise.race([autoOrient(cv),late]);clearTimeout(tmo);
   }
   /* pieghe (R-SCN-27): la mappa si calcola una volta per pagina (finché non cambiano i bordi); distesa, le righe sono già dritte
      e l'inclinazione fine (R-SCN-21) non serve più */

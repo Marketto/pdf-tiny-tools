@@ -45,6 +45,7 @@ window.CONFIG = {
   },
   scan: {
     ocrIdleMs: 60000,      // R-APP-17: dopo quanto tempo senza usarli si spengono i motori di Tesseract
+    orientMs: 25000,       // R-SCN-39: attesa massima della domanda sull orientamento, poi la pagina va avanti dritta
     /* bordi dai lati dritti (R-SCN-31), tutto su una copia con il lato lungo di size px (misure in px di quella copia):
        - contorno = pendenza oltre minGrad; si prendono le lines rette più forti; gli angoli possono uscire dalla foto fino a outside,
          il foglio occupa almeno minArea della foto;
