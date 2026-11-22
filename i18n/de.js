@@ -290,5 +290,20 @@
   legalP5: "Kontakt. Der Code der App ist öffentlich auf GitHub: Für Fragen oder Anliegen nutze die Issues des Projekts.",
   legalL1: "Die App verwendet diese Bibliotheken und Schriften, jeweils unter ihrer eigenen Lizenz. Ihre Autoren stehen in keiner Verbindung zur App und sind nicht für sie verantwortlich; die Lizenzen befinden sich im Code des Projekts, im Ordner vendor.",
   legalFonts: "Schriften",
-  legalCode: "Quellcode der App"
+  legalCode: "Quellcode der App",
+  masTap1: "Hey! Das kitzelt!",
+  masTap2: "Wird gepresst? Ich bin dabei!",
+  masTap3: "Ich hab Hunger auf dicke Dateien!",
+  masTap4: "Sachte, sachte… Spaß, press ruhig los!",
+  masTap5: "Heute bin ich stark wie ein Löwe!",
+  masTap6: "Alles bleibt hier bei mir, versprochen.",
+  masDone1: "Fertig! Leichter als eine Feder.",
+  masDone2: "Was für ein Team! Mission erfüllt.",
+  masDone3: "Ordentlich plattgepresst!",
+  masWait1: "Gleich geschafft, kurz durchhalten…",
+  masWait2: "Ich quetsche jedes Byte raus…",
+  cbAsk: "Farben für Farbenblinde nutzen",
+  cbUndo: "Zurück zu den üblichen Farben",
+  newsLookT: "Neue Farben!",
+  newsLookP: "Abends wird die App von selbst dunkel, unten auf der Seite gibt's Farben für Farbenblinde, und wenn du mich antippst, antworte ich."
 };

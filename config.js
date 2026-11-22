@@ -115,7 +115,9 @@ window.CONFIG = {
     split: { size: 600, minDiff: 10, noise: 1.5, close: 4, open: 2, minArea: 0.02, fill: 0.88, grow: 10 } },
   /* novità per versione (R-BEN-03): una voce per funzione nuova, con i testi (chiavi <key>T e <key>P) e dove porta «Provalo!».
      Le versioni con sole correzioni non hanno voci: per loro niente fumetti */
-  news: [ { v: "4.0.0", key: "newsFill", go: "fill" }, { v: "4.2.0", key: "newsEdit", go: "edit" } ],
+  news: [ { v: "4.0.0", key: "newsFill", go: "fill" }, { v: "4.2.0", key: "newsEdit", go: "edit" }, { v: "4.7.0", key: "newsLook" } ],
+  /* mascotte che reagisce (R-UI-19): quanto resta il fumetto, dopo quanto parla durante un lavoro */
+  mascot: { bubbleMs: 2500, waitMs: 8000 },
   /* condizioni d'uso e note legali (R-PRI-06/07): version = versione delle condizioni accettate (cambiandola, la finestra torna una
      volta); repo = dove sta il codice dell'app (contatti, Issues) */
   legal: { version: 1, repo: "https://github.com/Marketto/pdf-tiny-tools" },

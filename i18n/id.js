@@ -290,5 +290,20 @@
   legalP5: "Kontak. Kode aplikasi ini publik di GitHub: untuk pertanyaan atau permintaan, gunakan Issues proyek.",
   legalL1: "Aplikasi ini menggunakan pustaka dan font berikut, masing-masing dengan lisensinya sendiri. Para pembuatnya tidak memiliki hubungan apa pun dengan aplikasi ini dan tidak bertanggung jawab atasnya; lisensinya ada di kode proyek, di folder vendor.",
   legalFonts: "Font",
-  legalCode: "Kode aplikasi"
+  legalCode: "Kode aplikasi",
+  masTap1: "Eh! Geli, tahu!",
+  masTap2: "Mau digencet? Saya siap!",
+  masTap3: "Saya lapar file yang berat-berat!",
+  masTap4: "Pelan, pelan… bercanda, gencet saja!",
+  masTap5: "Hari ini saya sekuat singa!",
+  masTap6: "Semua tetap di sini bersama saya, janji.",
+  masDone1: "Beres! Lebih ringan dari bulu.",
+  masDone2: "Tim yang hebat! Misi selesai.",
+  masDone3: "Tergencet pas sekali!",
+  masWait1: "Hampir selesai, tunggu sebentar…",
+  masWait2: "Memeras sampai byte terakhir…",
+  cbAsk: "Pakai warna ramah buta warna",
+  cbUndo: "Kembali ke warna biasa",
+  newsLookT: "Warna baru!",
+  newsLookP: "Malam hari, aplikasi jadi gelap sendiri, warna ramah buta warna ada di bawah halaman, dan kalau kamu menyentuh saya, saya akan menjawab."
 };

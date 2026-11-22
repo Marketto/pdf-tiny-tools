@@ -290,5 +290,20 @@
   legalP5: "Contact. De code van de app is openbaar op GitHub: gebruik voor vragen of verzoeken de meldingen (Issues) van het project.",
   legalL1: "De app gebruikt deze bibliotheken en lettertypen, elk onder een eigen licentie. Hun makers hebben geen enkele band met de app en zijn er niet verantwoordelijk voor; de licenties staan in de code van het project, in de map vendor.",
   legalFonts: "Lettertypen",
-  legalCode: "Broncode van de app"
+  legalCode: "Broncode van de app",
+  masTap1: "Hé! Dat kietelt!",
+  masTap2: "Pletten? Ik doe mee!",
+  masTap3: "Ik heb trek in zware bestanden!",
+  masTap4: "Rustig, rustig… grapje, plet maar raak!",
+  masTap5: "Vandaag ben ik zo sterk als een leeuw!",
+  masTap6: "Alles blijft hier bij mij, beloofd.",
+  masDone1: "Klaar! Lichter dan een veertje.",
+  masDone2: "Wat een team! Missie geslaagd.",
+  masDone3: "Netjes geplet!",
+  masWait1: "Bijna klaar, nog heel even…",
+  masWait2: "Ik knijp er elke byte uit…",
+  cbAsk: "Kleuren voor kleurenblinden gebruiken",
+  cbUndo: "Terug naar de gewone kleuren",
+  newsLookT: "Nieuwe kleuren!",
+  newsLookP: "'s Avonds wordt de app vanzelf donker, onderaan de pagina staan kleuren voor kleurenblinden en als je me aantikt, zeg ik iets terug."
 };

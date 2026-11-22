@@ -290,5 +290,20 @@
   legalP5: "Kontakti. Kodi i aplikacionit është publik në GitHub: për pyetje ose kërkesa përdor sinjalizimet (Issues) e projektit.",
   legalL1: "Aplikacioni përdor këto biblioteka dhe shkronja, secila me licencën e vet. Autorët e tyre nuk kanë asnjë lidhje me aplikacionin dhe nuk mbajnë përgjegjësi për të; licencat ndodhen në kodin e projektit, në dosjen vendor.",
   legalFonts: "Shkronjat",
-  legalCode: "Kodi i aplikacionit"
+  legalCode: "Kodi i aplikacionit",
+  masTap1: "Ej! Po më gudulis!",
+  masTap2: "Shtrydhim? Jam gati!",
+  masTap3: "Kam uri për skedarë të rëndë!",
+  masTap4: "Ngadalë, ngadalë… po tallem, shtrydh!",
+  masTap5: "Sot kam forcë luani!",
+  masTap6: "Gjithçka mbetet këtu me mua, premtoj.",
+  masDone1: "U krye! Më të lehta se një pendë.",
+  masDone2: "Çfarë skuadre! Misioni u krye.",
+  masDone3: "Të shtrydhura si duhet!",
+  masWait1: "Edhe pak, duro një çast…",
+  masWait2: "Po shtrydh çdo bajt…",
+  cbAsk: "Përdor ngjyrat për daltonikët",
+  cbUndo: "Kthehu te ngjyrat e zakonshme",
+  newsLookT: "Ngjyra të reja!",
+  newsLookP: "Në mbrëmje aplikacioni errësohet vetë, në fund të faqes ka ngjyra për daltonikët dhe, po të më prekësh, të përgjigjem."
 };

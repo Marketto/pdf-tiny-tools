@@ -290,5 +290,20 @@
   legalP5: "Kontakt. Kod aplikacji jest publiczny na GitHub: w razie pytań lub próśb skorzystaj ze zgłoszeń (Issues) projektu.",
   legalL1: "Aplikacja korzysta z tych bibliotek i czcionek, każdej na jej własnej licencji. Ich autorzy nie mają żadnego związku z aplikacją i nie odpowiadają za nią; licencje znajdują się w kodzie projektu, w folderze vendor.",
   legalFonts: "Czcionki",
-  legalCode: "Kod aplikacji"
+  legalCode: "Kod aplikacji",
+  masTap1: "Hej! To łaskocze!",
+  masTap2: "Zgniatamy? Wchodzę w to!",
+  masTap3: "Mam chrapkę na ciężkie pliki!",
+  masTap4: "Delikatnie… żartuję, zgniataj śmiało!",
+  masTap5: "Dziś mam siłę lwa!",
+  masTap6: "Wszystko zostaje tu, u mnie. Obiecuję.",
+  masDone1: "Gotowe! Lżejsze niż piórko.",
+  masDone2: "Co za ekipa! Misja wykonana.",
+  masDone3: "Zgniecione jak należy!",
+  masWait1: "Prawie gotowe, wytrzymaj chwilkę…",
+  masWait2: "Wyciskam każdy bajt…",
+  cbAsk: "Użyj kolorów dla daltonistów",
+  cbUndo: "Wróć do zwykłych kolorów",
+  newsLookT: "Nowe kolory!",
+  newsLookP: "Wieczorem aplikacja sama robi się ciemna, na dole strony są kolory dla daltonistów, a jak mnie dotkniesz, odpowiem."
 };

@@ -290,5 +290,20 @@
   legalP5: "Kontakt. Rakenduse kood on GitHubis avalik: küsimuste või soovide korral kasuta projekti Issues-jaotist.",
   legalL1: "Rakendus kasutab neid teeke ja fonte, igaüht oma litsentsiga. Nende autoritel pole rakendusega mingit seost ega vastuta nad selle eest; litsentsid on projekti koodis, kaustas vendor.",
   legalFonts: "Fondid",
-  legalCode: "Rakenduse lähtekood"
+  legalCode: "Rakenduse lähtekood",
+  masTap1: "Hei! See kõditab!",
+  masTap2: "Lömastame? Olen kohe valmis!",
+  masTap3: "Anna raskeid faile, kõht on tühi!",
+  masTap4: "Ettevaatlikult… nali, lömasta julgelt!",
+  masTap5: "Täna on mul lõvi jõud!",
+  masTap6: "Kõik jääb siia minu juurde, luban.",
+  masDone1: "Valmis! Kergemad kui sulg.",
+  masDone2: "Milline meeskond! Missioon täidetud.",
+  masDone3: "Lömastatud just parajaks!",
+  masWait1: "Peaaegu valmis, oota hetk…",
+  masWait2: "Pigistan välja iga baidi…",
+  cbAsk: "Kasuta värvipimedatele sobivaid värve",
+  cbUndo: "Tagasi tavaliste värvide juurde",
+  newsLookT: "Uued värvid!",
+  newsLookP: "Õhtul muutub rakendus ise tumedaks, lehe allosas on värvipimedatele sobivad värvid ja kui mind puudutad, ma vastan."
 };

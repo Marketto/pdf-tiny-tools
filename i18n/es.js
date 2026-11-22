@@ -290,5 +290,20 @@
   legalP5: "Contacto. El código de la app es público en GitHub: para preguntas o solicitudes usa las incidencias (Issues) del proyecto.",
   legalL1: "La app usa estas bibliotecas y tipografías, cada una con su propia licencia. Sus autores no tienen ningún vínculo con la app ni responden de ella; las licencias están en el código del proyecto, en la carpeta vendor.",
   legalFonts: "Tipografías",
-  legalCode: "Código de la app"
+  legalCode: "Código de la app",
+  masTap1: "¡Eh! ¡Que me haces cosquillas!",
+  masTap2: "¿Toca aplastar? ¡Me apunto!",
+  masTap3: "¡Tengo hambre de archivos pesados!",
+  masTap4: "Despacio, despacio… ¡es broma, aplasta!",
+  masTap5: "¡Hoy tengo la fuerza de un león!",
+  masTap6: "Todo se queda aquí conmigo, prometido.",
+  masDone1: "¡Hecho! Más ligeros que una pluma.",
+  masDone2: "¡Menudo equipo! Misión cumplida.",
+  masDone3: "¡Aplastados como es debido!",
+  masWait1: "Ya casi está, aguanta un momento…",
+  masWait2: "Exprimiendo hasta el último byte…",
+  cbAsk: "Usa los colores para daltónicos",
+  cbUndo: "Vuelve a los colores de siempre",
+  newsLookT: "¡Colores nuevos!",
+  newsLookP: "Por la noche la app se oscurece sola, abajo del todo hay colores para daltónicos y, si me tocas, te contesto."
 };

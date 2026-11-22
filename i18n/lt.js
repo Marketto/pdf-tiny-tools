@@ -290,5 +290,20 @@
   legalP5: "Kontaktai. Programėlės kodas yra viešas GitHub: klausimams ar prašymams naudok projekto Issues skiltį.",
   legalL1: "Programėlė naudoja šias bibliotekas ir šriftus, kurių kiekvienas turi savo licenciją. Jų autoriai su programėle niekaip nesusiję ir už ją neatsako; licencijos yra projekto kode, aplanke vendor.",
   legalFonts: "Šriftai",
-  legalCode: "Programėlės kodas"
+  legalCode: "Programėlės kodas",
+  masTap1: "Ei! Kutena!",
+  masTap2: "Traiškom? Aš dalyvauju!",
+  masTap3: "Duok sunkių failų, pilvas gurgia!",
+  masTap4: "Atsargiai, atsargiai… juokauju, traiškyk!",
+  masTap5: "Šiandien turiu liūto jėgų!",
+  masTap6: "Viskas lieka čia, pas mane. Pažadu.",
+  masDone1: "Baigta! Lengvesni už plunksną.",
+  masDone2: "Kokia komanda! Misija įvykdyta.",
+  masDone3: "Sutraiškyta kaip reikiant!",
+  masWait1: "Beveik baigta, palauk akimirką…",
+  masWait2: "Išspaudžiu kiekvieną baitą…",
+  cbAsk: "Naudoti spalvas daltonikams",
+  cbUndo: "Grįžti prie įprastų spalvų",
+  newsLookT: "Naujos spalvos!",
+  newsLookP: "Vakare programėlė pati patamsėja, puslapio apačioje rasi spalvas daltonikams, o jei mane paliesi, atsakysiu."
 };

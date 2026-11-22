@@ -290,5 +290,20 @@
   legalP5: "Contact. Le code de l'application est public sur GitHub : pour toute question ou demande, utilisez les signalements (Issues) du projet.",
   legalL1: "L'application utilise ces bibliothèques et ces polices, chacune sous sa propre licence. Leurs auteurs n'ont aucun lien avec l'application et n'en sont pas responsables ; les licences se trouvent dans le code du projet, dans le dossier vendor.",
   legalFonts: "Polices",
-  legalCode: "Code de l'application"
+  legalCode: "Code de l'application",
+  masTap1: "Hé ! Ça chatouille !",
+  masTap2: "On presse ? J'en suis !",
+  masTap3: "J'ai une faim de gros fichiers !",
+  masTap4: "Doucement… je rigole, allez-y !",
+  masTap5: "Aujourd'hui, j'ai une force de lion !",
+  masTap6: "Tout reste ici avec moi, promis.",
+  masDone1: "Fini ! Plus légers qu'une plume.",
+  masDone2: "Quelle équipe ! Mission accomplie.",
+  masDone3: "Pressés pile comme il faut !",
+  masWait1: "Presque fini, encore un instant…",
+  masWait2: "Je presse jusqu'au dernier octet…",
+  cbAsk: "Utiliser des couleurs adaptées aux daltoniens",
+  cbUndo: "Revenir aux couleurs habituelles",
+  newsLookT: "Nouvelles couleurs !",
+  newsLookP: "Le soir, l'appli passe toute seule en sombre, les couleurs pour daltoniens sont en bas de la page et, si vous me touchez, je vous réponds."
 };

@@ -290,5 +290,20 @@
   legalP5: "Contatti. Il codice dell'app è pubblico su GitHub: per domande o richieste usa le segnalazioni (Issues) del progetto.",
   legalL1: "L'app usa queste librerie e questi caratteri, ognuno con la sua licenza. I loro autori non hanno alcun legame con l'app e non ne rispondono; le licenze sono nel codice del progetto, nella cartella vendor.",
   legalFonts: "Caratteri",
-  legalCode: "Codice dell'app"
+  legalCode: "Codice dell'app",
+  masTap1: "Ehi! Fa il solletico!",
+  masTap2: "Si schiaccia? Io ci sono!",
+  masTap3: "Ho fame di file pesanti!",
+  masTap4: "Piano, piano… scherzo, schiaccia pure!",
+  masTap5: "Oggi ho una forza da leone!",
+  masTap6: "Tutto resta qui con me, promesso.",
+  masDone1: "Fatto! Più leggeri di una piuma.",
+  masDone2: "Che squadra! Missione compiuta.",
+  masDone3: "Schiacciati a dovere!",
+  masWait1: "Quasi fatto, resisti un attimo…",
+  masWait2: "Sto spremendo ogni byte…",
+  cbAsk: "Usa i colori per daltonici",
+  cbUndo: "Torna ai colori di sempre",
+  newsLookT: "Nuovi colori!",
+  newsLookP: "Di sera l'app si fa scura da sola, in fondo alla pagina ci sono i colori per daltonici e, se mi tocchi, ti rispondo."
 };

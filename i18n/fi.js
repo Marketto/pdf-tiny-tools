@@ -290,5 +290,20 @@
   legalP5: "Yhteystiedot. Sovelluksen koodi on julkinen GitHubissa: käytä kysymyksiin tai pyyntöihin projektin Issues-osiota.",
   legalL1: "Sovellus käyttää näitä kirjastoja ja fontteja, joista jokaisella on oma lisenssinsä. Niiden tekijöillä ei ole mitään yhteyttä sovellukseen eivätkä he vastaa siitä; lisenssit ovat projektin koodissa, kansiossa vendor.",
   legalFonts: "Fontit",
-  legalCode: "Sovelluksen lähdekoodi"
+  legalCode: "Sovelluksen lähdekoodi",
+  masTap1: "Hei! Se kutittaa!",
+  masTap2: "Litistetäänkö? Mukana ollaan!",
+  masTap3: "Anna painavia tiedostoja, on nälkä!",
+  masTap4: "Varovasti… leikki, litistä vain!",
+  masTap5: "Tänään olen vahva kuin leijona!",
+  masTap6: "Kaikki pysyy täällä minulla, lupaan.",
+  masDone1: "Valmista! Kevyempiä kuin höyhen.",
+  masDone2: "Mikä tiimi! Tehtävä suoritettu.",
+  masDone3: "Litistetty juuri sopivasti!",
+  masWait1: "Melkein valmista, odota hetki…",
+  masWait2: "Puristan irti joka tavun…",
+  cbAsk: "Käytä värisokeille sopivia värejä",
+  cbUndo: "Takaisin tavallisiin väreihin",
+  newsLookT: "Uudet värit!",
+  newsLookP: "Illalla sovellus tummuu itsestään, sivun alareunasta löytyvät värisokeille sopivat värit, ja jos kosketat minua, vastaan."
 };

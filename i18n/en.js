@@ -290,5 +290,20 @@
   legalP5: "Contact. The app's code is public on GitHub: for questions or requests use the project's Issues.",
   legalL1: "The app uses these libraries and fonts, each under its own licence. Their authors have no connection with the app and are not responsible for it; the licences are in the project's code, in the vendor folder.",
   legalFonts: "Fonts",
-  legalCode: "App source code"
+  legalCode: "App source code",
+  masTap1: "Hey! That tickles!",
+  masTap2: "Squashing time? I'm in!",
+  masTap3: "I'm hungry for heavy files!",
+  masTap4: "Easy, easy… just kidding, squash away!",
+  masTap5: "I feel strong as a lion today!",
+  masTap6: "Everything stays here with me, promise.",
+  masDone1: "Done! Lighter than a feather.",
+  masDone2: "What a team! Mission accomplished.",
+  masDone3: "Squashed just right!",
+  masWait1: "Almost there, hang on a moment…",
+  masWait2: "Squeezing out every last byte…",
+  cbAsk: "Use colour-blind friendly colours",
+  cbUndo: "Back to the usual colours",
+  newsLookT: "New colours!",
+  newsLookP: "In the evening the app turns dark on its own, colour-blind friendly colours are at the bottom of the page, and if you tap me, I'll answer."
 };

@@ -290,5 +290,20 @@
   legalP5: "Teagmháil. Tá cód na haipe poiblí ar GitHub: le haghaidh ceisteanna nó iarratas, úsáid tuairiscí (Issues) an tionscadail.",
   legalL1: "Úsáideann an aip na leabharlanna agus na clónna seo, gach ceann faoina cheadúnas féin. Níl aon bhaint ag a n-údair leis an aip agus níl siad freagrach aisti; tá na ceadúnais i gcód an tionscadail, san fhillteán vendor.",
   legalFonts: "Clónna",
-  legalCode: "Cód foinse na haipe"
+  legalCode: "Cód foinse na haipe",
+  masTap1: "Haigh! Cuireann sé sin cigilt orm!",
+  masTap2: "Am brú? Táim réidh!",
+  masTap3: "Comhaid throma? Tá ocras orm!",
+  masTap4: "Go réidh… ag magadh atáim, brúigh leat!",
+  masTap5: "Tá neart leoin ionam inniu!",
+  masTap6: "Fanann gach rud anseo liomsa, geallaim.",
+  masDone1: "Déanta! Níos éadroime ná cleite.",
+  masDone2: "Foireann den scoth! Misean déanta!",
+  masDone3: "Brúite díreach mar ba chóir!",
+  masWait1: "Beagnach ann, fan nóiméad…",
+  masWait2: "Ag fáscadh gach beart deireanach…",
+  cbAsk: "Úsáid dathanna do dhaoine dathdhalla",
+  cbUndo: "Ar ais chuig na gnáthdhathanna",
+  newsLookT: "Dathanna nua!",
+  newsLookP: "Tráthnóna éiríonn an aip dorcha léi féin, tá dathanna do dhaoine dathdhalla ag bun an leathanaigh, agus má bhaineann tú liom, freagróidh mé thú."
 };

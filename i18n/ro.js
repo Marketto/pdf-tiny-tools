@@ -290,5 +290,20 @@
   legalP5: "Contact. Codul aplicației este public pe GitHub: pentru întrebări sau solicitări folosește raportările (Issues) proiectului.",
   legalL1: "Aplicația folosește aceste biblioteci și fonturi, fiecare cu licența sa. Autorii lor nu au nicio legătură cu aplicația și nu răspund pentru ea; licențele se află în codul proiectului, în folderul vendor.",
   legalFonts: "Fonturi",
-  legalCode: "Codul aplicației"
+  legalCode: "Codul aplicației",
+  masTap1: "Hei! Mă gâdili!",
+  masTap2: "Turtim? Mă bag!",
+  masTap3: "Mi-e poftă de fișiere grele!",
+  masTap4: "Ușurel… glumesc, turtește fără grijă!",
+  masTap5: "Azi am o forță de leu!",
+  masTap6: "Totul rămâne aici, cu mine, promit.",
+  masDone1: "Gata! Mai ușoare ca o pană.",
+  masDone2: "Ce echipă! Misiune îndeplinită.",
+  masDone3: "Turtite ca la carte!",
+  masWait1: "Aproape gata, mai rezistă puțin…",
+  masWait2: "Storc fiecare byte…",
+  cbAsk: "Folosește culori pentru daltoniști",
+  cbUndo: "Înapoi la culorile obișnuite",
+  newsLookT: "Culori noi!",
+  newsLookP: "Seara aplicația se întunecă singură, jos pe pagină găsești culori pentru daltoniști, iar dacă mă atingi, îți răspund."
 };

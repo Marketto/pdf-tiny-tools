@@ -290,5 +290,20 @@
   legalP5: "Stik. Koda aplikacije je javna na GitHub: za vprašanja ali prošnje uporabi prijave (Issues) projekta.",
   legalL1: "Aplikacija uporablja te knjižnice in pisave, vsako s svojo licenco. Njihovi avtorji z aplikacijo niso nikakor povezani in zanjo ne odgovarjajo; licence so v kodi projekta, v mapi vendor.",
   legalFonts: "Pisave",
-  legalCode: "Koda aplikacije"
+  legalCode: "Koda aplikacije",
+  masTap1: "Hej! To žgečka!",
+  masTap2: "Mečkamo? Zraven sem!",
+  masTap3: "Daj mi težke datoteke, njam!",
+  masTap4: "Počasi, počasi… šalim se, kar mečkaj!",
+  masTap5: "Danes imam moč leva!",
+  masTap6: "Vse ostane tukaj pri meni, obljubim.",
+  masDone1: "Končano! Lažje od peresa.",
+  masDone2: "Kakšna ekipa! Misija opravljena.",
+  masDone3: "Zmečkane, kot se šika!",
+  masWait1: "Skoraj gotovo, še malo potrpi…",
+  masWait2: "Iztiskam vsak bajt…",
+  cbAsk: "Vklopi barve za barvno slepe",
+  cbUndo: "Nazaj na običajne barve",
+  newsLookT: "Nove barve!",
+  newsLookP: "Zvečer se aplikacija sama potemni, na dnu strani so barve za barvno slepe, in če se me dotakneš, ti odgovorim."
 };

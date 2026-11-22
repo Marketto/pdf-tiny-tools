@@ -290,5 +290,20 @@
   legalP5: "Kontakt. Kód aplikácie je verejný na GitHub: s otázkami alebo požiadavkami použi hlásenia (Issues) projektu.",
   legalL1: "Aplikácia používa tieto knižnice a písma, každé pod vlastnou licenciou. Ich autori nemajú s aplikáciou žiadne spojenie a nezodpovedajú za ňu; licencie sú v kóde projektu, v priečinku vendor.",
   legalFonts: "Písma",
-  legalCode: "Kód aplikácie"
+  legalCode: "Kód aplikácie",
+  masTap1: "Hej! To šteklí!",
+  masTap2: "Stláčame? Idem do toho!",
+  masTap3: "Mám chuť na ťažké súbory!",
+  masTap4: "Pomaly, pomaly… žartujem, len stláčaj!",
+  masTap5: "Dnes mám silu ako lev!",
+  masTap6: "Všetko ostáva tu so mnou, sľubujem.",
+  masDone1: "Hotovo! Ľahšie ako pierko.",
+  masDone2: "To je tím! Misia splnená.",
+  masDone3: "Stlačené, ako sa patrí!",
+  masWait1: "Už len chvíľku, vydrž…",
+  masWait2: "Vyžímam každý bajt…",
+  cbAsk: "Zapnúť farby pre farboslepých",
+  cbUndo: "Späť k bežným farbám",
+  newsLookT: "Nové farby!",
+  newsLookP: "Večer sa aplikácia sama stmaví, dole na stránke sú farby pre farboslepých a keď sa ma dotkneš, odpoviem."
 };

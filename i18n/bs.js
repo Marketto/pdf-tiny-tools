@@ -290,5 +290,20 @@
   legalP5: "Kontakt. Kod aplikacije je javan na GitHub: za pitanja ili zahtjeve koristi prijave (Issues) projekta.",
   legalL1: "Aplikacija koristi ove biblioteke i fontove, svaki pod vlastitom licencom. Njihovi autori nemaju nikakve veze s aplikacijom i ne odgovaraju za nju; licence se nalaze u kodu projekta, u folderu vendor.",
   legalFonts: "Fontovi",
-  legalCode: "Kod aplikacije"
+  legalCode: "Kod aplikacije",
+  masTap1: "Hej! To golica!",
+  masTap2: "Gnječimo? Ja sam za!",
+  masTap3: "Teški fajlovi? Njam, daj ih ovamo!",
+  masTap4: "Polako, polako… šalim se, gnječi!",
+  masTap5: "Danas imam snagu lava!",
+  masTap6: "Sve ostaje ovdje sa mnom, obećavam.",
+  masDone1: "Gotovo! Lakši od pera.",
+  masDone2: "Kakav tim! Misija izvršena.",
+  masDone3: "Zgnječeni kako treba!",
+  masWait1: "Još malo, izdrži trenutak…",
+  masWait2: "Cijedim svaki bajt…",
+  cbAsk: "Uključi boje za daltoniste",
+  cbUndo: "Vrati uobičajene boje",
+  newsLookT: "Nove boje!",
+  newsLookP: "Navečer se aplikacija sama zatamni, na dnu stranice su boje za daltoniste, a ako me dodirneš, odgovorit ću ti."
 };

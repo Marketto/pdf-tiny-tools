@@ -290,5 +290,20 @@
   legalP5: "Kontakt. Appens kod är offentlig på GitHub: använd projektets Issues för frågor eller förfrågningar.",
   legalL1: "Appen använder dessa bibliotek och typsnitt, vart och ett med sin egen licens. Deras upphovspersoner har ingen koppling till appen och ansvarar inte för den; licenserna finns i projektets kod, i mappen vendor.",
   legalFonts: "Typsnitt",
-  legalCode: "Appens källkod"
+  legalCode: "Appens källkod",
+  masTap1: "Hallå! Det kittlas!",
+  masTap2: "Dags att klämma? Jag är med!",
+  masTap3: "Jag är sugen på tunga filer!",
+  masTap4: "Sakta, sakta… skojar bara, kläm på!",
+  masTap5: "I dag är jag stark som en björn!",
+  masTap6: "Allt stannar här hos mig, lovar.",
+  masDone1: "Klart! Lättare än en fjäder.",
+  masDone2: "Vilket lag! Uppdrag slutfört.",
+  masDone3: "Klämda precis lagom!",
+  masWait1: "Nästan klart, håll ut lite…",
+  masWait2: "Kramar ur varenda byte…",
+  cbAsk: "Använd färger för färgblinda",
+  cbUndo: "Tillbaka till vanliga färger",
+  newsLookT: "Nya färger!",
+  newsLookP: "På kvällen blir appen mörk av sig själv, längst ner på sidan finns färger för färgblinda, och om du trycker på mig svarar jag."
 };

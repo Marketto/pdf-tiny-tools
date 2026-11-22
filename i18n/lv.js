@@ -290,5 +290,20 @@
   legalP5: "Saziņa. Lietotnes kods ir publisks vietnē GitHub: jautājumiem vai pieprasījumiem izmanto projekta Issues sadaļu.",
   legalL1: "Lietotne izmanto šīs bibliotēkas un fontus, katru ar savu licenci. To autoriem nav nekādas saistības ar lietotni, un viņi par to neatbild; licences ir atrodamas projekta kodā, mapē vendor.",
   legalFonts: "Fonti",
-  legalCode: "Lietotnes pirmkods"
+  legalCode: "Lietotnes pirmkods",
+  masTap1: "Ei! Kutina!",
+  masTap2: "Spiežam? Es esmu klāt!",
+  masTap3: "Dod smagus failus, vēders rūc!",
+  masTap4: "Lēnām, lēnām… joks, spied vien!",
+  masTap5: "Šodien man ir lauvas spēks!",
+  masTap6: "Viss paliek šeit pie manis, apsolu.",
+  masDone1: "Darīts! Vieglāki par spalvu.",
+  masDone2: "Kāda komanda! Misija izpildīta.",
+  masDone3: "Saspiesti tieši kā vajag!",
+  masWait1: "Tūlīt būs, mirklīti pacieties…",
+  masWait2: "Izspiežu katru baitu…",
+  cbAsk: "Izmantot krāsas daltoniķiem",
+  cbUndo: "Atpakaļ uz ierastajām krāsām",
+  newsLookT: "Jaunas krāsas!",
+  newsLookP: "Vakarā lietotne pati kļūst tumša, lapas apakšā ir krāsas daltoniķiem, un, ja man pieskarsies, es atbildēšu."
 };

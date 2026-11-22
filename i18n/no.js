@@ -290,5 +290,20 @@
   legalP5: "Kontakt. Appens kode er offentlig på GitHub: bruk prosjektets Issues for spørsmål eller forespørsler.",
   legalL1: "Appen bruker disse bibliotekene og skrifttypene, hver med sin egen lisens. Forfatterne deres har ingen tilknytning til appen og er ikke ansvarlige for den; lisensene ligger i prosjektets kode, i mappen vendor.",
   legalFonts: "Skrifttyper",
-  legalCode: "Appens kildekode"
+  legalCode: "Appens kildekode",
+  masTap1: "Hei! Det kiler!",
+  masTap2: "Knusetid? Jeg er med!",
+  masTap3: "Jeg er sulten på tunge filer!",
+  masTap4: "Rolig, rolig… bare tuller, knus i vei!",
+  masTap5: "I dag er jeg sterk som en løve!",
+  masTap6: "Alt blir her hos meg, lover.",
+  masDone1: "Ferdig! Lettere enn en fjær.",
+  masDone2: "For et lag! Oppdrag utført.",
+  masDone3: "Knust akkurat passe!",
+  masWait1: "Nesten ferdig, vent litt til…",
+  masWait2: "Presser ut hver eneste byte…",
+  cbAsk: "Bruk fargeblindvennlige farger",
+  cbUndo: "Tilbake til vanlige farger",
+  newsLookT: "Nye farger!",
+  newsLookP: "Om kvelden blir appen mørk av seg selv, nederst på siden finner du fargeblindvennlige farger, og trykker du på meg, svarer jeg."
 };

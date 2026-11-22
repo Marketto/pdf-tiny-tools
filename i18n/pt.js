@@ -290,5 +290,20 @@
   legalP5: "Contato. O código do app é público no GitHub: para dúvidas ou solicitações, use as Issues do projeto.",
   legalL1: "O app usa estas bibliotecas e fontes, cada uma com a sua própria licença. Os seus autores não têm qualquer vínculo com o app e não respondem por ele; as licenças estão no código do projeto, na pasta vendor.",
   legalFonts: "Fontes",
-  legalCode: "Código do app"
+  legalCode: "Código do app",
+  masTap1: "Ei! Faz cócegas!",
+  masTap2: "Bora esmagar? Tô dentro!",
+  masTap3: "Tô com fome de arquivo pesado!",
+  masTap4: "Calma, calma… brincadeira, pode esmagar!",
+  masTap5: "Hoje tô com força de leão!",
+  masTap6: "Tudo fica aqui comigo, prometo.",
+  masDone1: "Pronto! Mais leves que uma pena.",
+  masDone2: "Que time! Missão cumprida.",
+  masDone3: "Esmagados do jeito certo!",
+  masWait1: "Quase lá, aguenta só um pouquinho…",
+  masWait2: "Espremendo cada byte…",
+  cbAsk: "Usar cores para daltônicos",
+  cbUndo: "Voltar às cores de sempre",
+  newsLookT: "Cores novas!",
+  newsLookP: "À noite o app fica escuro sozinho, no fim da página tem cores para daltônicos e, se você me tocar, eu respondo."
 };

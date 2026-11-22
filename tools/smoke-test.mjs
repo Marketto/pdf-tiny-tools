@@ -927,6 +927,39 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Benvenuto: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- Temi e mascotte (R-UI-16/17/18/19): scuro, alto contrasto, daltonici, fumetto al tocco
+{
+  const look = async (o) => {
+    const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 }, ...o });
+    const page = await ctx.newPage(); const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
+    await page.goto(url); await page.waitForTimeout(700);
+    const st = await page.evaluate(() => { const cs = (sel, p) => getComputedStyle(document.querySelector(sel))[p]; return { bg: cs("body", "backgroundColor"), panel: cs(".panel", "backgroundColor"), btn: cs(".btn.ok,.btn:not(.alt)", "color"), edge: getComputedStyle(document.querySelector("h1")).webkitTextStrokeColor }; });
+    return { ctx, page, errors, st };
+  };
+  let r = await look({ colorScheme: "light" });
+  check(r.st.bg === "rgb(111, 208, 242)" && r.st.panel === "rgb(255, 253, 243)", `Temi: il chiaro resta quello di sempre (${r.st.bg}, ${r.st.panel})`);
+  await r.page.click("#press"); await r.page.waitForTimeout(300);
+  const bub = await r.page.evaluate(() => { const b = document.getElementById("mbub"), m = document.getElementById("press").getBoundingClientRect(), q = b.getBoundingClientRect(); return { on: !b.hidden, txt: b.textContent, near: q.left >= m.right - 30 && q.left <= m.right + 10, tail: getComputedStyle(b, "::before").borderRightColor, react: /react-[cd]/.test(document.getElementById("press").className) }; });
+  check(bub.on && bub.txt.length > 3 && !/^mas/.test(bub.txt) && bub.near && bub.react, `Mascotte: al tocco reagisce e parla in un fumetto accanto a lei («${bub.txt}»)`);
+  await r.page.waitForTimeout(2600);
+  check(await r.page.locator("#mbub").isHidden(), "Mascotte: il fumetto sparisce da solo");
+  check(/daltonici/.test(await r.page.locator("#cbBtn").textContent()), "Daltonici: il link in fondo alla pagina c'è");
+  await r.page.click("#cbBtn");
+  const cbOn = await r.page.evaluate(() => [document.documentElement.classList.contains("cb"), localStorage.getItem("cb"), getComputedStyle(document.body).getPropertyValue("--acc-s").trim()]);
+  await r.page.reload(); await r.page.waitForTimeout(500);
+  const cbKeep = await r.page.evaluate(() => document.documentElement.classList.contains("cb"));
+  check(cbOn[0] && cbOn[1] === "1" && /d55e00/i.test(cbOn[2]) && cbKeep, `Daltonici: si accende, cambia i colori e resta dopo la riapertura (${cbOn[2]})`);
+  check(r.errors.length === 0, `Temi: nessun errore nel chiaro${r.errors.length ? " → " + r.errors.join("; ") : ""}`);
+  await r.ctx.close();
+  r = await look({ colorScheme: "dark" });
+  check(r.st.bg === "rgb(29, 27, 48)" && r.st.btn === "rgb(27, 26, 46)" && r.st.edge === "rgb(12, 11, 22)", `Temi: scuro col telefono scuro, scritte scure sui pulsanti e titolo con contorno scuro (${r.st.bg}, ${r.st.btn}, ${r.st.edge})`);
+  await r.ctx.close();
+  r = await look({ colorScheme: "light", contrast: "more" });
+  check(r.st.bg === "rgb(0, 0, 0)" && r.st.btn === "rgb(0, 0, 0)", `Temi: alto contrasto con «Aumenta contrasto» (${r.st.bg})`);
+  await r.ctx.close();
+}
 // --- Compila (R-CPL): terza faccia del verbo, PDF con righe, caselle e caselle in fila → campi, prova, due salvataggi
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 } });

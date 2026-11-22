@@ -290,5 +290,20 @@
   legalP5: "Samband. Kóði appsins er opinn á GitHub: fyrir spurningar eða beiðnir skaltu nota ábendingar (Issues) verkefnisins.",
   legalL1: "Appið notar þessi söfn og leturgerðir, hvert með sitt eigið leyfi. Höfundar þeirra tengjast appinu ekki á neinn hátt og bera ekki ábyrgð á því; leyfin eru í kóða verkefnisins, í möppunni vendor.",
   legalFonts: "Leturgerðir",
-  legalCode: "Kóði appsins"
+  legalCode: "Kóði appsins",
+  masTap1: "Hæ! Þetta kitlar!",
+  masTap2: "Kreista? Ég er til!",
+  masTap3: "Mig hungrar í þungar skrár!",
+  masTap4: "Rólega… djók, kreistu bara!",
+  masTap5: "Í dag hef ég krafta ljóns!",
+  masTap6: "Allt verður hér hjá mér, lofa.",
+  masDone1: "Búið! Léttari en fjöður.",
+  masDone2: "Þvílíkt lið! Verkefni lokið.",
+  masDone3: "Kreistar alveg mátulega!",
+  masWait1: "Næstum búið, bíddu aðeins…",
+  masWait2: "Kreisti út hvert einasta bæti…",
+  cbAsk: "Nota liti fyrir litblinda",
+  cbUndo: "Aftur í venjulega liti",
+  newsLookT: "Nýir litir!",
+  newsLookP: "Á kvöldin dökknar appið sjálfkrafa, neðst á síðunni eru litir fyrir litblinda og ef þú snertir mig svara ég."
 };

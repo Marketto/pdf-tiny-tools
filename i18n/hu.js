@@ -290,5 +290,20 @@
   legalP5: "Kapcsolat. Az alkalmazás kódja nyilvános a GitHubon: kérdésekkel vagy kérésekkel fordulj a projekt hibajegyeihez (Issues).",
   legalL1: "Az alkalmazás ezeket a könyvtárakat és betűtípusokat használja, mindegyiket a saját licence alapján. Szerzőiknek semmilyen kapcsolatuk nincs az alkalmazással, és nem felelnek érte; a licencek a projekt kódjában, a vendor mappában találhatók.",
   legalFonts: "Betűtípusok",
-  legalCode: "Az alkalmazás kódja"
+  legalCode: "Az alkalmazás kódja",
+  masTap1: "Hé! Ez csiklandoz!",
+  masTap2: "Lapítunk? Benne vagyok!",
+  masTap3: "Éhes vagyok nehéz fájlokra!",
+  masTap4: "Óvatosan… csak vicc, lapíts nyugodtan!",
+  masTap5: "Ma oroszlánerőm van!",
+  masTap6: "Minden itt marad velem, ígérem.",
+  masDone1: "Kész! Könnyebbek egy tollpihénél.",
+  masDone2: "Micsoda csapat! Küldetés teljesítve.",
+  masDone3: "Pont jól kilapítva!",
+  masWait1: "Mindjárt kész, tarts ki egy kicsit…",
+  masWait2: "Kipréselem az utolsó bájtot is…",
+  cbAsk: "Színtévesztőbarát színek használata",
+  cbUndo: "Vissza a megszokott színekhez",
+  newsLookT: "Új színek!",
+  newsLookP: "Este az app magától elsötétül, az oldal alján ott vannak a színtévesztőbarát színek, és ha megérintesz, válaszolok."
 };

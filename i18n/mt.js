@@ -290,5 +290,20 @@
   legalP5: "Kuntatt. Il-kodiċi tal-app huwa pubbliku fuq GitHub: għal mistoqsijiet jew talbiet uża l-Issues tal-proġett.",
   legalL1: "L-app tuża dawn il-libreriji u dawn il-fonts, kull wieħed bil-liċenzja tiegħu. L-awturi tagħhom m'għandhom ebda rabta mal-app u mhumiex responsabbli għaliha; il-liċenzji jinsabu fil-kodiċi tal-proġett, fil-folder vendor.",
   legalFonts: "Fonts",
-  legalCode: "Kodiċi tal-app"
+  legalCode: "Kodiċi tal-app",
+  masTap1: "Ħej! Qed iddgħadagħni!",
+  masTap2: "Se nagħfsu? Jien hawn!",
+  masTap3: "Għandi l-ġuħ għal fajls tqal!",
+  masTap4: "Bil-mod, bil-mod… niċċajta, agħfas!",
+  masTap5: "Illum għandi saħħa ta' iljun!",
+  masTap6: "Kollox jibqa' hawn miegħi, inwiegħdek.",
+  masDone1: "Lest! Eħfef minn rixa.",
+  masDone2: "X'tim! Missjoni kompluta.",
+  masDone3: "Magħfusin sew!",
+  masWait1: "Kważi lest, stenna ftit…",
+  masWait2: "Qed nagħsar kull byte…",
+  cbAsk: "Uża kuluri għal min hu daltoniku",
+  cbUndo: "Lura għall-kuluri tas-soltu",
+  newsLookT: "Kuluri ġodda!",
+  newsLookP: "Filgħaxija l-app tiskura waħedha, fil-qiegħ tal-paġna hemm kuluri għal min hu daltoniku, u jekk tmissni, inwieġbek."
 };

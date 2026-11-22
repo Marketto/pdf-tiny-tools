@@ -290,5 +290,20 @@
   legalP5: "İletişim. Uygulamanın kodu GitHub’da herkese açıktır: sorular ya da talepler için projenin Issues bölümünü kullan.",
   legalL1: "Uygulama aşağıdaki kütüphaneleri ve yazı tiplerini, her biri kendi lisansıyla kullanır. Bunların yazarlarının uygulamayla hiçbir bağlantısı yoktur ve uygulamadan sorumlu değildir; lisanslar projenin kodunda, vendor klasöründedir.",
   legalFonts: "Yazı tipleri",
-  legalCode: "Uygulamanın kaynak kodu"
+  legalCode: "Uygulamanın kaynak kodu",
+  masTap1: "Hey! Gıdıklanıyorum!",
+  masTap2: "Eziyor muyuz? Ben hazırım!",
+  masTap3: "Ağır dosyalara açım!",
+  masTap4: "Yavaş, yavaş… şaka şaka, ez gitsin!",
+  masTap5: "Bugün aslan gibi güçlüyüm!",
+  masTap6: "Her şey burada, benimle kalır. Söz!",
+  masDone1: "Bitti! Tüy kadar hafif.",
+  masDone2: "Ne takım ama! Görev tamam.",
+  masDone3: "Tam kıvamında ezildi!",
+  masWait1: "Az kaldı, biraz dayan…",
+  masWait2: "Her baytı sıkıyorum…",
+  cbAsk: "Renk körlerine uygun renkleri kullan",
+  cbUndo: "Her zamanki renklere dön",
+  newsLookT: "Yeni renkler!",
+  newsLookP: "Akşamları uygulama kendiliğinden kararır, sayfanın en altında renk körlerine uygun renkler var ve bana dokunursan cevap veririm."
 };
