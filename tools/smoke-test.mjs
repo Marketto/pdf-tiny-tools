@@ -941,7 +941,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   let r = await look({ colorScheme: "light" });
   check(r.st.bg === "rgb(111, 208, 242)" && r.st.panel === "rgb(255, 253, 243)", `Temi: il chiaro resta quello di sempre (${r.st.bg}, ${r.st.panel})`);
   await r.page.click("#press"); await r.page.waitForTimeout(300);
-  const bub = await r.page.evaluate(() => { const b = document.getElementById("mbub"), m = document.getElementById("press").getBoundingClientRect(), q = b.getBoundingClientRect(); return { on: !b.hidden, txt: b.textContent, near: q.left >= m.right - 30 && q.left <= m.right + 10, tail: getComputedStyle(b, "::before").borderRightColor, react: /react-[cd]/.test(document.getElementById("press").className) }; });
+  const bub = await r.page.evaluate(() => { const b = document.getElementById("mbub"), m = document.getElementById("press").getBoundingClientRect(), q = b.getBoundingClientRect(); return { on: !b.hidden, txt: b.textContent, near: q.left >= m.right - 40 && q.left <= m.right + 40, tail: getComputedStyle(b, "::before").borderRightColor, react: /react-[cd]/.test(document.getElementById("press").className) }; });
   check(bub.on && bub.txt.length > 3 && !/^mas/.test(bub.txt) && bub.near && bub.react, `Mascotte: al tocco reagisce e parla in un fumetto accanto a lei («${bub.txt}»)`);
   await r.page.waitForTimeout(2600);
   check(await r.page.locator("#mbub").isHidden(), "Mascotte: il fumetto sparisce da solo");

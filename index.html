@@ -584,11 +584,13 @@ details p{margin:8px 0 0;max-width:65ch}
 /* fumetto della mascotte (R-UI-19): codino verso di lei, come nei fumetti */
 .mbub{position:absolute;z-index:6;width:max-content;max-width:min(230px,58vw);background:var(--card);color:var(--ink);border:3px solid var(--ink);border-radius:16px;
   padding:7px 12px;font:700 16px/1.25 var(--body);box-shadow:var(--sh-sm);pointer-events:none;animation:mbub .2s cubic-bezier(.3,1.6,.5,1)}
-.mbub::before,.mbub::after{content:"";position:absolute;width:0;height:0;border-style:solid}
-.mbub::before{top:10px;left:-17px;border-width:9px 17px 9px 0;border-color:transparent var(--ink) transparent transparent}
-.mbub::after{top:14px;left:-10px;border-width:5px 10px 5px 0;border-color:transparent var(--card) transparent transparent}
-[dir="rtl"] .mbub::before{left:auto;right:-17px;border-width:9px 0 9px 17px;border-color:transparent transparent transparent var(--ink)}
-[dir="rtl"] .mbub::after{left:auto;right:-10px;border-width:5px 0 5px 10px;border-color:transparent transparent transparent var(--card)}
+/* codino a punta, come nei fumetti: parte dal fianco del fumetto e punta in basso verso la bocca della mascotte.
+   Due strati: il contorno (::before) e il riempimento (::after), che entra di 3px nel bordo e lo apre */
+.mbub::before,.mbub::after{content:"";position:absolute;top:10px}
+.mbub::before{left:-26px;width:29px;height:30px;background:var(--ink);clip-path:polygon(100% 0,100% 62%,0 100%)}
+.mbub::after{left:-17px;width:23px;height:22px;top:13px;background:var(--card);clip-path:polygon(100% 0,100% 62%,0 100%)}
+[dir="rtl"] .mbub::before{left:auto;right:-26px;clip-path:polygon(0 0,0 62%,100% 100%)}
+[dir="rtl"] .mbub::after{left:auto;right:-17px;clip-path:polygon(0 0,0 62%,100% 100%)}
 @keyframes mbub{from{transform:scale(.6);opacity:0}}
 #press{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .press.react-c .e-open,.press.react-d .e-open{display:none}
@@ -2789,12 +2791,13 @@ function masSay(kind,n){
   var b=$("mbub"),br=b.parentNode,k,tries=0;
   do{k="mas"+kind+(1+Math.floor(Math.random()*n))}while(k===mas.last&&tries++<5);
   mas.last=k;b.textContent=t(k);b.hidden=false;
-  /* il fumetto parte dal fianco della mascotte, con il codino verso di lei */
-  var rb=br.getBoundingClientRect(),rp=press.getBoundingClientRect(),rtl=document.documentElement.dir==="rtl";
-  b.style.top=Math.max(0,rp.top-rb.top+6)+"px";
-  if(rtl){b.style.left="";b.style.right=Math.max(0,rb.right-rp.left-12)+"px"}
-  else{b.style.right="";b.style.left=Math.max(0,rp.right-rb.left-12)+"px"}
+  /* il fumetto sta di lato, all'altezza della faccia; la punta del codino (26px a sinistra, 40px sotto il bordo alto) arriva vicino alla bocca */
   press.classList.remove("react-c","react-d","hop");void press.offsetWidth;
+  var rb=br.getBoundingClientRect(),hd=(press.querySelector(".p-head")||press).getBoundingClientRect(),rtl=document.documentElement.dir==="rtl";
+  var mouth=hd.top+hd.height*.66-rb.top;
+  b.style.top=Math.max(0,mouth-40)+"px";
+  if(rtl){b.style.left="";b.style.right=Math.max(0,rb.right-hd.left+24)+"px"}
+  else{b.style.right="";b.style.left=Math.max(0,hd.right-rb.left+24)+"px"}
   press.classList.add(Math.random()<.5?"react-c":"react-d");if(!calm)press.classList.add("hop");
   clearTimeout(mas.t);mas.t=setTimeout(function(){b.hidden=true;press.classList.remove("react-c","react-d","hop")},CFG.mascot.bubbleMs);
 }

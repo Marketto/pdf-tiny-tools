@@ -27,7 +27,7 @@ Il JavaScript della pagina è in `index.html`, dentro un'unica funzione, diviso 
 | `suoni` | `tone`, `hiss`, `sfx`, `playJingle`, `playSquash` | AUD-06 |
 | `musica` | oggetto `music` (`start`, `stop`, `setMood`, `festa`), `THEMES`, `pickTheme`, `MOOD`, `playStep` | AUD |
 | `occhi` | `wink` | UI-01 |
-| `mascotte che reagisce` | `masSay(tipo, n)` (frasi `mas<Tipo><n>`, fumetto `#mbub` posizionato accanto a `#press`; classi `react-c`/`react-d`/`hop`), `cbRow` (colori per daltonici); chiamate da tocco su `#press`, `goNow` (attesa, `CONFIG.mascot.waitMs`) e `workEnd` (fine) | UI-18, UI-19 |
+| `mascotte che reagisce` | `masSay(tipo, n)` (frasi `mas<Tipo><n>`, fumetto `#mbub` posizionato di lato a `.p-head`, con la punta del codino (`::before`/`::after` con `clip-path`) vicino alla bocca; classi `react-c`/`react-d`/`hop`), `cbRow` (colori per daltonici); chiamate da tocco su `#press`, `goNow` (attesa, `CONFIG.mascot.waitMs`) e `workEnd` (fine) | UI-18, UI-19 |
 | `cattura` (mascotte) | `snapFlash` (flash a ogni foto aggiunta) | UI-07 |
 | `secondo piano` | `bgAsk`, `bgBegin`, `bgEnd`, `bgUpdate`, `bgText`, `progStart`/`progFrac`/`progLeft`/`progEta`, `progShow`, `bgStop`, `bgNotify`, `humWav` | APP-05…08 |
 | `lavoro e pausa` | `progShow`, `fillPill`, `appBusyScreen`, `pauseJob`, `jobKeep`, `resumeJob`, `restoreJob`, `jobsDialog`, `jobDrop` | APP-10…13, UI-10 |
