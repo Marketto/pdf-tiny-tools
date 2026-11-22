@@ -9,7 +9,8 @@ var APP=window.APP,CFG=window.CONFIG,E=CFG.edit;
 function t(k,p){return APP.t(k,p)}
 function nf(n){return APP.nf(n)}
 var $=function(id){return document.getElementById(id)};
-function el(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=text;return n}
+var el=APP.el,btn=APP.btn,panel=APP.panel,pct=APP.pct,pdfjs=APP.pdfjs;
+function baseName(n){return APP.fileBase(n,"documento")}
 
 /* ---------- matrici: convenzione del PDF, punto riga × matrice; mul(a,b) = prima a, poi b ---------- */
 function mul(a,b){return [a[0]*b[0]+a[1]*b[2],a[0]*b[1]+a[1]*b[3],a[2]*b[0]+a[3]*b[2],a[2]*b[1]+a[3]*b[3],a[4]*b[0]+a[5]*b[2]+b[4],a[4]*b[1]+a[5]*b[3]+b[5]]}
@@ -240,14 +241,7 @@ async function pageRes(L,page,metric,fcache){
   return {fonts:fonts,xo:xo};
 }
 
-/* ---------- pdf.js (lo stesso di Compila) ---------- */
-var pdfjsP=null;
-function pdfjs(){
-  if(!pdfjsP)pdfjsP=import(new URL("vendor/pdfjs/pdf.min.mjs",location.href).href).then(function(m){
-    m.GlobalWorkerOptions.workerSrc=new URL("vendor/pdfjs/pdf.worker.min.mjs",location.href).href;return m;
-  }).catch(function(e){pdfjsP=null;throw e});
-  return pdfjsP;
-}
+/* ---------- pdf.js (APP.pdfjs, lo stesso di Compila) ---------- */
 async function renderTo(pdoc,n,scale,clip){
   var p=await pdoc.getPage(n),vp=clip?p.getViewport({scale:scale,offsetX:-clip[0]*scale,offsetY:-clip[1]*scale}):p.getViewport({scale:scale});
   var cv=document.createElement("canvas");cv.width=Math.max(1,Math.round(clip?clip[2]*scale:vp.width));cv.height=Math.max(1,Math.round(clip?clip[3]*scale:vp.height));
@@ -452,8 +446,6 @@ async function refreshNow(pi){
 function dirtyPage(P){return P.T.some(function(x){return textChanged(x)||textMoved(x)})||P.I.some(function(im){return im.k==null||im.del||im.jpg||!same(im.cur,im.orig)})||P.A.some(function(a){return a.str.trim()})}
 
 /* ---------- schermata (R-EDT-02…07) ---------- */
-function panel(tag){var s=el("section","panel");s.appendChild(el("div","tag",tag));return s}
-function btn(cls,label,fn,icon){var b=el("button","btn "+cls);b.type="button";if(icon)b.innerHTML=icon;if(label)b.appendChild(document.createTextNode(label));b.addEventListener("click",fn);return b}
 var ICON={
   plus:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
   save:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
@@ -489,7 +481,6 @@ function renderStart(box){
   tray.addEventListener("drop",function(e){e.preventDefault();tray.classList.remove("over");var fs=Array.from(e.dataTransfer&&e.dataTransfer.files||[]);if(fs.length)openFiles(fs)});
   var off=panel(t("editS2"));off.classList.add("off");off.appendChild(el("div","tag",t("editS3")));box.appendChild(off);
 }
-function baseName(n){return String(n||"documento").replace(/\.[^.]+$/,"").replace(/[\\/:*?"<>|]+/g,"-").slice(0,80)||"documento"}
 async function openFiles(fs){
   var pdf=fs.filter(function(f){return /\.pdf$/i.test(f.name)||f.type==="application/pdf"})[0];
   var imgs=fs.filter(function(f){return /^image\//.test(f.type)||/\.(jpe?g|png|webp|heic|heif)$/i.test(f.name)});
@@ -544,7 +535,6 @@ function clearAll(keep){
   if(!keep){S.src=null;S.blobs={};S.view="edit";S.adding=false;S.zoom=0}
 }
 function top(){try{$("edit").scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}}
-function pct(v,tot){return (v/tot*100)+"%"}
 function counts(){var tn=0,inn=0;S.pages.forEach(function(P){tn+=P.T.filter(function(x){return !(x.e&&x.e.del)}).length+P.A.length;inn+=P.I.filter(function(im){return !im.del}).length});return {t:tn,i:inn}}
 /* passo 2 */
 function renderEdit(box){

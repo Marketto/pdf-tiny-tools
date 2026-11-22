@@ -1551,9 +1551,11 @@ async function pagina(file,opts){
   return {canvas:cv,deg:p.auto?p.auto.deg:0,script:p.auto?p.auto.script:null,trovato:!!(f.edge||f.flat||f.q)};
 }
 /* riconoscimento del testo con lo stesso motore (dati delle lingue in vendor/tesseract/lang) */
+/* il motore è condiviso: senza parametri si torna alla lettura a blocchi (6, il predefinito di Tesseract.js), così una lettura
+   a riga singola fatta prima (Compila, psm 7) non lascia la pagina intera senza testo */
 async function testo(img,code,params){
   var w=await ocrRecWorker(code);
-  if(params)await w.setParameters(params);
+  await w.setParameters(Object.assign({tessedit_pageseg_mode:"6"},params||{}));
   var r=await w.recognize(img);ocrTouch();
   return r.data;
 }

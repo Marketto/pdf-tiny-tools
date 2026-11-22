@@ -536,8 +536,8 @@ body.act-fill #capMsg,body.act-edit #capMsg{display:block}
 .langbar select:focus-visible{outline:4px solid var(--acc-s);outline-offset:3px}
 [dir="rtl"] h1,[dir="rtl"] .btn.go{letter-spacing:0}
 [dir="rtl"] .tag{transform:rotate(2deg)}
-:lang(zh) h1,:lang(hi) h1,:lang(bn) h1,:lang(ar) h1,:lang(ur) h1,:lang(ru) h1,:lang(uk) h1,:lang(bg) h1,:lang(sr) h1,:lang(mk) h1,:lang(be) h1,:lang(el) h1{font-weight:900;line-height:1.1}
-:lang(zh) .tag,:lang(zh) .btn,:lang(zh) .lvl b,:lang(zh) .badge,:lang(zh) .total strong,:lang(ru) .tag,:lang(ru) .btn,:lang(ru) .lvl b,:lang(ru) .badge,:lang(ru) .total strong,:lang(hi) .tag,:lang(hi) .btn,:lang(hi) .lvl b,:lang(hi) .badge,:lang(hi) .total strong,:lang(bn) .tag,:lang(bn) .btn,:lang(bn) .lvl b,:lang(bn) .badge,:lang(bn) .total strong,:lang(ar) .tag,:lang(ar) .btn,:lang(ar) .lvl b,:lang(ar) .badge,:lang(ar) .total strong,:lang(ur) .tag,:lang(ur) .btn,:lang(ur) .lvl b,:lang(ur) .badge,:lang(ur) .total strong,:lang(uk) .tag,:lang(uk) .btn,:lang(uk) .lvl b,:lang(uk) .badge,:lang(uk) .total strong,:lang(bg) .tag,:lang(bg) .btn,:lang(bg) .lvl b,:lang(bg) .badge,:lang(bg) .total strong,:lang(sr) .tag,:lang(sr) .btn,:lang(sr) .lvl b,:lang(sr) .badge,:lang(sr) .total strong,:lang(mk) .tag,:lang(mk) .btn,:lang(mk) .lvl b,:lang(mk) .badge,:lang(mk) .total strong,:lang(be) .tag,:lang(be) .btn,:lang(be) .lvl b,:lang(be) .badge,:lang(be) .total strong,:lang(el) .tag,:lang(el) .btn,:lang(el) .lvl b,:lang(el) .badge,:lang(el) .total strong{font-weight:700}
+:lang(zh) h1,:lang(hi) h1,:lang(bn) h1,:lang(ar) h1,:lang(ur) h1,:lang(ru) h1,:lang(uk) h1,:lang(bg) h1,:lang(sr) h1,:lang(mk) h1,:lang(be) h1,:lang(el) h1,:lang(ja) h1,:lang(ko) h1{font-weight:900;line-height:1.1}
+:lang(zh) .tag,:lang(zh) .btn,:lang(zh) .lvl b,:lang(zh) .badge,:lang(zh) .total strong,:lang(ru) .tag,:lang(ru) .btn,:lang(ru) .lvl b,:lang(ru) .badge,:lang(ru) .total strong,:lang(hi) .tag,:lang(hi) .btn,:lang(hi) .lvl b,:lang(hi) .badge,:lang(hi) .total strong,:lang(bn) .tag,:lang(bn) .btn,:lang(bn) .lvl b,:lang(bn) .badge,:lang(bn) .total strong,:lang(ar) .tag,:lang(ar) .btn,:lang(ar) .lvl b,:lang(ar) .badge,:lang(ar) .total strong,:lang(ur) .tag,:lang(ur) .btn,:lang(ur) .lvl b,:lang(ur) .badge,:lang(ur) .total strong,:lang(uk) .tag,:lang(uk) .btn,:lang(uk) .lvl b,:lang(uk) .badge,:lang(uk) .total strong,:lang(bg) .tag,:lang(bg) .btn,:lang(bg) .lvl b,:lang(bg) .badge,:lang(bg) .total strong,:lang(sr) .tag,:lang(sr) .btn,:lang(sr) .lvl b,:lang(sr) .badge,:lang(sr) .total strong,:lang(mk) .tag,:lang(mk) .btn,:lang(mk) .lvl b,:lang(mk) .badge,:lang(mk) .total strong,:lang(be) .tag,:lang(be) .btn,:lang(be) .lvl b,:lang(be) .badge,:lang(be) .total strong,:lang(el) .tag,:lang(el) .btn,:lang(el) .lvl b,:lang(el) .badge,:lang(el) .total strong,:lang(ja) .tag,:lang(ja) .btn,:lang(ja) .lvl b,:lang(ja) .badge,:lang(ja) .total strong,:lang(ko) .tag,:lang(ko) .btn,:lang(ko) .lvl b,:lang(ko) .badge,:lang(ko) .total strong{font-weight:700}
 details{font-size:15px}
 details summary{cursor:pointer;font-weight:700}
 details p{margin:8px 0 0;max-width:65ch}
@@ -2215,6 +2215,8 @@ async function capSave(){
           $("loaderTitle").textContent=t("ocrRead",{i:nf(i+1),n:nf(pages.length)});
           var w=await ocrRecWorker(code,function(){$("loaderN").textContent=t("ocrLang")});
           $("loaderN").textContent="";
+          /* motore condiviso: la lettura a riga singola di Compila (psm 7) qui lascerebbe la pagina vuota */
+          await w.setParameters({tessedit_pageseg_mode:"6"});
           var r=await w.recognize(pages[i].blob,{pdfTextOnly:true},{pdf:true,text:false,blocks:false});ocrTouch();
           if(r&&r.data&&r.data.pdf){var emb=(await doc.embedPdf(new Uint8Array(r.data.pdf),[0]))[0];pg.drawPage(emb,{x:0,y:0,width:pw,height:ph})}
         }catch(e){$("loaderN").textContent=""}
@@ -2333,8 +2335,22 @@ function formScan(){
   },400);
 }
 function formSeen(){var n=0,any=false;cap.pages.forEach(function(p){if(p.formN>=CFG.fill.formMin)any=true;n+=p.formN||0});return any?n:0}
-/* ponte per compila.js: solo quello che gli serve */
+/* attrezzi comuni di Compila e Modifica: stanno qui una volta sola e passano dal ponte */
+function uiBtn(cls,label,fn,icon){var b=el("button","btn "+cls);b.type="button";if(icon)b.innerHTML=icon;if(label)b.appendChild(document.createTextNode(label));b.addEventListener("click",fn);return b}
+function uiPanel(tag){var s=el("section","panel");s.appendChild(el("div","tag",tag));return s}
+function pct(v,tot){return (v/tot*100)+"%"}
+function fileBase(n,def){return String(n||def).replace(/\.[^.]+$/,"").replace(/[\\/:*?"<>|]+/g,"-").slice(0,80)||def}
+/* pdf.js (pagine dei PDF), scaricato la prima volta che serve e condiviso */
+var pdfjsP=null;
+function pdfjs(){
+  if(!pdfjsP)pdfjsP=import(new URL("vendor/pdfjs/pdf.min.mjs",location.href).href).then(function(m){
+    m.GlobalWorkerOptions.workerSrc=new URL("vendor/pdfjs/pdf.worker.min.mjs",location.href).href;return m;
+  }).catch(function(e){pdfjsP=null;throw e});
+  return pdfjsP;
+}
+/* ponte per compila.js e modifica.js: solo quello che gli serve */
 window.APP={
+  el:el,btn:uiBtn,panel:uiPanel,pct:pct,fileBase:fileBase,pdfjs:pdfjs,
   t:t,nf:nf,lang:function(){return lang},say:say,stat:stat,bucket:bucket,loadScript:loadScript,pdfLib:pdfLib,
   ocrRecWorker:ocrRecWorker,ocrLangFor:ocrLangFor,ocrTouch:ocrTouch,parole:scFn("parole"),
   loaderOn:loaderOn,loaderOff:loaderOff,cancelled:function(){return cancelLoad},

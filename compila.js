@@ -8,7 +8,8 @@ var APP=window.APP,CFG=window.CONFIG,C=CFG.fill;
 function t(k,p){return APP.t(k,p)}
 function nf(n){return APP.nf(n)}
 var $=function(id){return document.getElementById(id)};
-function el(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=text;return n}
+var el=APP.el,btn=APP.btn,panel=APP.panel,pct=APP.pct,pdfjs=APP.pdfjs;
+function baseName(n){return APP.fileBase(n,"modulo")}
 
 /* ---------- motore: righe, puntini, caselle (R-CPL-05) ----------
    Si lavora su una pagina a 200 dpi in scala di grigi; le misure sono in millimetri (mm = pixel per millimetro). */
@@ -368,13 +369,6 @@ function guessTypes(fields,L,P,mm){
 }
 
 /* ---------- pagine: PDF (pdf.js) o immagini (da Cattura) ---------- */
-var pdfjsP=null;
-function pdfjs(){
-  if(!pdfjsP)pdfjsP=import(new URL("vendor/pdfjs/pdf.min.mjs",location.href).href).then(function(m){
-    m.GlobalWorkerOptions.workerSrc=new URL("vendor/pdfjs/pdf.worker.min.mjs",location.href).href;return m;
-  }).catch(function(e){pdfjsP=null;throw e});
-  return pdfjsP;
-}
 /* ogni pagina del PDF a 200 dpi, con le parole del testo vero (se c'è) in pixel della pagina */
 async function pdfPages(bytes){
   var lib=await pdfjs(),doc=await lib.getDocument({data:bytes.slice(0),isEvalSupported:false}).promise,out=[];
@@ -421,8 +415,6 @@ var TYPES=[["text","typeText","Aa"],["number","typeNum","123"],["date","typeDate
 var COL={text:"#7b5cff",number:"#13a57f",date:"#ef5b8b",list:"#b38600",check:"#1f7fb8",sign:"#5a5a6e"};
 function tyName(ty){return ty==="sign"?t("typeSign"):t({text:"typeText",number:"typeNum",date:"typeDate",list:"typeList",check:"typeCheck"}[ty])}
 
-function panel(tag){var s=el("section","panel");s.appendChild(el("div","tag",tag));return s}
-function btn(cls,label,fn,icon){var b=el("button","btn "+cls);b.type="button";if(icon)b.innerHTML=icon;b.appendChild(document.createTextNode(label));b.addEventListener("click",fn);return b}
 var ICON={
   cam:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.2h3.6l1.7-2.6h7.4l1.7 2.6H21v10.6H3z"/><circle cx="12" cy="13.4" r="3.4"/></svg>',
   arrow:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h14M13 6l6 6-6 6"/></svg>',
@@ -472,7 +464,6 @@ async function openFiles(fs){
   if(imgs.length)APP.toCapture("gallery",imgs);
   else APP.say(t("fillNoFile"),true);
 }
-function baseName(n){return String(n||"modulo").replace(/\.[^.]+$/,"").replace(/[\\/:*?"<>|]+/g,"-").slice(0,80)||"modulo"}
 async function loadPdf(file){
   var bytes=new Uint8Array(await file.arrayBuffer());
   S.name=baseName(file.name);
@@ -564,7 +555,6 @@ function scroller(how){
   return sc;
 }
 function top(){try{$("fill").scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}}
-function pct(v,tot){return (v/tot*100)+"%"}
 /* una pagina con i campi: in modifica (riquadri colorati, trascinabili) o in prova (campi veri) */
 function pageView(pg,pi,how){
   var wrap=el("div","fpage");wrap.style.aspectRatio=pg.W+" / "+pg.H;

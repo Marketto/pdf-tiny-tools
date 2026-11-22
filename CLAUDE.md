@@ -8,7 +8,7 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 |---|---|
 | `index.html` | Tutta l'app: markup, CSS e JavaScript in un file solo |
 | `config.js` | Tutte le soglie e i parametri numerici (`window.CONFIG`), commentati con il requisito |
-| `i18n/` | Tutti i testi: un file per lingua (`i18n/it.js`…, 39 lingue, `window.I18N`) e l'elenco `i18n/index.js`; se ne carica solo quella in uso |
+| `i18n/` | Tutti i testi: un file per lingua (`i18n/it.js`…, 42 lingue, `window.I18N`) e l'elenco `i18n/index.js`; se ne carica solo quella in uso |
 | `motore.js` | Motore riusabile (R-APP-20): compressione di PDF, JPG e video, `window.Motore`; lo usa la pagina e lo usano altre app (SuriClean) |
 | `scansione.js` | Scansione riusabile (R-APP-21): tutto il calcolo di Cattura (bordi, prospettiva, pieghe, ombre, orientamento), lettura delle parole a fasce (R-SCN-37), luce uniforme per l'OCR (R-SCN-38) e i motori di Tesseract, `window.Scansione`; lo usa la pagina e lo usa Kapibo (stesso dominio): non cambiare l'API senza aggiornare anche Kapibo |
 | `engine.js` | Motore delle immagini di PDF e JPG, eseguito nei worker in parallelo (o nella pagina) |
@@ -53,7 +53,7 @@ Se una richiesta tocca più righe, fai una cosa alla volta e chiudi sempre con `
 ## Regole che valgono sempre
 
 - **Niente build e niente dipendenze nel sito.** Non introdurre npm, bundler o CDN nell'app: le librerie stanno in `vendor/`. Le uniche dipendenze ammesse sono quelle di sviluppo in `tools/`.
-- **Ogni testo visibile passa da `i18n/`**, in tutte le 39 lingue, con gli stessi segnaposto `{…}`. Mai stringhe scritte direttamente in `index.html` (fanno eccezione i testi italiani di riserva già presenti nel markup).
+- **Ogni testo visibile passa da `i18n/`**, in tutte le 42 lingue, con gli stessi segnaposto `{…}`. Mai stringhe scritte direttamente in `index.html` (fanno eccezione i testi italiani di riserva già presenti nel markup).
 - **I file dell'utente non lasciano il dispositivo.** Nessuna chiamata di rete con contenuti o nomi dei file. L'unica telemetria ammessa sono le statistiche anonime di R-PRI-05 (GoatCounter, senza cookie, disattivabili): non aggiungerne altre senza una voce nei requisiti.
 - **I file d'esempio del proprietario non si committano mai.** Foto, PDF e documenti che il proprietario manda per una prova restano fuori dal repository (nella cartella temporanea della sessione), anche quando servono per una prova automatica: le prove creano i loro file finti al volo. `.gitignore` blocca immagini, PDF, video e documenti (tranne le icone in `icons/`); non aggiungerli mai con `git add -f`.
 - **Gli originali non si toccano** se non dopo la conferma esplicita già prevista (pulsante «Sovrascrivi gli originali»).
