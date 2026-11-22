@@ -42,3 +42,7 @@ Il sito non ha build né dipendenze: si modifica e si apre. Per provarlo in loca
 ## Pubblicazione
 
 Ogni push su `main` controlla le traduzioni e pubblica il sito su GitHub Pages tramite `.github/workflows/pages.yml`. Cambiare il numero in `VERSION` crea il tag corrispondente. Serve una sola impostazione iniziale: in **Settings → Pages**, alla voce «Source», scegliere **GitHub Actions**.
+
+## Licenza
+
+Il codice dell'app è distribuito con licenza MIT (`LICENSE`). Le librerie in `vendor/` hanno ciascuna la propria licenza, elencata sopra.

@@ -827,7 +827,7 @@ var STATS=(function(){
       if(!on||dnt||off())return;
       if(test){window.__stats.push(path);return}
       try{
-        var q="p="+encodeURIComponent(path)+(event?"&e=true":"")+"&s="+encodeURIComponent(screen.width+","+screen.height+","+(window.devicePixelRatio||1))+"&rnd="+Math.random().toString(36).slice(2);
+        var q="p="+encodeURIComponent(path)+(event?"&e=true":"")+"&rnd="+Math.random().toString(36).slice(2);
         var img=new Image();img.referrerPolicy="no-referrer";img.src="https://"+C.code+".goatcounter.com/count?"+q;
       }catch(e){}
     }
