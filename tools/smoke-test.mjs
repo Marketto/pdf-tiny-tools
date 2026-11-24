@@ -935,7 +935,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     page.on("pageerror", (e) => errors.push(e.message));
     await page.route("**/fonts.googleapis.com/**", (r) => r.abort());
     await page.goto(url); await page.waitForTimeout(700);
-    const st = await page.evaluate(() => { const cs = (sel, p) => getComputedStyle(document.querySelector(sel))[p]; return { bg: cs("body", "backgroundColor"), panel: cs(".panel", "backgroundColor"), btn: cs(".btn.ok,.btn:not(.alt)", "color"), edge: getComputedStyle(document.querySelector("h1")).webkitTextStrokeColor }; });
+    const st = await page.evaluate(() => { const cs = (sel, p) => getComputedStyle(document.querySelector(sel))[p]; return { bg: cs("body", "backgroundColor"), panel: cs(".panel", "backgroundColor"), btn: cs(".btn.ok,.btn:not(.alt)", "color"), edge: getComputedStyle(document.querySelector("h1")).webkitTextStrokeColor, word: getComputedStyle(document.querySelector("#modeBtn .face")).color }; });
     return { ctx, page, errors, st };
   };
   let r = await look({ colorScheme: "light" });
@@ -954,7 +954,7 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(r.errors.length === 0, `Temi: nessun errore nel chiaro${r.errors.length ? " → " + r.errors.join("; ") : ""}`);
   await r.ctx.close();
   r = await look({ colorScheme: "dark" });
-  check(r.st.bg === "rgb(29, 27, 48)" && r.st.btn === "rgb(27, 26, 46)" && r.st.edge === "rgb(12, 11, 22)", `Temi: scuro col telefono scuro, scritte scure sui pulsanti e titolo con contorno scuro (${r.st.bg}, ${r.st.btn}, ${r.st.edge})`);
+  check(r.st.bg === "rgb(29, 27, 48)" && r.st.btn === "rgb(27, 26, 46)" && r.st.edge === "rgb(12, 11, 22)" && r.st.word === "rgb(27, 26, 46)", `Temi: scuro col telefono scuro, scritte scure sui pulsanti, titolo con contorno scuro e parola della modalità scura (${r.st.bg}, ${r.st.btn}, ${r.st.edge}, ${r.st.word})`);
   await r.ctx.close();
   r = await look({ colorScheme: "light", contrast: "more" });
   check(r.st.bg === "rgb(0, 0, 0)" && r.st.btn === "rgb(0, 0, 0)", `Temi: alto contrasto con «Aumenta contrasto» (${r.st.bg})`);

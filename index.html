@@ -605,6 +605,9 @@ details p{margin:8px 0 0;max-width:65ch}
     --shade:#0c0b16;--on-acc:#1b1a2e;--err:#ff8a80;--note:#3a3320;--title-edge:#0c0b16;--acc-l:#4b2a3c}
   .mode-jpg{--acc-l:#1f4a3d}.mode-video{--acc-l:#3a2f5c}.mode-all{--acc-l:#3d2f55}
   .lvl input:checked+span,.lvl input:checked+span small{color:var(--on-acc)}
+  /* parola della modalità (scelta B per lo scuro, 4.7.3): lettere scure con contorno e ombra del colore della modalità */
+  #modeBtn .face{color:var(--on-acc);-webkit-text-stroke:3px var(--acc);animation:none}
+  #modeBtn{text-shadow:4px 4px 0 var(--acc)}
 }
 /* daltonici (proposta D): tavolozza Okabe-Ito per le quattro modalità; si accende in fondo alla pagina */
 html.cb{--acc-l:#fbe3b8;--acc:#f5c46b;--acc-s:#D55E00;--vid:#e4b0cf}
@@ -623,7 +626,8 @@ html.cb .ty-pdf,html.cb #optsPdf::before{background:#f5c46b}html.cb .ty-jpg,html
   :root{color-scheme:dark;--ink:#fff;--paper:#000;--card:#000;--sky:#000;--sky-dot:#000;--muted:#fff;--shade:transparent;--on-acc:#000;
     --err:#ff8a80;--note:#000;--hi:#ffe600;--title-fill:#fff;--title-edge:#000;--line:4px solid #fff}
   :root,html .mode-jpg,html .mode-video,html .mode-all,html.cb,html.cb .mode-jpg,html.cb .mode-video,html.cb .mode-all{--acc-l:#000;--acc:#ffe600;--acc-s:#ffe600;--vid:#ffe600;--holo-marea:#ffe600;--holo-nebbia:#ffe600}
-  html .f-pdf,html h1 .f-jpg,html h1 .f-vid,html h1 .f-all{color:#ffe600;animation:none}
+  html .f-pdf,html h1 .f-jpg,html h1 .f-vid,html h1 .f-all,#modeBtn .face{color:#ffe600;-webkit-text-stroke:3px var(--title-edge);animation:none}
+  #modeBtn{text-shadow:none}
   .btn.go,.btn.danger,.lvl input:checked+span,.lvl input:checked+span small,.seg button[aria-pressed="true"],.ib.on,.badge.err{color:#000}
 }
 </style>
