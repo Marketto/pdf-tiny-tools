@@ -941,9 +941,13 @@ async function autoOrient(cv){
            domanda sulla pagina già girata */
         var ld=lineDir(cv),vert=ld.v>=2*ld.h+2,od=r.orientation_degrees;
         if(vert&&(od===90||od===270)&&r.orientation_confidence>=.5)deg=od;
-        else if(vert){
+        /* R-SCN-40: lettere strette e alte (scontrini) fanno sembrare verticali le righe; se Tesseract dice già «dritto»
+           con fiducia almeno 1, la pagina non si gira */
+        else if(vert&&!(od===0&&r.orientation_confidence>=1)){
           var q=turnCanvas(cv,90,0),s2=scaledGray(q,1600),r2=(await w.detect(s2)).data;s2.width=s2.height=0;if(q!==cv)q.width=q.height=0;
-          deg=r2&&r2.orientation_degrees===180&&r2.orientation_confidence>=.5?270:90;
+          /* girata di un quarto risulta ancora coricata: era giusta com'era */
+          var o2=r2&&r2.orientation_degrees;
+          deg=o2===180&&r2.orientation_confidence>=.5?270:(o2===90||o2===270)&&r2.orientation_confidence>=.5?0:90;
         }
       }
       if(r&&r.script_confidence>=1)script=r.script;

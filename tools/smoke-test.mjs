@@ -711,6 +711,13 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
     return { n: ws.length, b: b && [Math.round(b.x), Math.round(b.y1)], fasce: Scansione.fasceInclinate(c, 5) };
   });
   check(pw.b && Math.abs(pw.b[0] - 60) < 15 && Math.abs(pw.b[1] - 132) < 18 && pw.fasce[0] !== pw.fasce[4], `Scansione riusabile (R-SCN-37): parole lette a fasce raddrizzate, riportate sulla pagina (RIGAB a ${pw.b}, fasce ${pw.fasce.join(" ")})`);
+  const cond = await page.evaluate(async () => {
+    const c = document.createElement("canvas"); c.width = 700; c.height = 1300; const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, 700, 1300); g.fillStyle = "#111";
+    ["MACELLERIA PROVA", "VIA DEI TEST 1", "SPIEDINI AL LIME", "1,742   16,90   29,44", "TAGLIATA DI POLLO", "0,618   16,90   10,44", "HAMBURGER CLASSICO", "0,840   15,90   13,36", "SUSHI MISTO", "0,138   36,90    5,09", "BUSTA BIOCOMPOST", "PEZZI 5  TOTALE 58,43"]
+      .forEach((t, i) => { g.save(); g.translate(60, 90 + i * 100); g.scale(0.35, 2.6); g.font = "bold 52px monospace"; g.fillText(t, 0, 0); g.restore(); });
+    return { deg: (await Scansione.autoOrient(c)).deg, v: Scansione.lineDir(c).v };
+  });
+  check(cond.deg === 0, `Scansione riusabile (R-SCN-40): scontrino a lettere strette e alte resta dritto (giro ${cond.deg}°, tratti verticali ${cond.v})`);
   check(!errors.length, "Scansione riusabile: nessun errore JavaScript" + (errors.length ? " → " + errors.join("; ") : ""));
   await ctx.close();
 }
