@@ -11,6 +11,7 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 | `i18n/` | Tutti i testi: un file per lingua (`i18n/it.js`…, 42 lingue, `window.I18N`) e l'elenco `i18n/index.js`; se ne carica solo quella in uso |
 | `motore.js` | Motore riusabile (R-APP-20): compressione di PDF, JPG e video, `window.Motore`; lo usa la pagina e lo usano altre app (SuriClean) |
 | `scansione.js` | Scansione riusabile (R-APP-21): tutto il calcolo di Cattura (bordi, prospettiva, pieghe, ombre, orientamento), lettura delle parole a fasce (R-SCN-37), luce uniforme per l'OCR (R-SCN-38) e i motori di Tesseract, `window.Scansione`; lo usa la pagina e lo usa Kapibo (stesso dominio): non cambiare l'API senza aggiornare anche Kapibo |
+| `sfondo.js` | Lavoro in secondo piano riusabile (R-APP-23): tono muto che tiene viva la pagina su Android e riquadro del lettore, `window.Sfondo`; lo usa la pagina e lo usa Kapibo |
 | `engine.js` | Motore delle immagini di PDF e JPG, eseguito nei worker in parallelo (o nella pagina) |
 | `compila.js` | Compila: ricerca dei campi, schermata e PDF compilabile; scaricato la prima volta che serve, parla con la pagina tramite `window.APP` |
 | `modifica.js` | Modifica: testi e immagini di un PDF già fatto (lettura del contenuto, schermata, PDF modificato); scaricato la prima volta che serve, parla con la pagina tramite `window.APP` |

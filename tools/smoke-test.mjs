@@ -714,6 +714,22 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(!errors.length, "Scansione riusabile: nessun errore JavaScript" + (errors.length ? " → " + errors.join("; ") : ""));
   await ctx.close();
 }
+// --- Secondo piano riusabile (R-APP-23): sfondo.js da solo, come lo usa un'altra app
+{
+  const ctx = await browser.newContext({ locale: "it-IT" }), page = await ctx.newPage(), errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto(url + "favicon.ico"); await page.addScriptTag({ url: url + "sfondo.js" });
+  const r = await page.evaluate(async () => {
+    const api = ["inizia", "aggiorna", "finisci", "attivo"].every((k) => typeof Sfondo[k] === "function");
+    const wav = await Sfondo.humWav().arrayBuffer();
+    Sfondo.inizia({ app: "Prova" }); Sfondo.inizia({}); const a = Sfondo.attivo(); Sfondo.finisci(); const b = Sfondo.attivo(); Sfondo.finisci();
+    return { api, size: wav.byteLength, a, b, c: Sfondo.attivo() };
+  });
+  check(r.api && r.size === 44 + 44100 * 12 * 2, `Secondo piano riusabile: window.Sfondo con tono di 12 s (${r.size} byte)`);
+  check(r.a && r.b && !r.c, "Secondo piano riusabile: lavori annidati, si ferma solo all'ultimo finisci");
+  check(!errors.length, "Secondo piano riusabile: nessun errore JavaScript" + (errors.length ? " → " + errors.join("; ") : ""));
+  await ctx.close();
+}
 // --- Cattura: pieghe distese (R-SCN-27): un foglio con righe ondulate deve uscire con le righe dritte
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 900 } });
