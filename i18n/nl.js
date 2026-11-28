@@ -308,5 +308,10 @@
   newsLookP: "'s Avonds wordt de app vanzelf donker, onderaan de pagina staan kleuren voor kleurenblinden en als je me aantikt, zeg ik iets terug.",
   callBad: "Bestanden uit een andere app die ik niet kan lezen: {n}",
   newsCallT: "Stuur me je bestanden!",
-  newsCallP: "Je kunt me nu PDF's, foto's en video's uit andere apps sturen: “Delen” op je telefoon, “Openen met” op je computer."
+  newsCallP: "Je kunt me nu PDF's, foto's en video's uit andere apps sturen: “Delen” op je telefoon, “Openen met” op je computer.",
+  saveWhereT: "Waar laat ik 'm?",
+  saveWhereP: "Op deze telefoon kan de browser niet naar een map vragen. Je kunt het bestand naar een app sturen (Drive, Bestanden, mail…) en daar kiezen waar je het opslaat, of het downloaden naar de map Download. In Chrome kun je ook Instellingen › Downloads › 'Vragen waar bestanden moeten worden opgeslagen' aanzetten.",
+  saveShare: "Naar een app sturen…",
+  saveDown: "Downloaden",
+  sharedTo: "Naar een app gestuurd: {name}"
 };

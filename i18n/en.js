@@ -308,5 +308,10 @@
   newsLookP: "In the evening the app turns dark on its own, colour-blind friendly colours are at the bottom of the page, and if you tap me, I'll answer.",
   callBad: "I can't read {n} file(s) sent by another app.",
   newsCallT: "Send me your files!",
-  newsCallP: "You can now pass me PDFs, photos and videos from other apps: “Share” on your phone, “Open with” on your computer."
+  newsCallP: "You can now pass me PDFs, photos and videos from other apps: “Share” on your phone, “Open with” on your computer.",
+  saveWhereT: "Where should I put it?",
+  saveWhereP: "On this phone the browser can't ask for a folder. You can send the file to an app (Drive, Files, email…) and choose where to save it there, or download it to the Downloads folder. In Chrome you can also turn on Settings › Downloads › “Ask where to save files”.",
+  saveShare: "Send to an app…",
+  saveDown: "Download",
+  sharedTo: "Sent to an app: {name}"
 };

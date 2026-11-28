@@ -308,5 +308,10 @@
   newsLookP: "Večer aplikace sama ztmavne, dole na stránce jsou barvy pro barvoslepé, a když na mě klepneš, odpovím ti.",
   callBad: "Soubory z jiné aplikace, které nedokážu přečíst: {n}",
   newsCallT: "Pošli mi soubory!",
-  newsCallP: "Teď mi můžeš posílat PDF, fotky a videa z jiných aplikací: „Sdílet“ v telefonu, „Otevřít v programu“ na počítači."
+  newsCallP: "Teď mi můžeš posílat PDF, fotky a videa z jiných aplikací: „Sdílet“ v telefonu, „Otevřít v programu“ na počítači.",
+  saveWhereT: "Kam s tím?",
+  saveWhereP: "Na tomhle telefonu se prohlížeč neumí zeptat na složku. Můžeš soubor poslat do aplikace (Disk, Soubory, e-mail…) a tam vybrat, kam ho uložit, nebo ho stáhnout do složky Download. V Chromu si taky můžeš zapnout Nastavení › Stažené soubory › „Ptát se, kam uložit soubory“.",
+  saveShare: "Poslat do aplikace…",
+  saveDown: "Stáhnout",
+  sharedTo: "Posláno do aplikace: {name}"
 };

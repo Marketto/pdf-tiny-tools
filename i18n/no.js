@@ -308,5 +308,10 @@
   newsLookP: "Om kvelden blir appen mørk av seg selv, nederst på siden finner du fargeblindvennlige farger, og trykker du på meg, svarer jeg.",
   callBad: "Filer fra en annen app som jeg ikke klarer å lese: {n}",
   newsCallT: "Send meg filene dine!",
-  newsCallP: "Nå kan du gi meg PDF, bilder og videoer fra andre apper: «Del» på telefonen, «Åpne med» på datamaskinen."
+  newsCallP: "Nå kan du gi meg PDF, bilder og videoer fra andre apper: «Del» på telefonen, «Åpne med» på datamaskinen.",
+  saveWhereT: "Hvor skal den?",
+  saveWhereP: "På denne telefonen kan ikke nettleseren spørre om en mappe. Du kan sende filen til en app (Disk, Filer, e-post…) og velge hvor den skal lagres der, eller laste den ned til Download-mappen. I Chrome kan du også slå på Innstillinger › Nedlastinger › «Spør hvor filer skal lagres».",
+  saveShare: "Send til en app…",
+  saveDown: "Last ned",
+  sharedTo: "Sendt til en app: {name}"
 };

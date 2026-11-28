@@ -308,5 +308,10 @@
   newsLookP: "Tráthnóna éiríonn an aip dorcha léi féin, tá dathanna do dhaoine dathdhalla ag bun an leathanaigh, agus má bhaineann tú liom, freagróidh mé thú.",
   callBad: "Comhaid ó aip eile nach féidir liom a léamh: {n}",
   newsCallT: "Seol chugam do chuid comhad!",
-  newsCallP: "Is féidir leat PDF, grianghraif agus físeáin a sheoladh chugam ó aipeanna eile anois: “Share” ar an bhfón, “Open with” ar an ríomhaire."
+  newsCallP: "Is féidir leat PDF, grianghraif agus físeáin a sheoladh chugam ó aipeanna eile anois: “Share” ar an bhfón, “Open with” ar an ríomhaire.",
+  saveWhereT: "Cá gcuirfidh mé é?",
+  saveWhereP: "Ar an bhfón seo ní féidir leis an mbrabhsálaí fillteán a iarraidh ort. Is féidir leat an comhad a sheoladh chuig aip (Drive, Files, ríomhphost…) agus an áit shábhála a roghnú ansin, nó é a íoslódáil chuig an bhfillteán Download. In Chrome is féidir leat freisin Settings › Downloads › “Ask where to save files” a chasadh air.",
+  saveShare: "Seol chuig aip…",
+  saveDown: "Íoslódáil",
+  sharedTo: "Seolta chuig aip: {name}"
 };

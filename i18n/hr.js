@@ -308,5 +308,10 @@
   newsLookP: "Navečer se aplikacija sama zatamni, na dnu stranice su boje za daltoniste, a ako me dodirneš, odgovorit ću ti.",
   callBad: "Datoteke iz druge aplikacije koje ne mogu pročitati: {n}",
   newsCallT: "Šalji mi datoteke!",
-  newsCallP: "Sad mi možeš slati PDF-ove, fotografije i videozapise iz drugih aplikacija: „Podijeli” na mobitelu, „Otvori pomoću” na računalu."
+  newsCallP: "Sad mi možeš slati PDF-ove, fotografije i videozapise iz drugih aplikacija: „Podijeli” na mobitelu, „Otvori pomoću” na računalu.",
+  saveWhereT: "Kamo s tim?",
+  saveWhereP: "Na ovom mobitelu preglednik ne zna pitati za mapu. Datoteku možeš poslati u aplikaciju (Drive, Datoteke, e-pošta…) i ondje odabrati gdje je spremiti, ili je preuzeti u mapu Download. U Chromeu možeš i uključiti Postavke › Preuzimanja › „Pitaj gdje spremiti datoteke”.",
+  saveShare: "Pošalji u aplikaciju…",
+  saveDown: "Preuzmi",
+  sharedTo: "Poslano u aplikaciju: {name}"
 };

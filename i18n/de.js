@@ -308,5 +308,10 @@
   newsLookP: "Abends wird die App von selbst dunkel, unten auf der Seite gibt's Farben für Farbenblinde, und wenn du mich antippst, antworte ich.",
   callBad: "Dateien aus einer anderen App, die ich nicht lesen kann: {n}",
   newsCallT: "Schick mir deine Dateien!",
-  newsCallP: "Jetzt kannst du mir PDFs, Fotos und Videos aus anderen Apps zuspielen: „Teilen“ am Handy, „Öffnen mit“ am Computer."
+  newsCallP: "Jetzt kannst du mir PDFs, Fotos und Videos aus anderen Apps zuspielen: „Teilen“ am Handy, „Öffnen mit“ am Computer.",
+  saveWhereT: "Wohin damit?",
+  saveWhereP: "Auf diesem Handy kann der Browser nicht nach einem Ordner fragen. Du kannst die Datei an eine App schicken (Drive, Dateien, Mail…) und dort den Speicherort wählen, oder sie in den Ordner „Download“ herunterladen. In Chrome kannst du außerdem Einstellungen › Downloads › „Fragen, wo Dateien gespeichert werden sollen“ einschalten.",
+  saveShare: "An App senden…",
+  saveDown: "Herunterladen",
+  sharedTo: "An eine App gesendet: {name}"
 };

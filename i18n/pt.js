@@ -308,5 +308,10 @@
   newsLookP: "À noite o app fica escuro sozinho, no fim da página tem cores para daltônicos e, se você me tocar, eu respondo.",
   callBad: "Arquivos de outro app que não consigo ler: {n}",
   newsCallT: "Me manda seus arquivos!",
-  newsCallP: "Agora você pode me passar PDFs, fotos e vídeos de outros apps: “Compartilhar” no celular, “Abrir com” no computador."
+  newsCallP: "Agora você pode me passar PDFs, fotos e vídeos de outros apps: “Compartilhar” no celular, “Abrir com” no computador.",
+  saveWhereT: "Onde eu coloco?",
+  saveWhereP: "Neste celular o navegador não consegue perguntar a pasta. Você pode mandar o arquivo para um app (Drive, Arquivos, e-mail…) e escolher lá onde salvar, ou baixar na pasta Downloads. No Chrome você também pode ativar Configurações › Downloads › “Perguntar onde salvar os arquivos”.",
+  saveShare: "Mandar para um app…",
+  saveDown: "Baixar",
+  sharedTo: "Enviado para um app: {name}"
 };

@@ -308,5 +308,10 @@
   newsLookP: "Por la noche la app se oscurece sola, abajo del todo hay colores para daltónicos y, si me tocas, te contesto.",
   callBad: "Archivos de otra app que no puedo leer: {n}",
   newsCallT: "¡Mándame tus archivos!",
-  newsCallP: "Ahora puedes pasarme PDF, fotos y vídeos desde otras apps: «Compartir» en el móvil, «Abrir con» en el ordenador."
+  newsCallP: "Ahora puedes pasarme PDF, fotos y vídeos desde otras apps: «Compartir» en el móvil, «Abrir con» en el ordenador.",
+  saveWhereT: "¿Dónde lo pongo?",
+  saveWhereP: "En este móvil el navegador no puede preguntarte la carpeta. Puedes mandar el archivo a una app (Drive, Archivos, correo…) y elegir allí dónde guardarlo, o descargarlo en la carpeta Descargas. En Chrome también puedes activar Configuración › Descargas › «Preguntar dónde guardar los archivos».",
+  saveShare: "Mandar a una app…",
+  saveDown: "Descargar",
+  sharedTo: "Enviado a una app: {name}"
 };

@@ -175,6 +175,7 @@ Aree: [PRI](#pri-principi) · [MOD](#mod-modalità-pdf--jpg--video--tutto) · [C
 - R-SAV-06 Scrittura di più file: schermata con la mascotte che rimette i fogli nello schedario; annullabile tra un file e l'altro.
 - R-SAV-07 Salvataggio riuscito: l'app torna come appena aperta (elenco vuoto) con il solo messaggio di conferma; se interrotto, l'elenco resta.
 - R-SAV-08 Senza scrittura nelle cartelle (telefono, Firefox, Safari): un file come download, più file come ZIP con la stessa struttura; le opzioni non disponibili restano visibili ma spente, con una riga di spiegazione.
+- R-SAV-09 Scegliere dove (4.9.1): dove il browser non sa chiedere la cartella («Salva con nome» assente, come Chrome su Android) ma sa mandare file alle app, salvare un file (PDF, JPG, video o ZIP, in tutte le funzioni) apre una finestra con due scelte: «Manda a un'app…» (il pannello di condivisione del telefono: Drive, File, posta…, dove si sceglie la cartella) e «Scarica» (cartella Download, come prima). La finestra ricorda che in Chrome si può anche attivare Impostazioni › Download › «Chiedi dove salvare i file». Se la condivisione si annulla, il file non si salva; se non riesce, si scarica.
 
 ## UI · Aspetto
 - R-UI-01 Mascotte: pressa kawaii con occhioni; ogni tanto strizza gli occhi a caso tra «> <» e sorriso ad arco.

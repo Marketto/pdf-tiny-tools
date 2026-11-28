@@ -308,5 +308,10 @@
   newsLookP: "Filgħaxija l-app tiskura waħedha, fil-qiegħ tal-paġna hemm kuluri għal min hu daltoniku, u jekk tmissni, inwieġbek.",
   callBad: "Fajls minn app oħra li ma nistax naqrahom: {n}",
   newsCallT: "Ibgħatli l-fajls!",
-  newsCallP: "Issa tista' tgħaddili PDF, ritratti u videos minn apps oħra: “Share” fuq il-mowbajl, “Open with” fuq il-kompjuter."
+  newsCallP: "Issa tista' tgħaddili PDF, ritratti u videos minn apps oħra: “Share” fuq il-mowbajl, “Open with” fuq il-kompjuter.",
+  saveWhereT: "Fejn inpoġġih?",
+  saveWhereP: "Fuq dan il-mowbajl il-browser ma jistax jistaqsik f'liema folder. Tista' tibgħat il-fajl lil app (Drive, Files, email…) u tagħżel hemm fejn issalvah, jew tniżżlu fil-folder Download. F'Chrome tista' wkoll tixgħel Settings › Downloads › “Ask where to save files”.",
+  saveShare: "Ibgħat lil app…",
+  saveDown: "Niżżel",
+  sharedTo: "Mibgħut lil app: {name}"
 };

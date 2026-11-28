@@ -308,5 +308,10 @@
   newsLookP: "Illalla sovellus tummuu itsestään, sivun alareunasta löytyvät värisokeille sopivat värit, ja jos kosketat minua, vastaan.",
   callBad: "Toisesta sovelluksesta tulleet tiedostot, joita en pysty lukemaan: {n}",
   newsCallT: "Lähetä minulle tiedostoja!",
-  newsCallP: "Nyt voit antaa minulle PDF-tiedostoja, kuvia ja videoita muista sovelluksista: puhelimessa ”Jaa”, tietokoneella ”Avaa sovelluksessa”."
+  newsCallP: "Nyt voit antaa minulle PDF-tiedostoja, kuvia ja videoita muista sovelluksista: puhelimessa ”Jaa”, tietokoneella ”Avaa sovelluksessa”.",
+  saveWhereT: "Minne laitan sen?",
+  saveWhereP: "Tässä puhelimessa selain ei osaa kysyä kansiota. Voit lähettää tiedoston sovellukseen (Drive, Files, sähköposti…) ja valita siellä tallennuspaikan tai ladata sen Download-kansioon. Chromessa voit myös ottaa käyttöön Asetukset › Lataukset › ”Kysy tiedostojen tallennuspaikka”.",
+  saveShare: "Lähetä sovellukseen…",
+  saveDown: "Lataa",
+  sharedTo: "Lähetetty sovellukseen: {name}"
 };

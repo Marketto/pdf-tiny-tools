@@ -308,5 +308,10 @@
   newsLookP: "Este az app magától elsötétül, az oldal alján ott vannak a színtévesztőbarát színek, és ha megérintesz, válaszolok.",
   callBad: "Másik appból kapott fájlok, amelyeket nem tudok beolvasni: {n}",
   newsCallT: "Küldd ide a fájljaidat!",
-  newsCallP: "Mostantól más appokból is átadhatod nekem a PDF-eket, fotókat és videókat: telefonon „Megosztás”, számítógépen „Megnyitás ezzel”."
+  newsCallP: "Mostantól más appokból is átadhatod nekem a PDF-eket, fotókat és videókat: telefonon „Megosztás”, számítógépen „Megnyitás ezzel”.",
+  saveWhereT: "Hova tegyem?",
+  saveWhereP: "Ezen a telefonon a böngésző nem tud mappát kérdezni. Elküldheted a fájlt egy appnak (Drive, Files, e-mail…), és ott választhatod ki, hova mentse, vagy letöltheted a Download mappába. A Chrome-ban be is kapcsolhatod: Beállítások › Letöltések › „Kérdezze meg, hová mentse a fájlokat”.",
+  saveShare: "Küldés appnak…",
+  saveDown: "Letöltés",
+  sharedTo: "Elküldve egy appnak: {name}"
 };

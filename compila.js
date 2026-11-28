@@ -820,7 +820,7 @@ async function save(withValues){
   if(!blob){APP.say(t("failed"),true);return}
   var nm=S.name+"-"+t(withValues?"fillSufTry":"fillSufModel")+".pdf";
   if(await APP.saveBlob(nm,blob)){
-    APP.say(t("saved",{name:APP.savedAs()}));APP.stat(withValues?"compila/salva-prova":"compila/salva-modello");APP.festa();
+    APP.say(APP.savedMsg());APP.stat(withValues?"compila/salva-prova":"compila/salva-modello");APP.festa();
     /* salvato: il lavoro sul dispositivo non serve più, finché non si cambia ancora qualcosa (R-APP-18) */
     sessDrop();S.cleanSig=sig();
   }

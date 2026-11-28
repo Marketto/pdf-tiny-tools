@@ -308,5 +308,10 @@
   newsLookP: "Akşamları uygulama kendiliğinden kararır, sayfanın en altında renk körlerine uygun renkler var ve bana dokunursan cevap veririm.",
   callBad: "Başka bir uygulamadan gelen ve okuyamadığım dosyalar: {n}",
   newsCallT: "Dosyalarını bana gönder!",
-  newsCallP: "Artık PDF'leri, fotoğrafları ve videoları diğer uygulamalardan bana gönderebilirsin: telefonda “Paylaş”, bilgisayarda “Birlikte aç”."
+  newsCallP: "Artık PDF'leri, fotoğrafları ve videoları diğer uygulamalardan bana gönderebilirsin: telefonda “Paylaş”, bilgisayarda “Birlikte aç”.",
+  saveWhereT: "Nereye koyayım?",
+  saveWhereP: "Bu telefonda tarayıcı klasör soramıyor. Dosyayı bir uygulamaya (Drive, Files, e-posta…) gönderip nereye kaydedileceğini orada seçebilir ya da Download klasörüne indirebilirsin. Chrome'da ayrıca Ayarlar › İndirilenler › “Dosyaların nereye kaydedileceğini sor” seçeneğini açabilirsin.",
+  saveShare: "Uygulamaya gönder…",
+  saveDown: "İndir",
+  sharedTo: "Bir uygulamaya gönderildi: {name}"
 };

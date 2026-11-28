@@ -308,5 +308,10 @@
   newsLookP: "Navečer se aplikacija sama zatamni, na dnu stranice su boje za daltoniste, a ako me dodirneš, odgovorit ću ti.",
   callBad: "Fajlovi iz druge aplikacije koje ne mogu pročitati: {n}",
   newsCallT: "Šalji mi fajlove!",
-  newsCallP: "Sada mi možeš slati PDF-ove, slike i video snimke iz drugih aplikacija: „Podijeli” na telefonu, „Otvori pomoću” na računaru."
+  newsCallP: "Sada mi možeš slati PDF-ove, slike i video snimke iz drugih aplikacija: „Podijeli” na telefonu, „Otvori pomoću” na računaru.",
+  saveWhereT: "Gdje da ga stavim?",
+  saveWhereP: "Na ovom telefonu preglednik ne zna pitati za folder. Fajl možeš poslati u aplikaciju (Drive, Fajlovi, e-mail…) i tamo izabrati gdje ga sačuvati, ili ga preuzeti u folder Download. U Chromeu možeš i uključiti Postavke › Preuzimanja › „Pitaj gdje sačuvati fajlove”.",
+  saveShare: "Pošalji u aplikaciju…",
+  saveDown: "Preuzmi",
+  sharedTo: "Poslano u aplikaciju: {name}"
 };

@@ -950,6 +950,30 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Benvenuto: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- Scegliere dove salvare dove manca «Salva con nome» (R-SAV-09): finestra, condivisione o download
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 }, acceptDownloads: true });
+  await ctx.addInitScript(() => {
+    delete window.showSaveFilePicker; window.__shared = [];
+    navigator.canShare = (d) => !!(d && d.files && d.files.length);
+    navigator.share = async (d) => { window.__shared.push(d.files.map((f) => f.name + ":" + f.size)); };
+  });
+  const page = await ctx.newPage(); const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto(url); await page.waitForTimeout(800);
+  const run = () => page.evaluate(() => { window.__r = APP.saveBlob("prova.pdf", new Blob(["%PDF-1.4 prova"], { type: "application/pdf" })); });
+  await run(); await page.waitForTimeout(300);
+  const dlg = await page.evaluate(() => ({ open: !document.getElementById("modal").hidden, title: document.getElementById("modalTitle").textContent, btns: [...document.querySelectorAll("#modalBtns button")].map((b) => b.textContent) }));
+  check(dlg.open && /Dove/.test(dlg.title) && dlg.btns.some((b) => /app/.test(b)) && dlg.btns.includes("Scarica"), `Salvataggio sul telefono: chiede dove (${dlg.btns.join(" / ")})`);
+  await page.click("#modalBtns button.go"); await page.waitForTimeout(300);
+  const sh = await page.evaluate(async () => ({ ok: await window.__r, shared: window.__shared, msg: APP.savedMsg() }));
+  check(sh.ok && sh.shared.length === 1 && /^prova\.pdf:/.test(sh.shared[0][0]) && /Mandato/.test(sh.msg), `Salvataggio sul telefono: «Manda a un'app» passa il file al pannello di condivisione («${sh.msg}»)`);
+  await run(); await page.waitForTimeout(300);
+  const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 5000 }).catch(() => null), page.click("#modalBtns button.alt")]);
+  check(dl && dl.suggestedFilename() === "prova.pdf", "Salvataggio sul telefono: «Scarica» scarica come prima");
+  check(errors.length === 0, `Salvataggio sul telefono: nessun errore${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
 // --- Chiamate da altre app (R-APP-24): messaggi tra finestre e indirizzo con i parametri
 {
   const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 } });

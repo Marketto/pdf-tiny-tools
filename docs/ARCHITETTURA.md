@@ -13,7 +13,7 @@ Il JavaScript della pagina è in `index.html`, dentro un'unica funzione, diviso 
 | `vista` | `render`, `sumShow` (riepilogo, LST-04), `suggestStill` (da `workEnd`, tutte le modalità), `suggestAsk` (LST-05) | LST, SAV-08 |
 | `motore` | ponte verso `motore.js` (`MI = Motore.internal`, `pdfLib`, `squeezePdf`/`squeezeJpg` sulle schede), `lvlOf`, `jpgOpts`, `squashList`, `workEnd`, gestore di `goBtn` | CMP, JPG, TUT-04, APP-20 |
 | `video` | `checkVideo` (codec da `MI.probeCodec`), `vRecall`, `vRemember`, `vFingerprint`, `vMemShow`, `clearTmp`/`tmpClean`, `vLv`, `videoOne` (ponte: memoria, annullamento, `keepDone`), `videoLoop`; l'algoritmo è in `motore.js` | VID, APP-20 |
-| `salvataggio` | `saveBlob`, `ask`, `writeJobs`, `finish`, gestori di `saveAs`/`saveElse`/`saveBeside`/`overBtn` | SAV |
+| `salvataggio` | `saveBlob` (senza «Salva con nome» ma con la condivisione dei file chiede «Manda a un'app…» / «Scarica», SAV-09; `savedT` per il messaggio), `ask`, `writeJobs`, `finish`, gestori di `saveAs`/`saveElse`/`saveBeside`/`overBtn` | SAV |
 | `scansione con la fotocamera` | `editCorners`, `makePage`, `scanFileName`; il rilevamento (`detectPage`, `sideFit`, `quadFit`, `warp`, `enhance`…) è in `scansione.js` | SCN |
 | `bordi` / `orientamento` | `snapCorner` nella pagina; `paperMap`, `refineQuad`, `ocrWorker`, `autoOrient`, `findSkew`, `turnCanvas` in `scansione.js` (R-APP-21) | SCN-20…24 |
 | `cattura` | `setAction`, `turnVerb`, `capRender`, `scanFile`, `galleryFiles`, `capBuild`, `capManual`, `capMove`, `capSave`, `giroAsk` (`edgeClean`, `colorFrac`, `flatScan` in `scansione.js`) | SCN-14…19, 31…33, CPL-12/13 |

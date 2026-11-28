@@ -308,5 +308,10 @@
   newsLookP: "Seara aplicația se întunecă singură, jos pe pagină găsești culori pentru daltoniști, iar dacă mă atingi, îți răspund.",
   callBad: "Fișiere de la altă aplicație pe care nu le pot citi: {n}",
   newsCallT: "Trimite-mi fișierele!",
-  newsCallP: "Acum îmi poți da PDF-uri, fotografii și videoclipuri din alte aplicații: „Partajează” pe telefon, „Deschidere cu” pe computer."
+  newsCallP: "Acum îmi poți da PDF-uri, fotografii și videoclipuri din alte aplicații: „Partajează” pe telefon, „Deschidere cu” pe computer.",
+  saveWhereT: "Unde-l pun?",
+  saveWhereP: "Pe acest telefon, browserul nu poate întreba în ce dosar. Poți trimite fișierul unei aplicații (Drive, Fișiere, e-mail…) și să alegi acolo unde îl salvezi sau îl poți descărca în dosarul Download. În Chrome poți activa și Setări › Descărcări › „Întreabă unde să salvezi fișierele”.",
+  saveShare: "Trimite unei aplicații…",
+  saveDown: "Descarcă",
+  sharedTo: "Trimis unei aplicații: {name}"
 };

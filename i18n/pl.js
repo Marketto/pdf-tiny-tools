@@ -308,5 +308,10 @@
   newsLookP: "Wieczorem aplikacja sama robi się ciemna, na dole strony są kolory dla daltonistów, a jak mnie dotkniesz, odpowiem.",
   callBad: "Pliki z innej aplikacji, których nie umiem odczytać: {n}",
   newsCallT: "Podsyłaj mi pliki!",
-  newsCallP: "Teraz możesz podsyłać mi PDF-y, zdjęcia i filmy z innych aplikacji: „Udostępnij” w telefonie, „Otwórz za pomocą” na komputerze."
+  newsCallP: "Teraz możesz podsyłać mi PDF-y, zdjęcia i filmy z innych aplikacji: „Udostępnij” w telefonie, „Otwórz za pomocą” na komputerze.",
+  saveWhereT: "Gdzie to dać?",
+  saveWhereP: "Na tym telefonie przeglądarka nie umie zapytać o folder. Możesz wysłać plik do aplikacji (Dysk, Pliki, poczta…) i tam wybrać, gdzie go zapisać, albo pobrać go do folderu Download. W Chrome możesz też włączyć Ustawienia › Pobrane pliki › „Pytaj, gdzie zapisać pliki”.",
+  saveShare: "Wyślij do aplikacji…",
+  saveDown: "Pobierz",
+  sharedTo: "Wysłano do aplikacji: {name}"
 };

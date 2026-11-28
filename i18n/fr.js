@@ -308,5 +308,10 @@
   newsLookP: "Le soir, l'appli passe toute seule en sombre, les couleurs pour daltoniens sont en bas de la page et, si vous me touchez, je vous réponds.",
   callBad: "Fichiers venus d'une autre appli que je n'arrive pas à lire : {n}",
   newsCallT: "Envoyez-moi vos fichiers !",
-  newsCallP: "Vous pouvez maintenant me passer des PDF, photos et vidéos depuis vos autres applis : « Partager » sur le téléphone, « Ouvrir avec » sur l'ordinateur."
+  newsCallP: "Vous pouvez maintenant me passer des PDF, photos et vidéos depuis vos autres applis : « Partager » sur le téléphone, « Ouvrir avec » sur l'ordinateur.",
+  saveWhereT: "Je le mets où ?",
+  saveWhereP: "Sur ce téléphone, le navigateur ne peut pas vous demander de dossier. Vous pouvez envoyer le fichier à une appli (Drive, Fichiers, e-mail…) et choisir là où l'enregistrer, ou le télécharger dans le dossier Téléchargements. Dans Chrome, vous pouvez aussi activer Paramètres › Téléchargements › « Demander où enregistrer les fichiers ».",
+  saveShare: "Envoyer à une appli…",
+  saveDown: "Télécharger",
+  sharedTo: "Envoyé à une appli : {name}"
 };

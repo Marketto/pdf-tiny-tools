@@ -1087,7 +1087,7 @@ async function save(){
   if(!blob){APP.say(t("failed"),true);return}
   var nmf=S.name+"-"+t("editSuffix")+".pdf";
   if(await APP.saveBlob(nmf,blob)){
-    APP.say(t("saved",{name:APP.savedAs()}));APP.stat("modifica/salva");APP.festa();
+    APP.say(APP.savedMsg());APP.stat("modifica/salva");APP.festa();
     sessDrop();S.cleanSig=sig();
   }
 }

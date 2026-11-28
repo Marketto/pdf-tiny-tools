@@ -308,5 +308,10 @@
   newsLookP: "Vakare programėlė pati patamsėja, puslapio apačioje rasi spalvas daltonikams, o jei mane paliesi, atsakysiu.",
   callBad: "Failai iš kitos programėlės, kurių negaliu perskaityti: {n}",
   newsCallT: "Siųsk man failus!",
-  newsCallP: "Dabar gali man perduoti PDF, nuotraukas ir vaizdo įrašus iš kitų programėlių: telefone „Bendrinti“, kompiuteryje „Atidaryti naudojant“."
+  newsCallP: "Dabar gali man perduoti PDF, nuotraukas ir vaizdo įrašus iš kitų programėlių: telefone „Bendrinti“, kompiuteryje „Atidaryti naudojant“.",
+  saveWhereT: "Kur jį padėti?",
+  saveWhereP: "Šiame telefone naršyklė negali paklausti aplanko. Gali nusiųsti failą į programėlę (Drive, Failai, el. paštas…) ir ten pasirinkti, kur jį išsaugoti, arba atsisiųsti jį į aplanką Download. „Chrome“ taip pat gali įjungti Nustatymai › Atsisiuntimai › „Klausti, kur išsaugoti failus“.",
+  saveShare: "Siųsti į programėlę…",
+  saveDown: "Atsisiųsti",
+  sharedTo: "Išsiųsta į programėlę: {name}"
 };

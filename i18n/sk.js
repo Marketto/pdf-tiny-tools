@@ -308,5 +308,10 @@
   newsLookP: "Večer sa aplikácia sama stmaví, dole na stránke sú farby pre farboslepých a keď sa ma dotkneš, odpoviem.",
   callBad: "Súbory z inej aplikácie, ktoré neviem prečítať: {n}",
   newsCallT: "Pošli mi súbory!",
-  newsCallP: "Teraz mi môžeš posielať PDF, fotky a videá z iných aplikácií: „Zdieľať“ v telefóne, „Otvoriť v programe“ v počítači."
+  newsCallP: "Teraz mi môžeš posielať PDF, fotky a videá z iných aplikácií: „Zdieľať“ v telefóne, „Otvoriť v programe“ v počítači.",
+  saveWhereT: "Kam s tým?",
+  saveWhereP: "Na tomto telefóne sa prehliadač nevie spýtať na priečinok. Súbor môžeš poslať do aplikácie (Disk, Súbory, e-mail…) a tam vybrať, kam ho uložiť, alebo ho stiahnuť do priečinka Download. V Chrome si môžeš aj zapnúť Nastavenia › Stiahnuté súbory › „Pýtať sa, kam uložiť súbory“.",
+  saveShare: "Poslať do aplikácie…",
+  saveDown: "Stiahnuť",
+  sharedTo: "Poslané do aplikácie: {name}"
 };

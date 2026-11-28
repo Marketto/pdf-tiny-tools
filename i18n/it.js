@@ -308,5 +308,10 @@
   newsLookP: "Di sera l'app si fa scura da sola, in fondo alla pagina ci sono i colori per daltonici e, se mi tocchi, ti rispondo.",
   callBad: "Non riesco a leggere {n} file mandati da un'altra app.",
   newsCallT: "Mandami i file!",
-  newsCallP: "Ora puoi passarmi PDF, foto e video dalle altre app: «Condividi» sul telefono, «Apri con» sul computer."
+  newsCallP: "Ora puoi passarmi PDF, foto e video dalle altre app: «Condividi» sul telefono, «Apri con» sul computer.",
+  saveWhereT: "Dove lo metto?",
+  saveWhereP: "Su questo telefono il browser non sa chiedere la cartella. Puoi mandare il file a un'app (Drive, File, posta…) e scegliere lì dove salvarlo, oppure scaricarlo nella cartella Download. In Chrome puoi anche attivare Impostazioni › Download › «Chiedi dove salvare i file».",
+  saveShare: "Manda a un'app…",
+  saveDown: "Scarica",
+  sharedTo: "Mandato a un'app: {name}"
 };

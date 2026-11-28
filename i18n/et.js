@@ -308,5 +308,10 @@
   newsLookP: "Õhtul muutub rakendus ise tumedaks, lehe allosas on värvipimedatele sobivad värvid ja kui mind puudutad, ma vastan.",
   callBad: "Teisest rakendusest saadud failid, mida ma lugeda ei suuda: {n}",
   newsCallT: "Saada mulle faile!",
-  newsCallP: "Nüüd saad mulle teistest rakendustest PDF-e, fotosid ja videoid saata: telefonis „Jaga“, arvutis „Ava rakendusega“."
+  newsCallP: "Nüüd saad mulle teistest rakendustest PDF-e, fotosid ja videoid saata: telefonis „Jaga“, arvutis „Ava rakendusega“.",
+  saveWhereT: "Kuhu ma selle panen?",
+  saveWhereP: "Selles telefonis ei oska brauser kausta küsida. Võid saata faili mõnda rakendusse (Drive, Files, e-post…) ja valida seal, kuhu see salvestada, või laadida selle alla kausta Download. Chrome'is saad ka sisse lülitada Seaded › Allalaadimised › „Küsi, kuhu failid salvestada“.",
+  saveShare: "Saada rakendusse…",
+  saveDown: "Laadi alla",
+  sharedTo: "Saadetud rakendusse: {name}"
 };

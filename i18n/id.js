@@ -308,5 +308,10 @@
   newsLookP: "Malam hari, aplikasi jadi gelap sendiri, warna ramah buta warna ada di bawah halaman, dan kalau kamu menyentuh saya, saya akan menjawab.",
   callBad: "File dari aplikasi lain yang tidak bisa saya baca: {n}",
   newsCallT: "Kirim filemu ke sini!",
-  newsCallP: "Sekarang kamu bisa mengoper PDF, foto, dan video dari aplikasi lain ke saya: “Bagikan” di ponsel, “Buka dengan” di komputer."
+  newsCallP: "Sekarang kamu bisa mengoper PDF, foto, dan video dari aplikasi lain ke saya: “Bagikan” di ponsel, “Buka dengan” di komputer.",
+  saveWhereT: "Taruh di mana, nih?",
+  saveWhereP: "Di ponsel ini browser tidak bisa menanyakan folder. Kamu bisa mengirim file ke aplikasi (Drive, Files, email…) lalu memilih tempat menyimpannya di sana, atau mendownloadnya ke folder Download. Di Chrome kamu juga bisa mengaktifkan Setelan › Download › “Tanyakan lokasi penyimpanan file”.",
+  saveShare: "Kirim ke aplikasi…",
+  saveDown: "Download",
+  sharedTo: "Terkirim ke aplikasi: {name}"
 };

@@ -308,5 +308,10 @@
   newsLookP: "Në mbrëmje aplikacioni errësohet vetë, në fund të faqes ka ngjyra për daltonikët dhe, po të më prekësh, të përgjigjem.",
   callBad: "Skedarë nga një aplikacion tjetër që nuk arrij t'i lexoj: {n}",
   newsCallT: "Më dërgo skedarët!",
-  newsCallP: "Tani mund të më kalosh PDF, foto dhe video nga aplikacionet e tjera: “Ndaj” në telefon, “Hap me” në kompjuter."
+  newsCallP: "Tani mund të më kalosh PDF, foto dhe video nga aplikacionet e tjera: “Ndaj” në telefon, “Hap me” në kompjuter.",
+  saveWhereT: "Ku ta vë?",
+  saveWhereP: "Në këtë telefon shfletuesi nuk mund të pyesë për dosjen. Mund ta dërgosh skedarin te një aplikacion (Drive, Files, email…) dhe të zgjedhësh aty ku ta ruash, ose ta shkarkosh në dosjen Download. Në Chrome mund të aktivizosh edhe Cilësimet › Shkarkimet › “Pyet se ku të ruhen skedarët”.",
+  saveShare: "Dërgo te një aplikacion…",
+  saveDown: "Shkarko",
+  sharedTo: "U dërgua te një aplikacion: {name}"
 };

@@ -308,5 +308,10 @@
   newsLookP: "På kvällen blir appen mörk av sig själv, längst ner på sidan finns färger för färgblinda, och om du trycker på mig svarar jag.",
   callBad: "Filer från en annan app som jag inte kan läsa: {n}",
   newsCallT: "Skicka dina filer till mig!",
-  newsCallP: "Nu kan du ge mig PDF, bilder och videor från andra appar: ”Dela” på mobilen, ”Öppna med” på datorn."
+  newsCallP: "Nu kan du ge mig PDF, bilder och videor från andra appar: ”Dela” på mobilen, ”Öppna med” på datorn.",
+  saveWhereT: "Var ska den ligga?",
+  saveWhereP: "På den här mobilen kan webbläsaren inte fråga efter en mapp. Du kan skicka filen till en app (Drive, Filer, mejl…) och välja var den ska sparas där, eller ladda ned den till mappen Download. I Chrome kan du också slå på Inställningar › Nedladdningar › ”Fråga var filer ska sparas”.",
+  saveShare: "Skicka till en app…",
+  saveDown: "Ladda ned",
+  sharedTo: "Skickat till en app: {name}"
 };

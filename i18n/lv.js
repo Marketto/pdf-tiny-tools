@@ -308,5 +308,10 @@
   newsLookP: "Vakarā lietotne pati kļūst tumša, lapas apakšā ir krāsas daltoniķiem, un, ja man pieskarsies, es atbildēšu.",
   callBad: "Faili no citas lietotnes, kurus nevaru nolasīt: {n}",
   newsCallT: "Sūti man failus!",
-  newsCallP: "Tagad vari man nodot PDF, fotoattēlus un video no citām lietotnēm: tālrunī „Kopīgot”, datorā „Atvērt ar”."
+  newsCallP: "Tagad vari man nodot PDF, fotoattēlus un video no citām lietotnēm: tālrunī „Kopīgot”, datorā „Atvērt ar”.",
+  saveWhereT: "Kur lai to lieku?",
+  saveWhereP: "Šajā tālrunī pārlūks nevar pajautāt mapi. Vari nosūtīt failu uz lietotni (Drive, Faili, e-pasts…) un tur izvēlēties, kur to saglabāt, vai lejupielādēt to mapē Download. Pārlūkā Chrome vari arī ieslēgt Iestatījumi › Lejupielādes › „Jautāt, kur saglabāt failus”.",
+  saveShare: "Sūtīt uz lietotni…",
+  saveDown: "Lejupielādēt",
+  sharedTo: "Nosūtīts uz lietotni: {name}"
 };

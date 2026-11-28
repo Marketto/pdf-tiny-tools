@@ -308,5 +308,10 @@
   newsLookP: "Zvečer se aplikacija sama potemni, na dnu strani so barve za barvno slepe, in če se me dotakneš, ti odgovorim.",
   callBad: "Datoteke iz druge aplikacije, ki jih ne morem prebrati: {n}",
   newsCallT: "Pošlji mi datoteke!",
-  newsCallP: "Zdaj mi lahko PDF-je, fotografije in videe pošiljaš iz drugih aplikacij: »Deli« v telefonu, »Odpri z« v računalniku."
+  newsCallP: "Zdaj mi lahko PDF-je, fotografije in videe pošiljaš iz drugih aplikacij: »Deli« v telefonu, »Odpri z« v računalniku.",
+  saveWhereT: "Kam s tem?",
+  saveWhereP: "Na tem telefonu brskalnik ne zna vprašati za mapo. Datoteko lahko pošlješ v aplikacijo (Drive, Datoteke, e-pošta…) in tam izbereš, kam jo shraniti, ali pa jo preneseš v mapo Download. V Chromu lahko vklopiš tudi Nastavitve › Prenosi › »Vprašaj, kam shraniti datoteke«.",
+  saveShare: "Pošlji v aplikacijo…",
+  saveDown: "Prenesi",
+  sharedTo: "Poslano v aplikacijo: {name}"
 };

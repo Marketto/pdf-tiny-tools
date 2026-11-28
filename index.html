@@ -1557,8 +1557,11 @@ function besideName(name){
 }
 
 /* un file verso il sistema: finestra «salva con nome» dove c'è, altrimenti download */
+var savedHow="";
+/* messaggio dopo il salvataggio: se il file è andato a un'app, si dice così (R-SAV-09) */
+function savedT(k,o){return savedHow==="share"?t("sharedTo",{name:savedAs}):t(k,o)}
 async function saveBlob(filename,blob){
-  savedAs=filename;
+  savedAs=filename;savedHow="";
   if(window.showSaveFilePicker){
     try{
       var zip=/\.zip$/i.test(filename);
@@ -1568,6 +1571,17 @@ async function saveBlob(filename,blob){
       savedAs=fh.name;return true;
     }catch(e){
       if(e&&e.name==="AbortError"){say(t("cancelled"));return false}
+    }
+  }
+  /* senza «Salva con nome» (Chrome su Android) ma con la condivisione dei file: si chiede dove mandarlo (R-SAV-09) */
+  var file=null;
+  try{file=new File([blob],filename,{type:blob.type||""});if(!(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})))file=null}catch(e){file=null}
+  if(file){
+    var how=await ask({title:t("saveWhereT"),text:t("saveWhereP"),buttons:[{label:t("saveShare"),cls:"go",value:"share"},{label:t("saveDown"),cls:"alt",value:"down"}]});
+    if(!how){say(t("cancelled"));return false}
+    if(how==="share"){
+      try{await navigator.share({files:[file],title:filename});savedAs=filename;savedHow="share";return true}
+      catch(e){if(e&&e.name==="AbortError"){say(t("cancelled"));return false}}
     }
   }
   saveDownload(filename,blob);
@@ -1652,7 +1666,7 @@ function finish(msg){if(jobId)jobDrop(jobId,true);reset();tmpClean(90000);render
 /* un solo file: salva con nome */
 $("saveAs").addEventListener("click",async function(){
   var it=doneItems()[0];if(!it)return;
-  if(await saveBlob(outName(it),it.out))finish(t("saved",{name:savedAs}));
+  if(await saveBlob(outName(it),it.out))finish(savedT("saved",{name:savedAs}));
 });
 
 /* più file: un'altra cartella con la stessa struttura; dove le cartelle non si possono scrivere, uno ZIP */
@@ -1680,7 +1694,7 @@ $("saveElse").addEventListener("click",async function(){
     var zip=new JZ();
     list.forEach(function(j){zip.file(j.rel,j.blob)});
     var blob=await zip.generateAsync({type:"blob",compression:"STORE"});
-    if(await saveBlob(t("zipName"),blob))finish(t("savedZip",{name:savedAs,n:nf(list.length)}));
+    if(await saveBlob(t("zipName"),blob))finish(savedT("savedZip",{name:savedAs,n:nf(list.length)}));
     return;
   }
   var dest;
@@ -2286,10 +2300,10 @@ async function capSave(){
     }catch(e){}
     await loaderOff();
     if(!blob){say(t("failed"),true);return}
-    if(await saveBlob(scanFileName(".pdf"),blob))capDone(t("saved",{name:savedAs}));
+    if(await saveBlob(scanFileName(".pdf"),blob))capDone(savedT("saved",{name:savedAs}));
     return;
   }
-  if(pages.length===1){if(await saveBlob(scanFileName(".jpg"),pages[0].blob))capDone(t("saved",{name:savedAs}));return}
+  if(pages.length===1){if(await saveBlob(scanFileName(".jpg"),pages[0].blob))capDone(savedT("saved",{name:savedAs}));return}
   var base=scanFileName(""),names=pages.map(function(p,i){return base+"-"+(i+1)+".jpg"});
   if(canDir){
     var dest;
@@ -2304,7 +2318,7 @@ async function capSave(){
   if(!JZ){say(t("zipMissing"),true);return}
   var zip=new JZ();pages.forEach(function(p,k){zip.file(names[k],p.blob)});
   var z=await zip.generateAsync({type:"blob",compression:"STORE"});
-  if(await saveBlob(base+".zip",z))capDone(t("savedZip",{name:savedAs,n:nf(pages.length)}));
+  if(await saveBlob(base+".zip",z))capDone(savedT("savedZip",{name:savedAs,n:nf(pages.length)}));
 }
 function capDone(msg){
   /* statistiche (R-PRI-05): scansione salvata, pagine per fascia, angoli a mano */
@@ -2426,7 +2440,7 @@ window.APP={
   lensMark:function(f,c){var m=el("div","lm");m.style.setProperty("--c",c);m.style.left=(f.x0/lensW*100)+"%";m.style.top=(f.y0/lensH*100)+"%";m.style.width=((f.x1-f.x0)/lensW*100)+"%";m.style.height=((f.y1-f.y0)/lensH*100)+"%";$("lensMarks").appendChild(m)},
   lensCount:function(s){$("loaderN").textContent=s},
   lensOff:loaderOff,
-  saveBlob:saveBlob,savedAs:function(){return savedAs},festa:function(){music.festa()},
+  saveBlob:saveBlob,savedAs:function(){return savedAs},savedMsg:function(){return savedT("saved",{name:savedAs})},festa:function(){music.festa()},
   checkBx:checkBx,fitBtns:fitBtns,isFill:function(){return act==="fill"},toCapture:toCapture,
   /* per Modifica (R-EDT-08/09): gli attrezzi di Cattura */
   isEdit:function(){return act==="edit"},detectPage:detectPage,editCorners:editCorners,warp:warp,projMids:projMids,toJpeg:toJpeg,

@@ -308,5 +308,10 @@
   newsLookP: "Á kvöldin dökknar appið sjálfkrafa, neðst á síðunni eru litir fyrir litblinda og ef þú snertir mig svara ég.",
   callBad: "Skrár úr öðru appi sem ég get ekki lesið: {n}",
   newsCallT: "Sendu mér skrárnar!",
-  newsCallP: "Nú geturðu sent mér PDF, myndir og vídeó úr öðrum öppum: „Deila“ í símanum, „Opna með“ í tölvunni."
+  newsCallP: "Nú geturðu sent mér PDF, myndir og vídeó úr öðrum öppum: „Deila“ í símanum, „Opna með“ í tölvunni.",
+  saveWhereT: "Hvert á þetta?",
+  saveWhereP: "Í þessum síma getur vafrinn ekki spurt um möppu. Þú getur sent skrána í app (Drive, Files, tölvupóst…) og valið þar hvar hún á að vistast, eða sótt hana í Download-möppuna. Í Chrome geturðu líka kveikt á Stillingar › Niðurhal › „Spyrja hvar eigi að vista skrár“.",
+  saveShare: "Senda í app…",
+  saveDown: "Sækja",
+  sharedTo: "Sent í app: {name}"
 };
