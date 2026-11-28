@@ -305,5 +305,8 @@
   cbAsk: "Użyj kolorów dla daltonistów",
   cbUndo: "Wróć do zwykłych kolorów",
   newsLookT: "Nowe kolory!",
-  newsLookP: "Wieczorem aplikacja sama robi się ciemna, na dole strony są kolory dla daltonistów, a jak mnie dotkniesz, odpowiem."
+  newsLookP: "Wieczorem aplikacja sama robi się ciemna, na dole strony są kolory dla daltonistów, a jak mnie dotkniesz, odpowiem.",
+  callBad: "Pliki z innej aplikacji, których nie umiem odczytać: {n}",
+  newsCallT: "Podsyłaj mi pliki!",
+  newsCallP: "Teraz możesz podsyłać mi PDF-y, zdjęcia i filmy z innych aplikacji: „Udostępnij” w telefonie, „Otwórz za pomocą” na komputerze."
 };

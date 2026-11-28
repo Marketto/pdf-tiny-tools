@@ -44,6 +44,15 @@ Il sito non ha build né dipendenze: si modifica e si apre. Per provarlo in loca
 
 Ogni push su `main` controlla le traduzioni e pubblica il sito su GitHub Pages tramite `.github/workflows/pages.yml`. Cambiare il numero in `VERSION` crea il tag corrispondente. Serve una sola impostazione iniziale: in **Settings → Pages**, alla voce «Source», scegliere **GitHub Actions**.
 
+## Usare Schiaccia da un'altra app
+
+Un'altra app può chiedere a Schiaccia di schiacciare, catturare, compilare o modificare, passandogli i file:
+- con un indirizzo: `…/pdf-tiny-tools/?fai=schiaccia&tipo=pdf&forza=2&da=<indirizzo del file>&avvia=1`;
+- con i messaggi tra finestre (`postMessage`), ricevendo indietro i file alleggeriti;
+- con «Condividi» di Android e «Apri con» del computer, per l'app installata.
+
+Una pagina web non può leggere un percorso del disco: si passa il file stesso o un indirizzo web. Il protocollo completo è in `docs/ARCHITETTURA.md` («Chiamate da altre app»); `tools/chiama.html` è una pagina di prova.
+
 ## Licenza
 
 Il codice dell'app è distribuito con licenza MIT (`LICENSE`). Le librerie in `vendor/` hanno ciascuna la propria licenza, elencata sopra.

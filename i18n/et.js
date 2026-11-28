@@ -305,5 +305,8 @@
   cbAsk: "Kasuta värvipimedatele sobivaid värve",
   cbUndo: "Tagasi tavaliste värvide juurde",
   newsLookT: "Uued värvid!",
-  newsLookP: "Õhtul muutub rakendus ise tumedaks, lehe allosas on värvipimedatele sobivad värvid ja kui mind puudutad, ma vastan."
+  newsLookP: "Õhtul muutub rakendus ise tumedaks, lehe allosas on värvipimedatele sobivad värvid ja kui mind puudutad, ma vastan.",
+  callBad: "Teisest rakendusest saadud failid, mida ma lugeda ei suuda: {n}",
+  newsCallT: "Saada mulle faile!",
+  newsCallP: "Nüüd saad mulle teistest rakendustest PDF-e, fotosid ja videoid saata: telefonis „Jaga“, arvutis „Ava rakendusega“."
 };

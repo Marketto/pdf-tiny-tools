@@ -305,5 +305,8 @@
   cbAsk: "Använd färger för färgblinda",
   cbUndo: "Tillbaka till vanliga färger",
   newsLookT: "Nya färger!",
-  newsLookP: "På kvällen blir appen mörk av sig själv, längst ner på sidan finns färger för färgblinda, och om du trycker på mig svarar jag."
+  newsLookP: "På kvällen blir appen mörk av sig själv, längst ner på sidan finns färger för färgblinda, och om du trycker på mig svarar jag.",
+  callBad: "Filer från en annan app som jag inte kan läsa: {n}",
+  newsCallT: "Skicka dina filer till mig!",
+  newsCallP: "Nu kan du ge mig PDF, bilder och videor från andra appar: ”Dela” på mobilen, ”Öppna med” på datorn."
 };

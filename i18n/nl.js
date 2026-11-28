@@ -305,5 +305,8 @@
   cbAsk: "Kleuren voor kleurenblinden gebruiken",
   cbUndo: "Terug naar de gewone kleuren",
   newsLookT: "Nieuwe kleuren!",
-  newsLookP: "'s Avonds wordt de app vanzelf donker, onderaan de pagina staan kleuren voor kleurenblinden en als je me aantikt, zeg ik iets terug."
+  newsLookP: "'s Avonds wordt de app vanzelf donker, onderaan de pagina staan kleuren voor kleurenblinden en als je me aantikt, zeg ik iets terug.",
+  callBad: "Bestanden uit een andere app die ik niet kan lezen: {n}",
+  newsCallT: "Stuur me je bestanden!",
+  newsCallP: "Je kunt me nu PDF's, foto's en video's uit andere apps sturen: “Delen” op je telefoon, “Openen met” op je computer."
 };

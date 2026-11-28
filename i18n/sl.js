@@ -305,5 +305,8 @@
   cbAsk: "Vklopi barve za barvno slepe",
   cbUndo: "Nazaj na običajne barve",
   newsLookT: "Nove barve!",
-  newsLookP: "Zvečer se aplikacija sama potemni, na dnu strani so barve za barvno slepe, in če se me dotakneš, ti odgovorim."
+  newsLookP: "Zvečer se aplikacija sama potemni, na dnu strani so barve za barvno slepe, in če se me dotakneš, ti odgovorim.",
+  callBad: "Datoteke iz druge aplikacije, ki jih ne morem prebrati: {n}",
+  newsCallT: "Pošlji mi datoteke!",
+  newsCallP: "Zdaj mi lahko PDF-je, fotografije in videe pošiljaš iz drugih aplikacij: »Deli« v telefonu, »Odpri z« v računalniku."
 };

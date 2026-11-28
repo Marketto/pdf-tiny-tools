@@ -305,5 +305,8 @@
   cbAsk: "Zapnúť farby pre farboslepých",
   cbUndo: "Späť k bežným farbám",
   newsLookT: "Nové farby!",
-  newsLookP: "Večer sa aplikácia sama stmaví, dole na stránke sú farby pre farboslepých a keď sa ma dotkneš, odpoviem."
+  newsLookP: "Večer sa aplikácia sama stmaví, dole na stránke sú farby pre farboslepých a keď sa ma dotkneš, odpoviem.",
+  callBad: "Súbory z inej aplikácie, ktoré neviem prečítať: {n}",
+  newsCallT: "Pošli mi súbory!",
+  newsCallP: "Teraz mi môžeš posielať PDF, fotky a videá z iných aplikácií: „Zdieľať“ v telefóne, „Otvoriť v programe“ v počítači."
 };

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prova delle chiamate a Schiaccia</title>
+<style>
+  body{font:16px/1.4 system-ui,sans-serif;max-width:640px;margin:24px auto;padding:0 16px;color:#1b1a2e;background:#fffdf3}
+  fieldset{border:2px solid #1b1a2e;border-radius:12px;margin:0 0 14px;padding:10px 14px}
+  label{display:block;margin:6px 0}
+  button{font:inherit;padding:8px 14px;border:2px solid #1b1a2e;border-radius:10px;background:#ffb3c7;cursor:pointer}
+  pre{background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px;white-space:pre-wrap}
+  code{background:#fff;padding:1px 4px;border-radius:4px}
+</style>
+</head>
+<body>
+<!-- Strumento di sviluppo (R-APP-24): mostra come un'altra app chiede a Schiaccia di lavorare e riceve i file.
+     Si apre da http://localhost:8000/tools/chiama.html con «python3 -m http.server 8000» nella cartella del progetto.
+     Non viene pubblicato. Il protocollo è in docs/ARCHITETTURA.md, «Chiamate da altre app». -->
+<h1>Chiama Schiaccia</h1>
+<fieldset>
+  <label>File: <input type="file" id="files" multiple accept=".pdf,.jpg,.jpeg,.mp4,.m4v,.mov,.webm,.mkv"></label>
+  <label>Oppure indirizzi (uno per riga): <textarea id="da" rows="2" cols="40" placeholder="../vendor/esempio.pdf"></textarea></label>
+  <label>Funzione: <select id="fai"><option>schiaccia</option><option>cattura</option><option>compila</option><option>modifica</option></select></label>
+  <label>Tipo: <select id="tipo"><option value="">dai file</option><option>pdf</option><option>jpg</option><option>video</option><option>tutto</option></select></label>
+  <label>Forza: <select id="forza"><option value="">come l'ultima volta</option><option value="1">1 carezza</option><option value="2">2 stretta</option><option value="3">3 martellata</option></select></label>
+  <label><input type="checkbox" id="avvia" checked> parte subito e restituisce i file</label>
+  <button id="go" type="button">Apri Schiaccia e manda</button>
+  <button id="link" type="button">Solo indirizzo</button>
+</fieldset>
+<pre id="log">Pronto.</pre>
+<div id="out"></div>
+<script>
+const APP = new URL("../index.html", location.href).href;
+const $ = (id) => document.getElementById(id);
+const log = (x) => { $("log").textContent += "\n" + x; };
+let win = null, pending = null;
+window.addEventListener("message", (e) => {
+  const d = e.data;
+  if (!d || !d.schiaccia || e.source !== win) return;
+  log("← " + d.schiaccia + (d.motivo ? " (" + d.motivo + ")" : "") + (d.file && typeof d.file === "number" ? " · file: " + d.file : ""));
+  if (d.schiaccia === "pronta" && pending) { win.postMessage(pending, new URL(APP).origin); log("→ richiesta " + pending.id); pending = null; }
+  if (d.schiaccia === "risultato") d.file.forEach((f) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(f.blob); a.download = f.nome;
+    a.textContent = `${f.nome} · ${f.stato} · ${Math.round(f.prima / 1024)} → ${Math.round(f.dopo / 1024)} KB`;
+    $("out").append(a, document.createElement("br"));
+  });
+});
+function opts() {
+  return { fai: $("fai").value, tipo: $("tipo").value || undefined, forza: $("forza").value || undefined, avvia: $("avvia").checked,
+    da: $("da").value.split("\n").map((x) => x.trim()).filter(Boolean) };
+}
+$("go").onclick = () => {
+  pending = { schiaccia: "richiesta", id: "r" + Date.now(), ...opts(), file: Array.from($("files").files) };
+  win = window.open(APP, "schiaccia");
+  log("Apro Schiaccia e aspetto «pronta»…");
+};
+$("link").onclick = () => {
+  const o = opts(), u = new URL(APP);
+  u.searchParams.set("fai", o.fai);
+  if (o.tipo) u.searchParams.set("tipo", o.tipo);
+  if (o.forza) u.searchParams.set("forza", o.forza);
+  if (o.avvia) u.searchParams.set("avvia", "1");
+  o.da.forEach((x) => u.searchParams.append("da", x));
+  log("Indirizzo: " + u.href);
+  window.open(u.href, "schiaccia");
+};
+</script>
+</body>
+</html>

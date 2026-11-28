@@ -154,6 +154,35 @@ IndexedDB `schiaccia` versione 3: oltre a `vprobe` e `jobs` c'è `files` (chiave
 - `#legal` (fuori da `#app`, `z-index` sopra `#modal`) ha tre schede: condizioni (`legalT1…7`), privacy (`legalP1…5` e il collegamento alle Issues di `CONFIG.legal.repo`), licenze (`legalL1`, `LEGAL_LIBS` e `LEGAL_FONTS` scritti nel codice, `legalFonts`, `legalCode`). `legalPara` mette in grassetto la prima frase breve. `#legalRow` in fondo alla pagina (rifatto da `applyLang`) e la finestra delle condizioni usano `legalLinks`. Esc e «Chiudi» chiudono; se sotto c'è ancora la finestra delle condizioni la pagina resta inerte.
 - Nelle prove (`smoke-test.mjs`) le condizioni sono già accettate, tranne nella prova che le controlla (`terms: true`).
 
+## Chiamate da altre app (APP-24)
+Sezione `chiamate da altre app` di `index.html` (`callRun`, `callFetch`, `callMsg`, `callShared`, `callLaunch`). Tutte le strade finiscono in `callRun(q)`, che aspetta le condizioni d'uso (`callReady`, dopo `termsGate`), passa alla funzione e alla modalità chieste e carica i file come se l'utente li avesse scelti (`reset`, `addFile`, `loaded`).
+
+**Parametri** (uguali per indirizzo e messaggi; si accettano anche i nomi inglesi):
+
+| Parametro | Valori | Predefinito |
+|---|---|---|
+| `fai` | `schiaccia`, `cattura`, `compila`, `modifica` | `schiaccia` |
+| `tipo` | `pdf`, `jpg` (o `foto`), `video`, `tutto` | dai file: uno solo → quello, misti → `tutto` |
+| `forza` | `1`/`carezza`/`soft`, `2`/`stretta`/`mid`, `3`/`martellata`/`hard` | quella scelta l'ultima volta |
+| `da` | indirizzo di un file, ripetibile (relativo alla pagina, `http(s)` con CORS, `blob:` o `data:`) | — |
+| `avvia` | `1`: per `schiaccia` parte subito | no: l'utente tira la leva |
+
+**1. Indirizzo.** `https://marketto.github.io/pdf-tiny-tools/?fai=schiaccia&tipo=pdf&forza=2&da=../kapibo/doc.pdf&avvia=1`. Dopo la lettura i parametri si tolgono dalla barra (`history.replaceState`), così una ricarica non rifà la richiesta.
+
+**2. Messaggi tra finestre.** L'altra app apre Schiaccia con `window.open(url)` o in un `<iframe>`. Schiaccia, pronta (condizioni accettate), manda a `opener` o `parent` `{schiaccia:"pronta", versione}`. L'app risponde con
+`{schiaccia:"richiesta", id, fai, tipo, forza, avvia, file:[File | {nome, blob}], da:[indirizzi]}`.
+Schiaccia risponde solo a chi ha chiesto (`event.source`, `event.origin`):
+- `{schiaccia:"ricevuta", id, file:n, illeggibili:[…]}` appena i file sono caricati;
+- con `fai:"schiaccia"` e `avvia`, a lavoro finito: `{schiaccia:"risultato", id, file:[{nome, blob, prima, dopo, stato}]}` (`stato` `done` = alleggerito, `kept` = l'originale era già leggero e torna com'è, `error`);
+- `{schiaccia:"errore", id, motivo}` se la richiesta non si può fare (`occupato`, `nessun-file`).
+I `File` e i `Blob` passano per copia strutturata dentro il browser: niente rete.
+
+**3. Condivisione (Android).** `manifest.webmanifest` → `share_target` (POST multipart, campo `file`) verso `./?condividi=1`. `sw.js` intercetta quel POST, mette i file nella cache `schiaccia-condivisi` e risponde con un rinvio a `./?condivisi=1`; la pagina li legge (`callShared`), svuota la cache e chiama `callRun`.
+
+**4. «Apri con» (computer, app installata).** `manifest.webmanifest` → `file_handlers` per PDF, JPG e video, `launch_handler` `focus-existing`; la pagina riceve gli handle da `launchQueue` (`callLaunch`) e li carica con il permesso di riscrittura, come «Scegli».
+
+Prova a mano: `tools/chiama.html` (servita con `python3 -m http.server`) apre Schiaccia, gli manda un PDF e mostra il risultato. Lo smoke test prova indirizzo e messaggi.
+
 ## Temi (UI-16/17/18)
 Solo variabili CSS: in `:root` oltre a `--ink`, `--paper`, `--sky`, `--acc*` ci sono `--card` (superfici bianche), `--shade` (ombre), `--on-acc` (testo sui colori), `--err`, `--note`, `--hi` (giallo), `--title-fill`/`--title-edge` (titolo e scritte a fumetto). Le anteprime dei documenti (`.fpage`, `.pv`, `.lensPage`, `.thumb`, `.viewStage img`, `.fthumb`) restano bianche. In fondo al CSS tre blocchi ridefiniscono solo variabili: `@media (prefers-color-scheme: dark)` (proposta A), `html.cb` (Okabe-Ito, anche nel buio; la classe la mette lo script di testa leggendo `localStorage.cb`, così non c'è un lampo di colori) e `@media (prefers-contrast: more)` per ultimo, che vince sugli altri. Due `<meta name="theme-color">` con `media` per la barra del telefono.
 

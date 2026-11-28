@@ -305,5 +305,8 @@
   cbAsk: "Naudoti spalvas daltonikams",
   cbUndo: "Grįžti prie įprastų spalvų",
   newsLookT: "Naujos spalvos!",
-  newsLookP: "Vakare programėlė pati patamsėja, puslapio apačioje rasi spalvas daltonikams, o jei mane paliesi, atsakysiu."
+  newsLookP: "Vakare programėlė pati patamsėja, puslapio apačioje rasi spalvas daltonikams, o jei mane paliesi, atsakysiu.",
+  callBad: "Failai iš kitos programėlės, kurių negaliu perskaityti: {n}",
+  newsCallT: "Siųsk man failus!",
+  newsCallP: "Dabar gali man perduoti PDF, nuotraukas ir vaizdo įrašus iš kitų programėlių: telefone „Bendrinti“, kompiuteryje „Atidaryti naudojant“."
 };

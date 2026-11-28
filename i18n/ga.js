@@ -305,5 +305,8 @@
   cbAsk: "Úsáid dathanna do dhaoine dathdhalla",
   cbUndo: "Ar ais chuig na gnáthdhathanna",
   newsLookT: "Dathanna nua!",
-  newsLookP: "Tráthnóna éiríonn an aip dorcha léi féin, tá dathanna do dhaoine dathdhalla ag bun an leathanaigh, agus má bhaineann tú liom, freagróidh mé thú."
+  newsLookP: "Tráthnóna éiríonn an aip dorcha léi féin, tá dathanna do dhaoine dathdhalla ag bun an leathanaigh, agus má bhaineann tú liom, freagróidh mé thú.",
+  callBad: "Comhaid ó aip eile nach féidir liom a léamh: {n}",
+  newsCallT: "Seol chugam do chuid comhad!",
+  newsCallP: "Is féidir leat PDF, grianghraif agus físeáin a sheoladh chugam ó aipeanna eile anois: “Share” ar an bhfón, “Open with” ar an ríomhaire."
 };

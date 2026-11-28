@@ -305,5 +305,8 @@
   cbAsk: "Farben für Farbenblinde nutzen",
   cbUndo: "Zurück zu den üblichen Farben",
   newsLookT: "Neue Farben!",
-  newsLookP: "Abends wird die App von selbst dunkel, unten auf der Seite gibt's Farben für Farbenblinde, und wenn du mich antippst, antworte ich."
+  newsLookP: "Abends wird die App von selbst dunkel, unten auf der Seite gibt's Farben für Farbenblinde, und wenn du mich antippst, antworte ich.",
+  callBad: "Dateien aus einer anderen App, die ich nicht lesen kann: {n}",
+  newsCallT: "Schick mir deine Dateien!",
+  newsCallP: "Jetzt kannst du mir PDFs, Fotos und Videos aus anderen Apps zuspielen: „Teilen“ am Handy, „Öffnen mit“ am Computer."
 };

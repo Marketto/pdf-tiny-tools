@@ -305,5 +305,8 @@
   cbAsk: "Uključi boje za daltoniste",
   cbUndo: "Vrati uobičajene boje",
   newsLookT: "Nove boje!",
-  newsLookP: "Navečer se aplikacija sama zatamni, na dnu stranice su boje za daltoniste, a ako me dodirneš, odgovorit ću ti."
+  newsLookP: "Navečer se aplikacija sama zatamni, na dnu stranice su boje za daltoniste, a ako me dodirneš, odgovorit ću ti.",
+  callBad: "Fajlovi iz druge aplikacije koje ne mogu pročitati: {n}",
+  newsCallT: "Šalji mi fajlove!",
+  newsCallP: "Sada mi možeš slati PDF-ove, slike i video snimke iz drugih aplikacija: „Podijeli” na telefonu, „Otvori pomoću” na računaru."
 };

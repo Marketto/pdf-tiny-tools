@@ -305,5 +305,8 @@
   cbAsk: "Renk körlerine uygun renkleri kullan",
   cbUndo: "Her zamanki renklere dön",
   newsLookT: "Yeni renkler!",
-  newsLookP: "Akşamları uygulama kendiliğinden kararır, sayfanın en altında renk körlerine uygun renkler var ve bana dokunursan cevap veririm."
+  newsLookP: "Akşamları uygulama kendiliğinden kararır, sayfanın en altında renk körlerine uygun renkler var ve bana dokunursan cevap veririm.",
+  callBad: "Başka bir uygulamadan gelen ve okuyamadığım dosyalar: {n}",
+  newsCallT: "Dosyalarını bana gönder!",
+  newsCallP: "Artık PDF'leri, fotoğrafları ve videoları diğer uygulamalardan bana gönderebilirsin: telefonda “Paylaş”, bilgisayarda “Birlikte aç”."
 };

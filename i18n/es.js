@@ -305,5 +305,8 @@
   cbAsk: "Usa los colores para daltónicos",
   cbUndo: "Vuelve a los colores de siempre",
   newsLookT: "¡Colores nuevos!",
-  newsLookP: "Por la noche la app se oscurece sola, abajo del todo hay colores para daltónicos y, si me tocas, te contesto."
+  newsLookP: "Por la noche la app se oscurece sola, abajo del todo hay colores para daltónicos y, si me tocas, te contesto.",
+  callBad: "Archivos de otra app que no puedo leer: {n}",
+  newsCallT: "¡Mándame tus archivos!",
+  newsCallP: "Ahora puedes pasarme PDF, fotos y vídeos desde otras apps: «Compartir» en el móvil, «Abrir con» en el ordenador."
 };

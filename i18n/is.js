@@ -305,5 +305,8 @@
   cbAsk: "Nota liti fyrir litblinda",
   cbUndo: "Aftur í venjulega liti",
   newsLookT: "Nýir litir!",
-  newsLookP: "Á kvöldin dökknar appið sjálfkrafa, neðst á síðunni eru litir fyrir litblinda og ef þú snertir mig svara ég."
+  newsLookP: "Á kvöldin dökknar appið sjálfkrafa, neðst á síðunni eru litir fyrir litblinda og ef þú snertir mig svara ég.",
+  callBad: "Skrár úr öðru appi sem ég get ekki lesið: {n}",
+  newsCallT: "Sendu mér skrárnar!",
+  newsCallP: "Nú geturðu sent mér PDF, myndir og vídeó úr öðrum öppum: „Deila“ í símanum, „Opna með“ í tölvunni."
 };

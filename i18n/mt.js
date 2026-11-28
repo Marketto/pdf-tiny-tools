@@ -305,5 +305,8 @@
   cbAsk: "Uża kuluri għal min hu daltoniku",
   cbUndo: "Lura għall-kuluri tas-soltu",
   newsLookT: "Kuluri ġodda!",
-  newsLookP: "Filgħaxija l-app tiskura waħedha, fil-qiegħ tal-paġna hemm kuluri għal min hu daltoniku, u jekk tmissni, inwieġbek."
+  newsLookP: "Filgħaxija l-app tiskura waħedha, fil-qiegħ tal-paġna hemm kuluri għal min hu daltoniku, u jekk tmissni, inwieġbek.",
+  callBad: "Fajls minn app oħra li ma nistax naqrahom: {n}",
+  newsCallT: "Ibgħatli l-fajls!",
+  newsCallP: "Issa tista' tgħaddili PDF, ritratti u videos minn apps oħra: “Share” fuq il-mowbajl, “Open with” fuq il-kompjuter."
 };

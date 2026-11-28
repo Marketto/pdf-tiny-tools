@@ -305,5 +305,8 @@
   cbAsk: "Pakai warna ramah buta warna",
   cbUndo: "Kembali ke warna biasa",
   newsLookT: "Warna baru!",
-  newsLookP: "Malam hari, aplikasi jadi gelap sendiri, warna ramah buta warna ada di bawah halaman, dan kalau kamu menyentuh saya, saya akan menjawab."
+  newsLookP: "Malam hari, aplikasi jadi gelap sendiri, warna ramah buta warna ada di bawah halaman, dan kalau kamu menyentuh saya, saya akan menjawab.",
+  callBad: "File dari aplikasi lain yang tidak bisa saya baca: {n}",
+  newsCallT: "Kirim filemu ke sini!",
+  newsCallP: "Sekarang kamu bisa mengoper PDF, foto, dan video dari aplikasi lain ke saya: “Bagikan” di ponsel, “Buka dengan” di komputer."
 };

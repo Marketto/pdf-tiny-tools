@@ -20,7 +20,7 @@ self.addEventListener("install",e=>{
 // All'attivazione: via le cache delle versioni vecchie e i moduli che l'app non usa più.
 self.addEventListener("activate",e=>{
   e.waitUntil(caches.keys()
-    .then(ks=>Promise.all(ks.filter(k=>k!==CACHE&&k!==MODS).map(k=>caches.delete(k))))
+    .then(ks=>Promise.all(ks.filter(k=>k!==CACHE&&k!==MODS&&k!=="schiaccia-condivisi").map(k=>caches.delete(k))))
     .then(()=>{MAP=null;return modMap()})
     .then(async map=>{
       if(!Object.keys(map).length)return;
@@ -83,8 +83,21 @@ async function networkFirst(c,r){
     return live;
   }
 }
+// Condivisione da Android (R-APP-24, share_target del manifest): i file arrivano qui con un POST; si tengono
+// nella cache «schiaccia-condivisi» e la pagina, riaperta con ?condivisi=1, li prende e svuota la cache.
+async function shareIn(r){
+  try{
+    const fd=await r.formData(),fs=fd.getAll("file").filter(f=>f&&f.name);
+    await caches.delete("schiaccia-condivisi");
+    const c=await caches.open("schiaccia-condivisi");
+    for(let i=0;i<fs.length;i++)await c.put(new Request(new URL("condivisi/"+i+"/"+encodeURIComponent(fs[i].name),BASE).href),new Response(fs[i],{headers:{"content-type":fs[i].type||"application/octet-stream"}}));
+  }catch(err){}
+  return Response.redirect(new URL("./?condivisi=1",BASE).href,303);
+}
 self.addEventListener("fetch",e=>{
-  const r=e.request;if(r.method!=="GET")return;
+  const r=e.request;
+  if(r.method==="POST"&&new URL(r.url).searchParams.has("condividi")){e.respondWith(shareIn(r));return}
+  if(r.method!=="GET")return;
   const u=new URL(r.url),own=u.origin===location.origin,font=/fonts\.(googleapis|gstatic)\.com$/.test(u.hostname);
   if(!own&&!font)return;
   if(font){e.respondWith(caches.open(MODS).then(c=>cacheFirst(c,r,false)));return}

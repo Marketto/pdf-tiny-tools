@@ -19,7 +19,7 @@ Web app statica che alleggerisce nel browser i PDF (ricomprimendo le immagini ch
 | `sw.js` | Cache offline (service worker) |
 | `manifest.webmanifest`, `icons/`, `favicon.ico` | Installazione come app |
 | `vendor/` | pdf-lib, JSZip, Mediabunny (video), Tesseract (orientamento e testo delle scansioni) e pdf.js (pagine dei PDF in Compila), copiati così come sono: non modificarli. Si scaricano solo quando servono e restano sul dispositivo tra una versione e l'altra (R-APP-16) |
-| `tools/` | Strumenti di sviluppo (controlli, prova nel browser, icone) |
+| `tools/` | Strumenti di sviluppo (controlli, prova nel browser, icone, `chiama.html` per provare le chiamate da altre app, R-APP-24) |
 | `tests/` | Prove della logica pura senza browser (`node --test`, R-APP-22) |
 | `.claude/` | Skill e agenti descritti sotto |
 | `docs/` | Requisiti, architettura e guida al lavoro con gli agenti |

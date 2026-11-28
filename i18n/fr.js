@@ -305,5 +305,8 @@
   cbAsk: "Utiliser des couleurs adaptées aux daltoniens",
   cbUndo: "Revenir aux couleurs habituelles",
   newsLookT: "Nouvelles couleurs !",
-  newsLookP: "Le soir, l'appli passe toute seule en sombre, les couleurs pour daltoniens sont en bas de la page et, si vous me touchez, je vous réponds."
+  newsLookP: "Le soir, l'appli passe toute seule en sombre, les couleurs pour daltoniens sont en bas de la page et, si vous me touchez, je vous réponds.",
+  callBad: "Fichiers venus d'une autre appli que je n'arrive pas à lire : {n}",
+  newsCallT: "Envoyez-moi vos fichiers !",
+  newsCallP: "Vous pouvez maintenant me passer des PDF, photos et vidéos depuis vos autres applis : « Partager » sur le téléphone, « Ouvrir avec » sur l'ordinateur."
 };

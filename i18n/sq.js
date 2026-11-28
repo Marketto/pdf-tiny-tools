@@ -305,5 +305,8 @@
   cbAsk: "Përdor ngjyrat për daltonikët",
   cbUndo: "Kthehu te ngjyrat e zakonshme",
   newsLookT: "Ngjyra të reja!",
-  newsLookP: "Në mbrëmje aplikacioni errësohet vetë, në fund të faqes ka ngjyra për daltonikët dhe, po të më prekësh, të përgjigjem."
+  newsLookP: "Në mbrëmje aplikacioni errësohet vetë, në fund të faqes ka ngjyra për daltonikët dhe, po të më prekësh, të përgjigjem.",
+  callBad: "Skedarë nga një aplikacion tjetër që nuk arrij t'i lexoj: {n}",
+  newsCallT: "Më dërgo skedarët!",
+  newsCallP: "Tani mund të më kalosh PDF, foto dhe video nga aplikacionet e tjera: “Ndaj” në telefon, “Hap me” në kompjuter."
 };

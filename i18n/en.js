@@ -305,5 +305,8 @@
   cbAsk: "Use colour-blind friendly colours",
   cbUndo: "Back to the usual colours",
   newsLookT: "New colours!",
-  newsLookP: "In the evening the app turns dark on its own, colour-blind friendly colours are at the bottom of the page, and if you tap me, I'll answer."
+  newsLookP: "In the evening the app turns dark on its own, colour-blind friendly colours are at the bottom of the page, and if you tap me, I'll answer.",
+  callBad: "I can't read {n} file(s) sent by another app.",
+  newsCallT: "Send me your files!",
+  newsCallP: "You can now pass me PDFs, photos and videos from other apps: “Share” on your phone, “Open with” on your computer."
 };

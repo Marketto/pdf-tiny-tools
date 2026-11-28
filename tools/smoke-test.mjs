@@ -950,6 +950,42 @@ for (const [locale, lang, dir] of [["it-IT", "it", "ltr"], ["en-US", "en", "ltr"
   check(errors.length === 0, `Benvenuto: nessun errore JavaScript${errors.length ? " → " + errors.join("; ") : ""}`);
   await ctx.close();
 }
+// --- Chiamate da altre app (R-APP-24): messaggi tra finestre e indirizzo con i parametri
+{
+  const ctx = await browser.newContext({ locale: "it-IT", viewport: { width: 400, height: 860 } });
+  const page = await ctx.newPage(); const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  ctx.on("page", (p) => p.on("pageerror", (e) => errors.push("finestra: " + e.message)));
+  await page.goto(url + "tools/chiama.html");
+  const r = await page.evaluate(async (app) => {
+    const c = document.createElement("canvas"); c.width = 1600; c.height = 1200; const g = c.getContext("2d");
+    const im = g.createImageData(1600, 1200); for (let i = 0; i < im.data.length; i += 4) { const v = (i / 4) % 1600; im.data[i] = v % 256; im.data[i + 1] = (v * 3) % 256; im.data[i + 2] = 128; im.data[i + 3] = 255; } g.putImageData(im, 0, 0);
+    const blob = await new Promise((res) => c.toBlob(res, "image/jpeg", 0.98));
+    const w = window.open(app, "schiaccia"), seen = [];
+    return await new Promise((res) => {
+      const stop = setTimeout(() => res({ seen, timeout: true }), 90000);
+      window.addEventListener("message", (e) => {
+        if (e.source !== w || !e.data || !e.data.schiaccia) return; seen.push(e.data.schiaccia);
+        if (e.data.schiaccia === "pronta") w.postMessage({ schiaccia: "richiesta", id: "t1", forza: 3, avvia: true, file: [new File([blob], "prova.jpg", { type: "image/jpeg" })] }, location.origin);
+        if (e.data.schiaccia === "risultato" || e.data.schiaccia === "errore") { clearTimeout(stop); const f = e.data.file && e.data.file[0]; res({ seen, id: e.data.id, f: f && { nome: f.nome, stato: f.stato, prima: f.prima, dopo: f.dopo, blob: f.blob instanceof Blob, size: f.blob && f.blob.size } }); }
+      });
+    });
+  }, url);
+  check(r.seen.join(",") === "pronta,ricevuta,risultato" && r.id === "t1", `Chiamate: messaggi pronta → ricevuta → risultato (${r.seen.join(", ")}${r.timeout ? ", tempo scaduto" : ""})`);
+  check(r.f && r.f.stato === "done" && r.f.blob && r.f.size === r.f.dopo && r.f.dopo < r.f.prima && /prova.*\.jpg$/i.test(r.f.nome), `Chiamate: il file torna alleggerito a chi l'ha chiesto (${r.f && r.f.nome}, ${r.f && r.f.prima} → ${r.f && r.f.dopo})`);
+  const app = ctx.pages().find((p) => p !== page);
+  check(app && await app.evaluate(() => document.body.classList.contains("mode-jpg") && document.querySelector('input[name="jlvl"]:checked').value === "hard"), "Chiamate: tipo dai file (JPG) e forza 3 = Martellata");
+  if (app) await app.close();
+  const tiny = await page.evaluate(async () => { const c = document.createElement("canvas"); c.width = 64; c.height = 48; c.getContext("2d").fillRect(0, 0, 30, 30); return c.toDataURL("image/jpeg", 0.9); });
+  const p2 = await ctx.newPage();
+  await p2.goto(url + "?fai=schiaccia&tipo=jpg&forza=1&da=" + encodeURIComponent(tiny) + "&da=" + encodeURIComponent("nonce/manca.pdf"));
+  await p2.waitForTimeout(2500);
+  const st = await p2.evaluate(() => ({ jpg: document.body.classList.contains("mode-jpg"), lv: document.querySelector('input[name="jlvl"]:checked').value, msg: document.getElementById("msg").textContent, q: location.search }));
+  check(st.jpg && st.lv === "soft" && st.q === "", `Chiamate: l'indirizzo sceglie modalità e forza, e i parametri spariscono dalla barra (${st.q || "barra pulita"})`);
+  check(/leggere 1 file/.test(st.msg), `Chiamate: un indirizzo illeggibile si segnala («${st.msg}»)`);
+  check(errors.length === 0, `Chiamate: nessun errore${errors.length ? " → " + errors.join("; ") : ""}`);
+  await ctx.close();
+}
 // --- Temi e mascotte (R-UI-16/17/18/19): scuro, alto contrasto, daltonici, fumetto al tocco
 {
   const look = async (o) => {

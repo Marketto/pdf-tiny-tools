@@ -2468,10 +2468,136 @@ if(/^#(jpg|pdf|video|all)$/i.test(location.hash))firstMode=location.hash.slice(1
 setMode(MODES.indexOf(firstMode)>=0?firstMode:"pdf",true);
 applyLang();
 if(!hadMode&&mode==="pdf"&&$("modeBtn"))$("modeBtn").classList.add("wiggle");
+/* ---------- chiamate da altre app (R-APP-24): indirizzo, messaggi tra finestre, condivisione, «Apri con» ----------
+   Il protocollo è in docs/ARCHITETTURA.md («Chiamate da altre app»). Tutto finisce in callRun. */
+var callOk,callReady=new Promise(function(r){callOk=r}),callBusy=false;
+var CALL_FAI={schiaccia:"squash",squash:"squash",compress:"squash",cattura:"capture",capture:"capture",scan:"capture",compila:"fill",fill:"fill",modifica:"edit",edit:"edit"};
+var CALL_TIPO={pdf:"pdf",jpg:"jpg",jpeg:"jpg",foto:"jpg",photo:"jpg",video:"video",tutto:"all",all:"all"};
+var CALL_FORZA={"1":"soft","2":"mid","3":"hard",soft:"soft",mid:"mid",hard:"hard",carezza:"soft",stretta:"mid",martellata:"hard"};
+function callTipo(fs){var k={};fs.forEach(function(f){var n=f.file?f.file.name:f.name;if(EXT.pdf.test(n)||EXT.jpg.test(n)||EXT.video.test(n))k[kindOf(n)]=1});var ks=Object.keys(k);return ks.length===1?ks[0]:ks.length?"all":null}
+/* indirizzi di file: relativi alla pagina, http(s) (il sito deve permetterlo: stesso sito o CORS), blob: o data:. Un percorso del disco non si può leggere da una pagina web */
+async function callFetch(urls){
+  var out=[],bad=[];
+  for(var i=0;i<urls.length;i++){
+    try{
+      var u=new URL(String(urls[i]),location.href);
+      if(!/^(https?|blob|data):$/.test(u.protocol))throw 0;
+      var r=await fetch(u.href,{credentials:u.origin===location.origin?"same-origin":"omit"});if(!r.ok)throw 0;
+      var b=await r.blob(),nm="file";
+      try{nm=decodeURIComponent(u.pathname.split("/").pop())||nm}catch(e){}
+      if(u.protocol==="data:"||u.protocol==="blob:")nm="file"+(/pdf/.test(b.type)?".pdf":/jpe?g/.test(b.type)?".jpg":/video/.test(b.type)?".mp4":"");
+      out.push(new File([b],nm,{type:b.type}));
+    }catch(e){bad.push(String(urls[i]))}
+  }
+  return {files:out,bad:bad};
+}
+/* q: {fai, tipo, forza, avvia, file:[File|{nome,blob}|{file,handle}], da:[indirizzi]}; restituisce {ok, motivo, file, illeggibili, risultato} */
+async function callRun(q,onLoaded){
+  await callReady;
+  if(callBusy||busy||loading)return {ok:false,motivo:"occupato"};
+  callBusy=true;
+  try{
+    var a=CALL_FAI[String(q.fai||"schiaccia").toLowerCase()]||"squash";
+    var fs=(q.file||[]).map(function(f){
+      if(!f)return null;
+      if(f.file)return f;
+      if(f instanceof Blob&&f.name)return {file:f};
+      if(f.blob)return {file:new File([f.blob],f.nome||f.name||"file",{type:f.blob.type})};
+      return null;
+    }).filter(Boolean);
+    var got=q.da&&q.da.length?await callFetch([].concat(q.da)):{files:[],bad:[]};
+    got.files.forEach(function(f){fs.push({file:f})});
+    var badMsg=got.bad.length?t("callBad",{n:nf(got.bad.length)}):"";
+    if(badMsg)say(badMsg,true);
+    var info={ok:true,file:fs.length,illeggibili:got.bad};
+    if(a!=="squash"){
+      if(act!==a)await setAction(a);
+      if(act!==a)return {ok:false,motivo:"annullato"};
+      var plain=fs.map(function(f){return f.file});
+      if(a==="capture"&&plain.length)await galleryFiles(plain);
+      else if(a==="fill"&&plain.length){await fillLib();Compila.openFiles(plain)}
+      else if(a==="edit"&&plain.length){await editLib();Modifica.openFiles(plain)}
+      if(onLoaded)onLoaded(info);
+      return info;
+    }
+    if(act!=="squash")await setAction("squash");
+    if(act!=="squash")return {ok:false,motivo:"annullato"};
+    var m=CALL_TIPO[String(q.tipo||"").toLowerCase()]||callTipo(fs)||mode;
+    if(m!==mode)await setMode(m);
+    if(m!==mode)return {ok:false,motivo:"annullato"};
+    var lv=q.forza!=null&&CALL_FORZA[String(q.forza).toLowerCase()],ln={pdf:"lvl",jpg:"jlvl",video:"vlvl",all:"alvl"}[m],rb=lv&&document.querySelector('input[name="'+ln+'"][value="'+lv+'"]');
+    if(rb&&!rb.checked){rb.checked=true;rb.dispatchEvent(new Event("change",{bubbles:true}))}
+    if(!fs.length){if(onLoaded)onLoaded(info);return info}
+    /* lavoro non salvato: si chiede come quando si cambia modalità */
+    if(items.length&&unsaved()){
+      var lw=await ask({title:t("leaveTitle"),text:t("leaveBodyP"),buttons:[{label:t("pauseChange"),cls:"ok",value:"pause"},{label:t("leaveYes"),cls:"danger",value:1}]});
+      if(!lw)return {ok:false,motivo:"annullato"};
+      if(lw==="pause")await pauseJob();else{await stopWork();if(jobId)jobDrop(jobId)}
+    }
+    reset();tmpClean();
+    fs.forEach(function(f){if(wants(f.file.name))addFile(f.file,null,f.handle||null)});
+    await loaded(items.length);
+    if(badMsg)say(badMsg,true);
+    info.file=items.length;
+    if(onLoaded)onLoaded(info);
+    if(!items.length)return {ok:false,motivo:"nessun-file",illeggibili:got.bad};
+    if(!q.avvia)return info;
+    await goNow();
+    info.risultato=items.map(function(it){
+      var done=it.status==="done"&&it.out;
+      return {nome:done?outName(it):it.name,blob:done?it.out:it.file,prima:it.size,dopo:done?it.out.size:it.size,stato:it.status};
+    });
+    return info;
+  }finally{callBusy=false}
+}
+/* 1. indirizzo: ?fai=…&tipo=…&forza=…&da=…&avvia=1 (i parametri si tolgono dalla barra, così una ricarica non ripete) */
+function callFromUrl(){
+  var sp=new URLSearchParams(location.search);
+  if(!sp.has("fai")&&!sp.has("da"))return null;
+  var q={fai:sp.get("fai"),tipo:sp.get("tipo"),forza:sp.get("forza"),avvia:sp.get("avvia")==="1",da:sp.getAll("da")};
+  ["fai","tipo","forza","avvia","da"].forEach(function(k){sp.delete(k)});
+  try{history.replaceState(null,"",location.pathname+(sp.toString()?"?"+sp:"")+location.hash)}catch(e){}
+  return q;
+}
+/* 2. messaggi tra finestre: si risponde solo a chi ha chiesto, alla sua origine */
+window.addEventListener("message",function(e){
+  var d=e.data;if(!d||d.schiaccia!=="richiesta"||!e.source)return;
+  var to=e.origin&&e.origin!=="null"?e.origin:"*",src=e.source,id=d.id;
+  function reply(x){x.id=id;try{src.postMessage(x,to)}catch(err){}}
+  callRun(d,function(info){reply({schiaccia:"ricevuta",file:info.file,illeggibili:info.illeggibili})}).then(function(r){
+    if(!r.ok)reply({schiaccia:"errore",motivo:r.motivo,illeggibili:r.illeggibili||[]});
+    else if(r.risultato)reply({schiaccia:"risultato",file:r.risultato});
+  },function(err){reply({schiaccia:"errore",motivo:String(err&&err.message||err)})});
+});
+function callHello(){
+  var peers=[window.opener,window.parent!==window?window.parent:null].filter(Boolean);
+  peers.forEach(function(w){try{w.postMessage({schiaccia:"pronta",versione:verNow()},"*")}catch(e){}});
+}
+/* 3. condivisione (Android): sw.js ha messo i file nella cache «schiaccia-condivisi» */
+async function callShared(){
+  var sp=new URLSearchParams(location.search);
+  if(!sp.has("condivisi")||!window.caches)return null;
+  sp.delete("condivisi");try{history.replaceState(null,"",location.pathname+(sp.toString()?"?"+sp:"")+location.hash)}catch(e){}
+  try{
+    var c=await caches.open("schiaccia-condivisi"),ks=await c.keys(),fs=[];
+    for(var i=0;i<ks.length;i++){var r=await c.match(ks[i]),nm=decodeURIComponent(ks[i].url.split("/").pop()),b=await r.blob();fs.push(new File([b],nm,{type:b.type}))}
+    await caches.delete("schiaccia-condivisi");
+    return fs.length?{file:fs}:null;
+  }catch(e){return null}
+}
+/* 4. «Apri con» (app installata sul computer): gli handle arrivano con il permesso di riscrivere, come da «Scegli» */
+if("launchQueue" in window)try{window.launchQueue.setConsumer(async function(p){
+  if(!p.files||!p.files.length)return;
+  var fs=[];for(var i=0;i<p.files.length;i++)try{fs.push({file:await p.files[i].getFile(),handle:p.files[i]})}catch(e){}
+  if(fs.length)callRun({file:fs});
+})}catch(e){}
 /* lavori in pausa da riprendere (R-APP-13) */
 setTimeout(async function(){
   /* condizioni d'uso, una volta (R-PRI-06): prima del lavoro da riprendere, del giro e delle novità */
   await termsGate();
+  callOk();callHello();
+  var q=callFromUrl()||await callShared();
+  if(q){callRun(q);return}
   if(items.length||loading)return;
   var live=await sessFresh();
   if(live&&await sessResume(live)){toast(t("jobBack"));return}

@@ -305,5 +305,8 @@
   cbAsk: "Izmantot krāsas daltoniķiem",
   cbUndo: "Atpakaļ uz ierastajām krāsām",
   newsLookT: "Jaunas krāsas!",
-  newsLookP: "Vakarā lietotne pati kļūst tumša, lapas apakšā ir krāsas daltoniķiem, un, ja man pieskarsies, es atbildēšu."
+  newsLookP: "Vakarā lietotne pati kļūst tumša, lapas apakšā ir krāsas daltoniķiem, un, ja man pieskarsies, es atbildēšu.",
+  callBad: "Faili no citas lietotnes, kurus nevaru nolasīt: {n}",
+  newsCallT: "Sūti man failus!",
+  newsCallP: "Tagad vari man nodot PDF, fotoattēlus un video no citām lietotnēm: tālrunī „Kopīgot”, datorā „Atvērt ar”."
 };

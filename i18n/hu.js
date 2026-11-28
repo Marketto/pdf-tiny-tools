@@ -305,5 +305,8 @@
   cbAsk: "Színtévesztőbarát színek használata",
   cbUndo: "Vissza a megszokott színekhez",
   newsLookT: "Új színek!",
-  newsLookP: "Este az app magától elsötétül, az oldal alján ott vannak a színtévesztőbarát színek, és ha megérintesz, válaszolok."
+  newsLookP: "Este az app magától elsötétül, az oldal alján ott vannak a színtévesztőbarát színek, és ha megérintesz, válaszolok.",
+  callBad: "Másik appból kapott fájlok, amelyeket nem tudok beolvasni: {n}",
+  newsCallT: "Küldd ide a fájljaidat!",
+  newsCallP: "Mostantól más appokból is átadhatod nekem a PDF-eket, fotókat és videókat: telefonon „Megosztás”, számítógépen „Megnyitás ezzel”."
 };

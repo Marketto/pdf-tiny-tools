@@ -305,5 +305,8 @@
   cbAsk: "Käytä värisokeille sopivia värejä",
   cbUndo: "Takaisin tavallisiin väreihin",
   newsLookT: "Uudet värit!",
-  newsLookP: "Illalla sovellus tummuu itsestään, sivun alareunasta löytyvät värisokeille sopivat värit, ja jos kosketat minua, vastaan."
+  newsLookP: "Illalla sovellus tummuu itsestään, sivun alareunasta löytyvät värisokeille sopivat värit, ja jos kosketat minua, vastaan.",
+  callBad: "Toisesta sovelluksesta tulleet tiedostot, joita en pysty lukemaan: {n}",
+  newsCallT: "Lähetä minulle tiedostoja!",
+  newsCallP: "Nyt voit antaa minulle PDF-tiedostoja, kuvia ja videoita muista sovelluksista: puhelimessa ”Jaa”, tietokoneella ”Avaa sovelluksessa”."
 };
